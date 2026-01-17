@@ -4,6 +4,17 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g., v0.2.1)'
+        required: true
+        type: string
+
+# Cancel in-progress runs for the same tag
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   CARGO_TERM_COLOR: always
@@ -15,25 +26,46 @@ jobs:
   build:
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
         include:
+          # Linux x86_64 (glibc)
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             archive: tar.gz
+            cross: false
+          # Linux x86_64 (musl - static binary for Alpine, etc.)
           - os: ubuntu-latest
             target: x86_64-unknown-linux-musl
             archive: tar.gz
+            cross: false
+          # Linux ARM64 (glibc - Raspberry Pi, AWS Graviton, etc.)
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            archive: tar.gz
+            cross: true
+          # Linux ARM64 (musl - Alpine on ARM)
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            archive: tar.gz
+            cross: true
+          # macOS Intel
           - os: macos-latest
             target: x86_64-apple-darwin
             archive: tar.gz
+            cross: false
+          # macOS Apple Silicon
           - os: macos-latest
             target: aarch64-apple-darwin
             archive: tar.gz
+            cross: false
+          # Windows x86_64
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             archive: zip
+            cross: false
 
     steps:
       - uses: actions/checkout@v4
@@ -43,12 +75,33 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
-      - name: Install musl-tools (Linux musl)
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.target }}-cargo-release-
+            ${{ runner.os }}-${{ matrix.target }}-cargo-
+
+      - name: Install musl-tools (Linux x86_64 musl)
         if: matrix.target == 'x86_64-unknown-linux-musl'
         run: sudo apt-get update && sudo apt-get install -y musl-tools
 
-      - name: Build release binary
+      - name: Install cross (for cross-compilation)
+        if: matrix.cross
+        uses: taiki-e/install-action@cross
+
+      - name: Build release binary (native)
+        if: "!matrix.cross"
         run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Build release binary (cross)
+        if: matrix.cross
+        run: cross build --release --target ${{ matrix.target }}
 
       - name: Create archive (Unix)
         if: matrix.archive == 'tar.gz'
@@ -56,18 +109,28 @@ jobs:
           cd target/${{ matrix.target }}/release
           tar -czf ../../../xf-${{ matrix.target }}.tar.gz xf
           cd ../../..
+          # Generate per-file checksum
+          sha256sum xf-${{ matrix.target }}.tar.gz > xf-${{ matrix.target }}.tar.gz.sha256
 
       - name: Create archive (Windows)
         if: matrix.archive == 'zip'
         shell: pwsh
         run: |
           Compress-Archive -Path target/${{ matrix.target }}/release/xf.exe -DestinationPath xf-${{ matrix.target }}.zip
+          # Generate per-file checksum
+          (Get-FileHash -Algorithm SHA256 xf-${{ matrix.target }}.zip).Hash.ToLower() + "  xf-${{ matrix.target }}.zip" | Out-File -Encoding utf8 xf-${{ matrix.target }}.zip.sha256
 
-      - name: Upload artifact
+      - name: Upload archive artifact
         uses: actions/upload-artifact@v4
         with:
           name: xf-${{ matrix.target }}
           path: xf-${{ matrix.target }}.${{ matrix.archive }}
+
+      - name: Upload checksum artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: xf-${{ matrix.target }}-sha256
+          path: xf-${{ matrix.target }}.${{ matrix.archive }}.sha256
 
   # ==========================================================================
   # Create GitHub Release
@@ -75,6 +138,7 @@ jobs:
   release:
     name: Create Release
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: build
     permissions:
       contents: write
@@ -90,23 +154,37 @@ jobs:
       - name: Prepare release files
         run: |
           mkdir -p release
-          find artifacts -type f \( -name "*.tar.gz" -o -name "*.zip" \) -exec mv {} release/ \;
+          # Move all archives and individual checksums
+          find artifacts -type f \( -name "*.tar.gz" -o -name "*.zip" -o -name "*.sha256" \) -exec mv {} release/ \;
 
-      - name: Generate checksums
+      - name: Generate aggregated checksums
         run: |
           cd release
-          sha256sum * > SHA256SUMS
+          # Generate SHA256SUMS for all archives (excluding individual .sha256 files)
+          sha256sum *.tar.gz *.zip 2>/dev/null | sort > SHA256SUMS || true
+          # Display for verification in logs
+          echo "=== SHA256SUMS ==="
+          cat SHA256SUMS
 
       - name: Extract version from tag
         id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        run: |
+          # Handle both tag push and manual workflow_dispatch
+          if [ -n "${{ github.event.inputs.tag }}" ]; then
+            VERSION="${{ github.event.inputs.tag }}"
+            VERSION="${VERSION#v}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           name: xf v${{ steps.version.outputs.VERSION }}
           draft: false
-          prerelease: ${{ contains(github.ref, '-') }}
+          prerelease: ${{ contains(steps.version.outputs.VERSION, '-') }}
           generate_release_notes: true
           files: |
             release/*
@@ -120,15 +198,21 @@ jobs:
 
             ### Manual Download
             Download the appropriate binary for your platform:
-            - **Linux (x86_64)**: `xf-x86_64-unknown-linux-gnu.tar.gz`
-            - **Linux (musl)**: `xf-x86_64-unknown-linux-musl.tar.gz`
-            - **macOS (Intel)**: `xf-x86_64-apple-darwin.tar.gz`
-            - **macOS (Apple Silicon)**: `xf-aarch64-apple-darwin.tar.gz`
-            - **Windows**: `xf-x86_64-pc-windows-msvc.zip`
+            - **Linux x86_64 (glibc)**: `xf-x86_64-unknown-linux-gnu.tar.gz`
+            - **Linux x86_64 (musl/static)**: `xf-x86_64-unknown-linux-musl.tar.gz`
+            - **Linux ARM64 (glibc)**: `xf-aarch64-unknown-linux-gnu.tar.gz`
+            - **Linux ARM64 (musl/static)**: `xf-aarch64-unknown-linux-musl.tar.gz`
+            - **macOS Intel**: `xf-x86_64-apple-darwin.tar.gz`
+            - **macOS Apple Silicon**: `xf-aarch64-apple-darwin.tar.gz`
+            - **Windows x86_64**: `xf-x86_64-pc-windows-msvc.zip`
 
             ### Verify Download
             ```bash
-            sha256sum -c SHA256SUMS
+            # Verify using aggregated checksums
+            sha256sum -c SHA256SUMS --ignore-missing
+
+            # Or verify individual file
+            sha256sum -c xf-x86_64-unknown-linux-gnu.tar.gz.sha256
             ```
 
             ## What's Changed
@@ -141,11 +225,21 @@ jobs:
   notify-homebrew-tap:
     name: Notify Homebrew Tap
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: release
+    # Only run if HOMEBREW_TAP_TOKEN is configured
+    if: ${{ secrets.HOMEBREW_TAP_TOKEN != '' }}
     steps:
       - name: Extract version from tag
         id: version
-        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        run: |
+          if [ -n "${{ github.event.inputs.tag }}" ]; then
+            VERSION="${{ github.event.inputs.tag }}"
+            VERSION="${VERSION#v}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Trigger formula update
         uses: peter-evans/repository-dispatch@v3
@@ -161,18 +255,28 @@ jobs:
 
       - name: Log dispatch
         run: |
-          echo "✅ Dispatched formula-update event to homebrew-tap"
+          echo "Dispatched formula-update event to homebrew-tap"
           echo "   Tool: xf"
           echo "   Version: ${{ steps.version.outputs.version }}"
 
   notify-scoop-bucket:
     name: Notify Scoop Bucket
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: release
+    # Only run if SCOOP_BUCKET_TOKEN is configured
+    if: ${{ secrets.SCOOP_BUCKET_TOKEN != '' }}
     steps:
       - name: Extract version from tag
         id: version
-        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        run: |
+          if [ -n "${{ github.event.inputs.tag }}" ]; then
+            VERSION="${{ github.event.inputs.tag }}"
+            VERSION="${VERSION#v}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Trigger manifest update
         uses: peter-evans/repository-dispatch@v3
@@ -188,6 +292,6 @@ jobs:
 
       - name: Log dispatch
         run: |
-          echo "✅ Dispatched manifest-update event to scoop-bucket"
+          echo "Dispatched manifest-update event to scoop-bucket"
           echo "   Tool: xf"
           echo "   Version: ${{ steps.version.outputs.version }}"
