@@ -136,17 +136,58 @@ jobs:
             See the automatically generated release notes below.
 
   # ==========================================================================
-  # Update Homebrew Formula (optional)
+  # Notify Package Managers to Update
   # ==========================================================================
-  # homebrew:
-  #   name: Update Homebrew
-  #   runs-on: ubuntu-latest
-  #   needs: release
-  #   steps:
-  #     - name: Bump Homebrew formula
-  #       uses: mislav/bump-homebrew-formula-action@v3
-  #       with:
-  #         formula-name: xf
-  #         homebrew-tap: Dicklesworthstone/homebrew-tap
-  #       env:
-  #         COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TOKEN }}
+  notify-homebrew-tap:
+    name: Notify Homebrew Tap
+    runs-on: ubuntu-latest
+    needs: release
+    steps:
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Trigger formula update
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          repository: Dicklesworthstone/homebrew-tap
+          event-type: formula-update
+          client-payload: |
+            {
+              "tool": "xf",
+              "version": "${{ steps.version.outputs.version }}"
+            }
+
+      - name: Log dispatch
+        run: |
+          echo "✅ Dispatched formula-update event to homebrew-tap"
+          echo "   Tool: xf"
+          echo "   Version: ${{ steps.version.outputs.version }}"
+
+  notify-scoop-bucket:
+    name: Notify Scoop Bucket
+    runs-on: ubuntu-latest
+    needs: release
+    steps:
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Trigger manifest update
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.SCOOP_BUCKET_TOKEN }}
+          repository: Dicklesworthstone/scoop-bucket
+          event-type: manifest-update
+          client-payload: |
+            {
+              "tool": "xf",
+              "version": "${{ steps.version.outputs.version }}"
+            }
+
+      - name: Log dispatch
+        run: |
+          echo "✅ Dispatched manifest-update event to scoop-bucket"
+          echo "   Tool: xf"
+          echo "   Version: ${{ steps.version.outputs.version }}"

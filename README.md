@@ -17,7 +17,7 @@ Ultra-fast CLI for searching and querying your X data archive with sub-milliseco
 <h3>Quick Install</h3>
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.sh | bash
+curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.sh?$(date +%s)" | bash
 ```
 
 **Or via package managers:**
@@ -339,23 +339,23 @@ Your X data archive only contains **your own data**—content you created or dir
 The easiest way to install is using the install script, which downloads a prebuilt binary for your platform:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.sh | bash
+curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.sh?$(date +%s)" | bash
 ```
 
 **With options:**
 
 ```bash
 # Easy mode: auto-update PATH in shell rc files
-curl -fsSL https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.sh | bash -s -- --easy-mode
+curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.sh?$(date +%s)" | bash -s -- --easy-mode
 
 # Install specific version
-curl -fsSL https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.sh | bash -s -- --version v0.1.0
+curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.sh?$(date +%s)" | bash -s -- --version v0.1.0
 
 # Install to /usr/local/bin (system-wide, requires sudo)
-curl -fsSL https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.sh | sudo bash -s -- --system
+curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.sh?$(date +%s)" | sudo bash -s -- --system
 
 # Build from source instead of downloading binary
-curl -fsSL https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.sh | bash -s -- --from-source
+curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.sh?$(date +%s)" | bash -s -- --from-source
 ```
 
 > **Note:** If you have [gum](https://github.com/charmbracelet/gum) installed, the installer will use it for fancy terminal formatting.
@@ -1362,7 +1362,7 @@ X includes recently deleted tweets (within the last 30 days) in a separate file.
 ### How do I update?
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.sh | bash
+curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.sh?$(date +%s)" | bash
 ```
 
 Or use the built-in command:
