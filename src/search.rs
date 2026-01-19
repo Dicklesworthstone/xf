@@ -535,7 +535,16 @@ impl SearchEngine {
             enable_highlights = false;
             Box::new(AllQuery)
         } else {
-            let query_parser = QueryParser::for_index(&self.index, vec![text_field, prefix_field]);
+            // Check if query contains quoted phrases - prefix_field doesn't have positions
+            // indexed (IndexRecordOption::Basic), so phrase queries would fail on it.
+            // Only include prefix_field for queries without phrases to enable prefix matching.
+            let has_phrase = trimmed.contains('"');
+            let fields = if has_phrase {
+                vec![text_field]
+            } else {
+                vec![text_field, prefix_field]
+            };
+            let query_parser = QueryParser::for_index(&self.index, fields);
             query_parser
                 .parse_query(trimmed)
                 .map_err(|e| anyhow::anyhow!("Invalid search query: {e}"))?
