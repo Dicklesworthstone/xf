@@ -178,7 +178,9 @@ Before ending a work session:
 4. **PUSH TO REMOTE** - This is MANDATORY:
    ```bash
    git pull --rebase
-   bd sync
+   br sync --flush-only
+   git add .beads/
+   git commit -m "sync beads"
    git push
    git status  # MUST show "up to date with origin"
    ```
@@ -194,41 +196,43 @@ Before ending a work session:
 
 ---
 
-## Issue Tracking with bd (beads)
+## Issue Tracking with br (beads_rust)
 
-All issue tracking goes through **bd**. No other TODO systems.
+All issue tracking goes through **br** (beads_rust). No other TODO systems.
+
+**Important:** `br` is non-invasive—it NEVER executes git commands. After `br sync --flush-only`, you must manually run `git add .beads/ && git commit`.
 
 Key invariants:
 
 - `.beads/` is authoritative state and **must always be committed** with code changes.
-- Do not edit `.beads/*.jsonl` directly; only via `bd`.
+- Do not edit `.beads/*.jsonl` directly; only via `br`.
 
 ### Basics
 
 Check ready work:
 
 ```bash
-bd ready --json
+br ready --json
 ```
 
 Create issues:
 
 ```bash
-bd create "Issue title" -t bug|feature|task -p 0-4 --json
-bd create "Issue title" -p 1 --deps discovered-from:bd-123 --json
+br create "Issue title" -t bug|feature|task -p 0-4 --json
+br create "Issue title" -p 1 --deps discovered-from:br-123 --json
 ```
 
 Update:
 
 ```bash
-bd update bd-42 --status in_progress --json
-bd update bd-42 --priority 1 --json
+br update br-42 --status in_progress --json
+br update br-42 --priority 1 --json
 ```
 
 Complete:
 
 ```bash
-bd close bd-42 --reason "Completed" --json
+br close br-42 --reason "Completed" --json
 ```
 
 Types:
@@ -245,17 +249,19 @@ Priorities:
 
 Agent workflow:
 
-1. `bd ready` to find unblocked work.
-2. Claim: `bd update <id> --status in_progress`.
+1. `br ready` to find unblocked work.
+2. Claim: `br update <id> --status in_progress`.
 3. Implement + test.
 4. If you discover new work, create a new bead with `discovered-from:<parent-id>`.
 5. Close when done.
-6. Commit `.beads/` in the same commit as code changes.
+6. Run `br sync --flush-only && git add .beads/` before committing.
+7. Commit `.beads/` in the same commit as code changes.
 
-Auto-sync:
+Sync behavior:
 
-- bd exports to `.beads/issues.jsonl` after changes (debounced).
-- It imports from JSONL when newer (e.g. after `git pull`).
+- `br sync --flush-only` exports DB to `.beads/issues.jsonl` (NO git operations).
+- `br sync --import-only` imports from JSONL when it's newer (e.g. after `git pull`).
+- Auto-import runs before read commands; auto-flush runs after write commands.
 
 Never:
 
@@ -310,8 +316,8 @@ vercel rollback
 5. Create a P0 bead:
 
 ```bash
-bd create "P0: Production site down - <description>" -t bug -p 0 --json
-bd update <id> --status in_progress --json
+br create "P0: Production site down - <description>" -t bug -p 0 --json
+br update <id> --status in_progress --json
 ```
 
 6. After fix, verify:
@@ -344,11 +350,11 @@ Monitor state:
 P0 workflow:
 
 1. Detect alert → create P0 bead.
-2. Claim bead → `bd update <id> --status in_progress`.
+2. Claim bead → `br update <id> --status in_progress`.
 3. Fix → deploy to Vercel.
 4. Verify → `... --all-pages`.
-5. Close bead → `bd close <id>`.
-6. Commit `.beads/` alongside code.
+5. Close bead → `br close <id>`.
+6. Sync and commit: `br sync --flush-only && git add .beads/ && git commit`.
 
 Key files:
 
@@ -694,7 +700,10 @@ Treat cass as a way to avoid re-solving problems other agents already handled.
 4. **PUSH TO REMOTE** - This is MANDATORY:
    ```bash
    git pull --rebase
-   bd sync
+   br sync --flush-only    # Export beads to JSONL (no git ops)
+   git add .beads/         # Stage beads changes
+   git add <other files>   # Stage code changes
+   git commit -m "..."     # Commit everything
    git push
    git status  # MUST show "up to date with origin"
    ```
@@ -714,7 +723,9 @@ Treat cass as a way to avoid re-solving problems other agents already handled.
 
 ## Beads Workflow Integration
 
-This project uses [beads_viewer](https://github.com/Dicklesworthstone/beads_viewer) for issue tracking. Issues are stored in `.beads/` and tracked in git.
+This project uses [beads_rust](https://github.com/Dicklesworthstone/beads_rust) (`br`) for issue tracking. Issues are stored in `.beads/` and tracked in git.
+
+**Important:** `br` is non-invasive—it NEVER executes git commands. After `br sync --flush-only`, you must manually run `git add .beads/ && git commit`.
 
 ### Essential Commands
 
@@ -723,27 +734,27 @@ This project uses [beads_viewer](https://github.com/Dicklesworthstone/beads_view
 bv
 
 # CLI commands for agents (use these instead)
-bd ready              # Show issues ready to work (no blockers)
-bd list --status=open # All open issues
-bd show <id>          # Full issue details with dependencies
-bd create --title="..." --type=task --priority=2
-bd update <id> --status=in_progress
-bd close <id> --reason="Completed"
-bd close <id1> <id2>  # Close multiple issues at once
-bd sync               # Commit and push changes
+br ready              # Show issues ready to work (no blockers)
+br list --status=open # All open issues
+br show <id>          # Full issue details with dependencies
+br create --title="..." --type=task --priority=2
+br update <id> --status=in_progress
+br close <id> --reason="Completed"
+br close <id1> <id2>  # Close multiple issues at once
+br sync --flush-only  # Export to JSONL (NO git operations)
 ```
 
 ### Workflow Pattern
 
-1. **Start**: Run `bd ready` to find actionable work
-2. **Claim**: Use `bd update <id> --status=in_progress`
+1. **Start**: Run `br ready` to find actionable work
+2. **Claim**: Use `br update <id> --status=in_progress`
 3. **Work**: Implement the task
-4. **Complete**: Use `bd close <id>`
-5. **Sync**: Always run `bd sync` at session end
+4. **Complete**: Use `br close <id>`
+5. **Sync**: Run `br sync --flush-only` then manually commit
 
 ### Key Concepts
 
-- **Dependencies**: Issues can block other issues. `bd ready` shows only unblocked work.
+- **Dependencies**: Issues can block other issues. `br ready` shows only unblocked work.
 - **Priority**: P0=critical, P1=high, P2=medium, P3=low, P4=backlog (use numbers, not words)
 - **Types**: task, bug, feature, epic, question, docs
-- **Blocking**: `bd dep add <issue> <depends-on>` to add dependencies
+- **Blocking**: `br dep add <issue> <depends-on>` to add dependencies
