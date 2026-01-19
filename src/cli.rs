@@ -216,6 +216,24 @@ pub struct SearchArgs {
     /// Search mode: lexical (keyword), semantic (meaning), or hybrid (both)
     #[arg(long, short = 'm', default_value = "hybrid")]
     pub mode: crate::hybrid::SearchMode,
+
+    /// Embedder for semantic search: hash (fast, lexical) or ollama (true semantic, requires Ollama)
+    #[arg(long, short = 'e', default_value = "hash")]
+    pub embedder: EmbedderType,
+
+    /// Ollama model to use (only with --embedder ollama)
+    #[arg(long, default_value = "nomic-embed-text")]
+    pub ollama_model: String,
+}
+
+/// Embedder type for semantic search.
+#[derive(ValueEnum, Clone, Debug, Default, PartialEq, Eq)]
+pub enum EmbedderType {
+    /// Fast hash-based embeddings (not truly semantic)
+    #[default]
+    Hash,
+    /// Ollama-based ML embeddings (true semantic, requires running Ollama)
+    Ollama,
 }
 
 #[derive(Args, Debug)]

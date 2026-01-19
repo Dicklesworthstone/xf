@@ -21,6 +21,7 @@ pub mod embedder;
 pub mod error;
 pub mod hash_embedder;
 pub mod hybrid;
+pub mod ollama_embedder;
 pub mod logging;
 pub mod model;
 pub mod parser;

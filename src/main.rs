@@ -26,6 +26,7 @@ use xf::date_parser;
 use xf::embedder::Embedder;
 use xf::hash_embedder::HashEmbedder;
 use xf::hybrid::{self, SearchMode};
+use xf::ollama_embedder::OllamaEmbedder;
 use xf::repl;
 use xf::search;
 use xf::stats_analytics::{self, ContentStats, EngagementStats, TemporalStats};
@@ -1252,7 +1253,16 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs) -> Result<()> {
             // Semantic-only search using vector similarity
             let vector_index = vector_index
                 .ok_or_else(|| anyhow::anyhow!("vector index required for semantic"))?;
-            let embedder = HashEmbedder::default();
+            let embedder: Box<dyn Embedder> = match args.embedder {
+                cli::EmbedderType::Hash => Box::new(HashEmbedder::default()),
+                cli::EmbedderType::Ollama => {
+                    let ollama = OllamaEmbedder::with_model(&args.ollama_model);
+                    if !ollama.is_available() {
+                        anyhow::bail!("Ollama not available at localhost:11434. Start Ollama or use --embedder hash");
+                    }
+                    Box::new(ollama)
+                }
+            };
             let canonical_query = canonicalize_for_embedding(&args.query);
 
             if canonical_query.is_empty() {
@@ -1301,7 +1311,16 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs) -> Result<()> {
 
         SearchMode::Hybrid => {
             // Hybrid search using RRF fusion
-            let embedder = HashEmbedder::default();
+            let embedder: Box<dyn Embedder> = match args.embedder {
+                cli::EmbedderType::Hash => Box::new(HashEmbedder::default()),
+                cli::EmbedderType::Ollama => {
+                    let ollama = OllamaEmbedder::with_model(&args.ollama_model);
+                    if !ollama.is_available() {
+                        anyhow::bail!("Ollama not available at localhost:11434. Start Ollama or use --embedder hash");
+                    }
+                    Box::new(ollama)
+                }
+            };
             let canonical_query = canonicalize_for_embedding(&args.query);
             let candidate_count = hybrid::candidate_count(args.limit, args.offset);
 
@@ -1312,7 +1331,7 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs) -> Result<()> {
             // Get semantic results (if embeddings exist and query canonicalizes)
             let semantic_results = get_semantic_results(
                 vector_index,
-                &embedder,
+                embedder.as_ref(),
                 &canonical_query,
                 doc_types.as_deref(),
                 candidate_count,
@@ -1525,7 +1544,7 @@ fn has_embeddings_for_types(doc_types: Option<&[search::DocType]>) -> bool {
 /// Returns empty vector if vector index is None, query is empty, or embedding fails.
 fn get_semantic_results(
     vector_index: Option<&VectorIndex>,
-    embedder: &HashEmbedder,
+    embedder: &dyn Embedder,
     canonical_query: &str,
     doc_types: Option<&[search::DocType]>,
     candidate_count: usize,
