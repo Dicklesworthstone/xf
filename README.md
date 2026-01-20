@@ -336,7 +336,19 @@ Your X data archive only contains **your own data**—content you created or dir
 
 ### Quick Install (Recommended)
 
-The easiest way to install is using the install script, which downloads a prebuilt binary for your platform:
+**Recommended: Homebrew (macOS/Linux)**
+```bash
+brew install dicklesworthstone/tap/xf
+```
+
+**Windows: Scoop**
+```powershell
+scoop bucket add dicklesworthstone https://github.com/Dicklesworthstone/scoop-bucket
+scoop install dicklesworthstone/xf
+```
+
+**Alternative: Install Script**
+The easiest way to install without a package manager is using the install script, which downloads a prebuilt binary for your platform:
 
 ```bash
 curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.sh?$(date +%s)" | bash
