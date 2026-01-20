@@ -344,17 +344,27 @@ curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.
 
 **With options:**
 
+Easy mode (auto-update PATH in shell rc files):
+
 ```bash
-# Easy mode: auto-update PATH in shell rc files
 curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.sh?$(date +%s)" | bash -s -- --easy-mode
+```
 
-# Install specific version
+Install specific version:
+
+```bash
 curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.sh?$(date +%s)" | bash -s -- --version v0.1.0
+```
 
-# Install to /usr/local/bin (system-wide, requires sudo)
+Install to /usr/local/bin (system-wide, requires sudo):
+
+```bash
 curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.sh?$(date +%s)" | sudo bash -s -- --system
+```
 
-# Build from source instead of downloading binary
+Build from source instead of downloading binary:
+
+```bash
 curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.sh?$(date +%s)" | bash -s -- --from-source
 ```
 
