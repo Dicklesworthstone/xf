@@ -47,8 +47,9 @@ scoop install dicklesworthstone/xf
 | Feature | What It Does |
 |---------|--------------|
 | **Sub-Millisecond Search** | Tantivy-powered full-text search with BM25 ranking |
-| **Similarity Search (hash-based)** | Finds content with overlapping vocabulary; best when queries share words with target content |
-| **Hybrid Search** | Combines keyword + hash-based similarity with RRF fusion for best-of-both-worlds relevance |
+| **Vector Similarity (default: hash)** | Finds content with overlapping vocabulary; best when queries share words with target content |
+| **True Semantic Search (optional ML)** | Uses MiniLM embeddings when indexed with `--semantic` for synonym-level matching |
+| **Hybrid Search** | Combines keyword + vector similarity (hash by default, ML when indexed with `--semantic`) |
 | **Search Everything** | Tweets, likes, DMs, and Grok conversations in one place |
 | **Rich Query Syntax** | Phrases, wildcards, boolean operators (`AND`, `OR`, `NOT`) |
 | **DM Context** | View full conversation threads with search matches highlighted |
@@ -56,18 +57,21 @@ scoop install dicklesworthstone/xf
 | **Privacy-First** | All data stays local on your machine—nothing sent anywhere |
 | **Fast Indexing** | ~10,000 documents/second with parallel parsing |
 
-Note: Semantic mode uses hash-based vocabulary similarity (feature hashing). It won't infer pure synonyms without shared words (e.g., "car" vs "automobile").
+Note: Semantic mode uses hash-based vocabulary similarity **by default**. Run `xf index --semantic` to build true semantic embeddings (MiniLM). If you switch modes, re-index so the vector index matches the embedder.
 
 ### Quick Example
 
 ```bash
-# Index your archive (one-time setup, ~5 seconds)
+# Index your archive (default: hash-based embeddings)
 $ xf index ~/x-archive
+
+# Optional: true semantic embeddings (downloads ~80MB on first use)
+$ xf index ~/x-archive --semantic
 
 # Search across everything (hybrid mode by default)
 $ xf search "machine learning"
 
-# Semantic search (hash-based similarity): best with overlapping terms
+# Semantic search (vector similarity; true semantic if indexed with --semantic)
 $ xf search "feeling overwhelmed at work" --mode semantic
 
 # Keyword-only search (classic BM25)
@@ -84,7 +88,7 @@ $ xf search "rust async" --format json --limit 50
 ```
 ## xf — X Archive Search
 
-Ultra-fast local search for X (Twitter) data archives. Parses `window.YTD.*` JavaScript format from X data exports. Hybrid search combining keyword (BM25) + hash-based vector similarity via RRF fusion.
+Ultra-fast local search for X (Twitter) data archives. Parses `window.YTD.*` JavaScript format from X data exports. Hybrid search combining keyword (BM25) + vector similarity (hash by default; ML when indexed with `--semantic`) via RRF fusion.
 
 ### Core Workflow
 
@@ -94,19 +98,20 @@ xf index ~/x-archive
 xf index ~/x-archive --force          # Rebuild from scratch
 xf index ~/x-archive --only tweet,dm  # Index specific types
 xf index ~/x-archive --skip grok      # Skip specific types
+xf index ~/x-archive --semantic       # True semantic embeddings (MiniLM; slower)
 
 # 2. Search
 xf search "machine learning"          # Hybrid search (default)
-xf search "feeling stressed" --mode semantic  # Hash-based similarity
+xf search "feeling stressed" --mode semantic  # Vector similarity (hash default, ML if indexed with --semantic)
 xf search "rust async" --mode lexical # Keyword-only (BM25)
 xf search "meeting" --types dm        # DMs only
 xf search "article" --types like      # Liked tweets only
 
 Search Modes
 
---mode hybrid   # Default: combines keyword + hash-based similarity with RRF fusion
+--mode hybrid   # Default: BM25 + vector similarity (hash default, ML with --semantic index)
 --mode lexical  # Keyword-only (BM25), best for exact terms
---mode semantic # Hash-based similarity over token overlap
+--mode semantic # Vector similarity (hash default, ML with --semantic index)
 
 Search Syntax (lexical mode)
 
@@ -152,9 +157,9 @@ Storage
 Notes
 
 - First search after restart may be slower (index loading). Subsequent searches <10ms.
-- Semantic mode uses hash-based vocabulary similarity; it won't infer synonyms without shared words.
+- Semantic mode uses hash-based similarity by default. Run `xf index --semantic` for true semantic embeddings.
 - --context only works with --types dm — shows full conversation around matches.
-- All data stays local. No network access, no model downloads.
+- All data stays local. No network access during search; optional model download only when you enable `--semantic`.
 ```
 
 ---
@@ -167,7 +172,7 @@ Notes
 
 Your social media history is deeply personal. `xf` processes everything locally:
 
-- **No network calls**: Zero telemetry, no analytics, no "phone home"
+- **No network calls during search**: Zero telemetry, no analytics, no "phone home" (optional model download only if you enable `--semantic`)
 - **No cloud dependencies**: Works completely offline after installation
 - **No API keys**: Unlike tools that query X's API, `xf` works entirely from your downloaded archive
 - **Your data stays yours**: The SQLite database and search index live on your machine
@@ -178,7 +183,7 @@ Getting started should take seconds, not hours:
 
 - **Sensible defaults**: Hybrid search, 20 results, colorized output—just works
 - **Auto-detection**: Finds archive structure automatically, handles format variations
-- **No model downloads**: The hash embedder means no waiting for ML model files
+- **No model downloads by default**: The hash embedder means no waiting for ML model files (unless you opt into `--semantic`)
 - **Platform detection**: Install script handles OS/architecture differences
 
 ### Composition Over Complexity
@@ -212,7 +217,7 @@ Performance isn't an afterthought—it's a core feature:
 
 | Feature | xf | X's HTML Viewer | grep/ripgrep | Elasticsearch |
 |---------|-----|-----------------|--------------|---------------|
-| Full-text search | ✅ BM25 + similarity (hash-based) | ❌ None | ⚠️ Basic regex | ✅ Full |
+| Full-text search | ✅ BM25 + vector similarity (hash default; ML optional) | ❌ None | ⚠️ Basic regex | ✅ Full |
 | Similarity search | ✅ Hash embedder | ❌ | ❌ | ⚠️ With plugins |
 | Search speed | ✅ <10ms | ❌ Manual scrolling | ⚠️ Depends on size | ✅ Fast |
 | Setup time | ✅ ~10 seconds | ✅ Just open HTML | ✅ None | ❌ Hours |
@@ -467,6 +472,9 @@ xf index ~/Downloads/x-archive
 # Force re-index (clear existing data)
 xf index ~/Downloads/x-archive --force
 
+# Build true semantic embeddings (MiniLM; downloads ~80MB on first use)
+xf index ~/Downloads/x-archive --semantic
+
 # Index only specific data types
 xf index ~/Downloads/x-archive --only tweet,like
 
@@ -483,9 +491,9 @@ Search the indexed archive.
 xf search "your query"
 
 # Search modes
-xf search "query" --mode hybrid    # Default: combines keyword + hash-based similarity
+xf search "query" --mode hybrid    # Default: combines keyword + vector similarity (hash default; ML if indexed with --semantic)
 xf search "query" --mode lexical   # Keyword-only (BM25)
-xf search "query" --mode semantic  # Hash-based vector similarity (token overlap)
+xf search "query" --mode semantic  # Vector similarity (hash default; ML if indexed with --semantic)
 
 # Filter by type
 xf search "query" --types tweet,dm
@@ -507,9 +515,9 @@ xf search "meeting" --types dm --context --format json
 
 | Mode | Best For | How It Works |
 |------|----------|--------------|
-| `hybrid` | General use (default) | Combines keyword + hash-based similarity with RRF fusion |
+| `hybrid` | General use (default) | Combines keyword + vector similarity (hash default; ML with `--semantic`) |
 | `lexical` | Exact terms, boolean queries | Classic BM25 keyword matching |
-| `semantic` | Similar wording | Hash-based similarity over overlapping vocabulary |
+| `semantic` | Similar wording | Vector similarity (hash default; ML with `--semantic`) |
 
 **Query syntax:**
 - Simple terms: `machine learning`
@@ -662,7 +670,7 @@ Each document type has specific fields indexed for search:
 
 ### Embedding Strategy
 
-All content is stored and indexed in full—nothing is truncated. For vector embeddings, text is canonicalized (Unicode normalization, markdown stripped, whitespace collapsed) before hashing.
+All content is stored and indexed in full—nothing is truncated. For vector embeddings, text is canonicalized (Unicode normalization, markdown stripped, whitespace collapsed) before embedding (hash or ML).
 
 | Type | Text Source | Notes |
 |------|-------------|-------|
@@ -712,16 +720,17 @@ Empty or trivial messages (e.g., "OK", "Thanks") are filtered from embeddings bu
 
 ### No Network Access
 
-xf makes exactly zero network calls during normal operation:
+xf makes zero network calls during normal search operations:
 
 - **No update checks**: Use `xf update` explicitly when you want to update
 - **No telemetry**: No usage stats, no error reporting, no analytics
-- **No model downloads**: The hash embedder is pure Rust, no ONNX/PyTorch
+- **No model downloads by default**: The hash embedder is pure Rust (unless you opt into `xf index --semantic`)
 - **No API calls**: Works entirely from your local archive export
 
 The only network access is during:
 1. **Installation**: Downloading the binary from GitHub Releases
 2. **`xf update`**: Checking for and downloading updates (user-initiated)
+3. **Optional semantic indexing**: Downloading the MiniLM model when you run `xf index --semantic`
 
 ### Secure Deletion
 
@@ -802,13 +811,15 @@ This permanently deletes all indexed content. The original archive is unaffected
 
 **Stage 4: Embedding Generation**
 - Canonicalizes text (strips markdown, normalizes whitespace, filters noise)
-- Generates 384-dimensional embeddings via FNV-1a hash-based embedder
+- Generates 384-dimensional embeddings via:
+  - **Default**: FNV-1a hash embedder (fast, zero external dependencies)
+  - **Optional**: MiniLM via FastEmbed when indexed with `--semantic` (true semantic, slower)
 - Stores embeddings with F16 quantization (50% size reduction)
 - Content hashing (SHA256) enables incremental re-indexing
 
 **Stage 5: Search**
 - **Lexical mode**: Tantivy BM25 keyword matching
-- **Semantic mode**: Vector similarity via SIMD dot product
+- **Semantic mode**: Vector similarity via SIMD dot product (hash or ML embeddings)
 - **Hybrid mode**: RRF fusion of both result sets for optimal relevance
 - Joins with SQLite for full metadata retrieval
 
@@ -828,8 +839,11 @@ The classic information retrieval approach, powered by [Tantivy](https://github.
 xf search "async await" --mode lexical
 ```
 
-#### Semantic Search (Hash-Based Vector Similarity)
+#### Semantic Search (Hash or ML Embeddings)
 
+`xf` supports two semantic embedding modes that share the same vector index format:
+
+**A) Default: Hash-Based Vector Similarity**  
 Finds content with overlapping vocabulary rather than exact keyword matches:
 
 - **Embedder**: FNV-1a hash-based embeddings (zero external dependencies)
@@ -838,7 +852,7 @@ Finds content with overlapping vocabulary rather than exact keyword matches:
 - **Storage**: F16 quantization reduces memory by 50%
 
 ```bash
-# Finds tweets with shared terms like "overwhelmed" or "work"
+# Hash-based similarity (default index)
 xf search "feeling overwhelmed at work" --mode semantic
 ```
 
@@ -855,6 +869,22 @@ This approach is:
 - **Fast**: ~0ms per embedding (no GPU needed)
 - **Deterministic**: Same input always produces same output
 - **Zero dependencies**: No model files to download
+
+**B) Optional: True Semantic (MiniLM via FastEmbed)**  
+When you index with `--semantic`, xf builds MiniLM embeddings for synonym-level matching:
+
+```bash
+# Build ML embeddings (downloads ~80MB on first use)
+xf index ~/x-archive --semantic
+
+# True semantic similarity
+xf search "feeling overwhelmed at work" --mode semantic
+```
+
+This mode is:
+- **Semantic**: "happy" and "joyful" can match
+- **Slower to index**: ~100 items/sec on CPU
+- **Larger downloads**: ~80MB model weights on first use
 
 #### Hybrid Search (RRF Fusion)
 
@@ -1138,8 +1168,9 @@ PRAGMA temp_store = MEMORY;     -- Temp tables in RAM
 
 `xf` is designed for speed:
 
-- **Indexing**: ~10,000 documents/second
-- **Search**: Sub-millisecond for most queries
+- **Indexing (hash)**: ~10,000 documents/second
+- **Indexing (semantic ML)**: ~100 documents/second (CPU, model-dependent)
+- **Search**: Sub-millisecond for most lexical queries; semantic adds embedding cost
 - **Memory**: Efficient memory-mapped index files
 - **Parallelism**: Multi-threaded parsing via rayon
 
@@ -1149,10 +1180,12 @@ On a typical archive (12,000 tweets, 40,000 likes):
 
 | Operation | Time |
 |-----------|------|
-| Index + embed | ~8 seconds |
+| Index + embed (hash) | ~8 seconds |
+| Index + embed (semantic ML) | ~100 items/sec (CPU, model-dependent) |
 | Lexical search | <1ms |
-| Semantic search | <5ms |
-| Hybrid search | <10ms |
+| Semantic search (hash) | <5ms |
+| Semantic search (ML) | higher latency (embedding cost; model-dependent) |
+| Hybrid search | <10ms (hash), higher with ML |
 
 | Storage | Size |
 |---------|------|
@@ -1335,12 +1368,12 @@ xf stats --format json | jq '.embeddings'
 - **Real-time sync**: xf works on static archive exports, not live data
 - **Multi-archive**: Only one archive at a time (re-index to switch)
 - **Media search**: Can't search image/video content (only text metadata)
-- **True synonyms**: Hash embedder finds related words, not true synonyms ("car" won't find "automobile" unless they co-occur in your tweets)
+- **True synonyms (hash mode)**: Hash embedder finds related words, not true synonyms ("car" won't find "automobile" unless they co-occur in your tweets). Use `xf index --semantic` to enable ML embeddings.
 - **Incremental updates**: Re-indexing processes the entire archive (fast enough that it rarely matters)
 
 ### Known Limitations of the Hash Embedder
 
-The hash-based embedder is fast and dependency-free, but has limitations compared to neural embedders:
+The hash-based embedder is fast and dependency-free, but has limitations compared to neural embedders (MiniLM is available via `xf index --semantic`):
 
 | Capability | Hash Embedder | Neural (BERT/MiniLM) |
 |------------|---------------|----------------------|
@@ -1421,42 +1454,52 @@ Tantivy's query parser supports:
 - You're searching for specific names, hashtags, or technical terms
 
 **Use semantic (`--mode semantic`) when:**
-- You're ok with broader recall based on word overlap
-- You want to find related content that shares some wording
-- Example: "feeling stressed" finds tweets that mention stress, stressed, or pressure
+- You want vector similarity instead of exact keyword matching
+- **Default (hash)**: broader recall based on word overlap
+- **With `xf index --semantic`**: synonym-level matching (true semantic)
 
 **Use hybrid (default) when:**
 - You're not sure which approach is best
 - You want the most comprehensive results
 - Hybrid combines both and uses RRF to rank results optimally
 
-### How does semantic search work without a neural network?
+### How does semantic search work?
 
-`xf` uses a hash-based embedder instead of traditional ML models like BERT or Word2Vec. Each word is hashed (FNV-1a) to deterministically select which dimensions to activate in a 384-dimensional vector. This approach:
+`xf` supports two embedding modes:
+
+**Default (hash-based):** no model downloads. Each word is hashed (FNV-1a) to deterministically select which dimensions to activate in a 384-dimensional vector. This approach:
 
 - Requires **no model download** (zero bytes of ML weights)
 - Runs in **~0ms** (no GPU needed)
 - Produces **deterministic** results (same input = same output)
 - Works well for **word overlap** and **topic similarity**
 
-The tradeoff: it won't understand synonyms that share no words (e.g., "car" vs "automobile"). For most personal archive searches, this is rarely an issue.
+Tradeoff: it won't understand pure synonyms (e.g., "car" vs "automobile").
+
+**Optional (ML-based):** run `xf index --semantic` to build MiniLM embeddings. This enables true semantic matching but is slower to index and requires a one-time model download (~80MB).
 
 ### Why is hybrid search the default?
 
 Hybrid search gives you the best of both worlds:
 
 1. **Lexical catches exact matches** — important for names, hashtags, URLs
-2. **Semantic catches related content** — via hash-based similarity on overlapping terms
+2. **Semantic catches related content** — via vector similarity (hash by default, ML when indexed with `--semantic`)
 3. **RRF fusion prioritizes documents that score well in both** — naturally surfacing the most relevant results
 
 If a document ranks #1 in both lexical and semantic results, it's almost certainly what you're looking for.
 
 ### Does semantic search require re-indexing?
 
-Yes, if you indexed your archive before semantic search was available (unlikely, since it's been there from the start). Embeddings are generated automatically during `xf index`. If you're missing embeddings for some reason, re-run:
+Yes. Embeddings are generated automatically during `xf index`, but the **embedder choice is fixed at index time**:
+
+- Default: hash embeddings
+- Optional: ML embeddings via `xf index --semantic`
+
+If you switch between hash and ML, re-run indexing so the vector index matches the embedder. Use:
 
 ```bash
-xf index ~/x-archive --force
+xf index ~/x-archive --force            # rebuild with hash embeddings
+xf index ~/x-archive --semantic --force # rebuild with ML embeddings
 ```
 
 ## Contributing
