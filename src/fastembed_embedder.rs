@@ -123,8 +123,49 @@ impl FastEmbedder {
         }
 
         Err(EmbedderError::Unavailable(
-            "MiniLM model not found. Download with: xf setup-semantic".to_string(),
+            "MiniLM model not found. Run 'xf index --semantic' to auto-download.".to_string(),
         ))
+    }
+
+    /// Load the model, downloading it if necessary.
+    ///
+    /// This will automatically download the MiniLM model (~80MB) on first use
+    /// if it's not already available. Download progress is shown when
+    /// `show_progress` is true.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the model cannot be loaded or downloaded.
+    pub fn load_or_download(show_progress: bool) -> EmbedderResult<Self> {
+        // First try to load from existing locations
+        if let Ok(embedder) = Self::try_load() {
+            return Ok(embedder);
+        }
+
+        // Model not found, download it
+        let cache_dir = dirs::cache_dir()
+            .map(|p| p.join("fastembed"))
+            .unwrap_or_else(|| std::path::PathBuf::from(".cache/fastembed"));
+
+        // Create cache directory if needed
+        std::fs::create_dir_all(&cache_dir).map_err(|e| {
+            EmbedderError::Internal(format!("failed to create cache dir: {e}"))
+        })?;
+
+        // Initialize with download enabled
+        let init_options = InitOptions::new(MODEL_ID)
+            .with_cache_dir(cache_dir.clone())
+            .with_show_download_progress(show_progress);
+
+        let model = TextEmbedding::try_new(init_options).map_err(|e| {
+            EmbedderError::Internal(format!("failed to download/load MiniLM model: {e}"))
+        })?;
+
+        Ok(Self {
+            model: Mutex::new(model),
+            id: EMBEDDER_ID.to_string(),
+            dimension: EMBEDDING_DIMENSION,
+        })
     }
 
     /// Check if the semantic model is available.

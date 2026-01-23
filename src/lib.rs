@@ -283,10 +283,9 @@ pub fn generate_embeddings_with_config(storage: &Storage, config: &EmbeddingConf
     // We need to store the FastEmbedder to keep it alive for the reference
     let semantic_embedder: Option<FastEmbedder> = if config.use_semantic {
         info!("Loading FastEmbed model for semantic embeddings...");
-        let embedder = FastEmbedder::try_load().map_err(|e| {
-            anyhow::anyhow!(
-                "Failed to load semantic model: {e}. Run 'xf setup-semantic' to download."
-            )
+        // Use load_or_download to auto-download the model if needed
+        let embedder = FastEmbedder::load_or_download(config.show_progress).map_err(|e| {
+            anyhow::anyhow!("Failed to load semantic model: {e}")
         })?;
         info!("FastEmbed model loaded successfully");
         Some(embedder)
