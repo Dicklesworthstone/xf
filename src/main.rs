@@ -191,16 +191,30 @@ fn main() -> Result<()> {
     }
 
     // Setup logging
+    // Default to xf-only logs so machine-readable output stays clean.
+    let machine_output = matches!(cli.format, OutputFormat::Json | OutputFormat::JsonPretty | OutputFormat::Csv);
     let log_level = if cli.verbose {
         Level::DEBUG
-    } else if cli.quiet {
+    } else if cli.quiet || machine_output {
         Level::ERROR
     } else {
         Level::INFO
     };
+    let env_filter = if std::env::var("RUST_LOG").is_ok() {
+        EnvFilter::from_default_env()
+    } else {
+        let level = match log_level {
+            Level::ERROR => "error",
+            Level::WARN => "warn",
+            Level::INFO => "info",
+            Level::DEBUG => "debug",
+            Level::TRACE => "trace",
+        };
+        EnvFilter::new(format!("xf={level}"))
+    };
 
     tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env().add_directive(log_level.into()))
+        .with_env_filter(env_filter)
         .with_target(false)
         .without_time()
         .with_writer(std::io::stderr)
