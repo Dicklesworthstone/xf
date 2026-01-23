@@ -62,6 +62,7 @@ unicode-normalization = "0.1"
 half = "2.4"            # F16 quantization for vector storage
 wide = "0.7"            # Portable SIMD for fast dot products
 ring = "0.17"           # SHA256 for content hashing
+fastembed = { version = "4", default-features = false, features = ["ort-download-binaries", "hf-hub"] }
 
 # Parallelism
 rayon = "1.10"
@@ -86,7 +87,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "ansi"] }
 
 [build-dependencies]
-vergen-gix = { version = "1.0", features = ["build", "cargo", "rustc"] }
+vergen-gix = { version = "9", features = ["build", "cargo", "rustc"] }
 
 [dev-dependencies]
 assert_cmd = "2.0"

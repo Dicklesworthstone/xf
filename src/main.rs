@@ -24,6 +24,7 @@ use xf::cli;
 use xf::config::Config;
 use xf::date_parser;
 use xf::embedder::Embedder;
+use xf::fastembed_embedder::FastEmbedder;
 use xf::hash_embedder::HashEmbedder;
 use xf::hybrid::{self, SearchMode};
 use xf::repl;
@@ -133,6 +134,29 @@ impl VectorIndexCache {
 /// Global cached `VectorIndex` for semantic search.
 /// Initialized on first search, reused for subsequent searches.
 static VECTOR_INDEX_CACHE: VectorIndexCache = VectorIndexCache::new();
+
+/// Global cached `FastEmbedder` for semantic search.
+/// Falls back to `HashEmbedder` if the ML model is not available.
+static SEMANTIC_EMBEDDER: OnceLock<Option<FastEmbedder>> = OnceLock::new();
+
+/// Get the semantic embedder, loading it on first use.
+/// Returns `None` if the FastEmbed model is not available (falls back to hash embedder).
+fn get_semantic_embedder() -> Option<&'static FastEmbedder> {
+    SEMANTIC_EMBEDDER
+        .get_or_init(|| {
+            match FastEmbedder::try_load() {
+                Ok(embedder) => {
+                    info!("Loaded FastEmbed model for semantic search");
+                    Some(embedder)
+                }
+                Err(e) => {
+                    warn!("FastEmbed model not available, using hash embedder: {e}");
+                    None
+                }
+            }
+        })
+        .as_ref()
+}
 
 #[derive(Debug, Clone)]
 struct CacheMeta {
@@ -645,6 +669,7 @@ fn cmd_import(cli: &Cli, args: &cli::ImportArgs) -> Result<()> {
             only: None,
             skip: None,
             jobs: 0,
+            semantic: false, // Don't use semantic embeddings by default for import
         };
 
         cmd_index(cli, &index_args)?;
@@ -1047,7 +1072,11 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs) -> Result<()> {
     search_engine.reload()?;
 
     // Generate embeddings for semantic search
-    xf::generate_embeddings(&storage, !cli.quiet)?;
+    let embed_config = xf::EmbeddingConfig {
+        show_progress: !cli.quiet,
+        use_semantic: args.semantic,
+    };
+    xf::generate_embeddings_with_config(&storage, &embed_config)?;
 
     // Write vector index file for fast semantic search
     let vector_stats = write_vector_index(&index_path, &storage)?;
@@ -1252,7 +1281,17 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs) -> Result<()> {
             // Semantic-only search using vector similarity
             let vector_index = vector_index
                 .ok_or_else(|| anyhow::anyhow!("vector index required for semantic"))?;
-            let embedder = HashEmbedder::default();
+            // Use FastEmbedder if available, otherwise fall back to HashEmbedder
+            let fast_embedder = get_semantic_embedder();
+            let hash_embedder_fallback;
+            let embedder: &dyn Embedder = if let Some(fe) = fast_embedder {
+                info!("Using semantic embeddings for search");
+                fe
+            } else {
+                warn!("FastEmbed model not available, using hash embeddings for search");
+                hash_embedder_fallback = HashEmbedder::default();
+                &hash_embedder_fallback
+            };
             let canonical_query = canonicalize_for_embedding(&args.query);
 
             if canonical_query.is_empty() {
@@ -1301,7 +1340,15 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs) -> Result<()> {
 
         SearchMode::Hybrid => {
             // Hybrid search using RRF fusion
-            let embedder = HashEmbedder::default();
+            // Use FastEmbedder if available, otherwise fall back to HashEmbedder
+            let fast_embedder = get_semantic_embedder();
+            let hash_embedder_fallback;
+            let embedder: &dyn Embedder = if let Some(fe) = fast_embedder {
+                fe
+            } else {
+                hash_embedder_fallback = HashEmbedder::default();
+                &hash_embedder_fallback
+            };
             let canonical_query = canonicalize_for_embedding(&args.query);
             let candidate_count = hybrid::candidate_count(args.limit, args.offset);
 

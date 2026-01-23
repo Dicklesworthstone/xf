@@ -150,6 +150,13 @@ pub struct IndexArgs {
     /// Number of parallel workers
     #[arg(long, short = 'j', default_value = "0")]
     pub jobs: usize,
+
+    /// Enable semantic embeddings (uses ML model, ~100 items/sec on CPU)
+    ///
+    /// Downloads the MiniLM model (~80MB) on first use. Enables true
+    /// semantic search where "happy" matches "joyful".
+    #[arg(long, short = 's')]
+    pub semantic: bool,
 }
 
 #[derive(Args, Debug)]

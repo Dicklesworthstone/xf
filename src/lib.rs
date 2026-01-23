@@ -19,6 +19,7 @@ pub mod date_parser;
 pub mod doctor;
 pub mod embedder;
 pub mod error;
+pub mod fastembed_embedder;
 pub mod hash_embedder;
 pub mod hybrid;
 pub mod logging;
@@ -209,29 +210,103 @@ pub fn format_duration(duration: std::time::Duration) -> String {
 /// # Panics
 ///
 /// Panics only if the progress bar template is invalid (a programming error).
+/// Configuration for embedding generation.
+#[derive(Debug, Clone)]
+pub struct EmbeddingConfig {
+    /// Show progress bar during embedding generation.
+    pub show_progress: bool,
+    /// Use semantic (ML-based) embeddings instead of hash embeddings.
+    /// When true, uses FastEmbed with MiniLM model for true semantic similarity.
+    /// When false, uses hash-based embeddings (faster but lexical, not semantic).
+    pub use_semantic: bool,
+}
+
+impl Default for EmbeddingConfig {
+    fn default() -> Self {
+        Self {
+            show_progress: true,
+            use_semantic: false,
+        }
+    }
+}
+
 #[allow(clippy::too_many_lines)]
 pub fn generate_embeddings(storage: &Storage, show_progress: bool) -> Result<()> {
+    generate_embeddings_with_config(
+        storage,
+        &EmbeddingConfig {
+            show_progress,
+            use_semantic: false,
+        },
+    )
+}
+
+/// Generate embeddings with full configuration options.
+///
+/// When `config.use_semantic` is true, uses the FastEmbed MiniLM model for
+/// true semantic embeddings. This is slower (~100 items/sec) but enables
+/// semantic search where "happy" matches "joyful".
+///
+/// When `config.use_semantic` is false (default), uses hash-based embeddings
+/// which are much faster but only capture lexical similarity.
+///
+/// # Errors
+///
+/// Returns an error if database operations fail or if the semantic model
+/// is requested but not available.
+///
+/// # Panics
+///
+/// Panics only if the progress bar template is invalid (a programming error).
+#[allow(clippy::too_many_lines)]
+pub fn generate_embeddings_with_config(storage: &Storage, config: &EmbeddingConfig) -> Result<()> {
     use crate::canonicalize::{canonicalize_for_embedding, content_hash};
     use crate::embedder::Embedder;
+    use crate::fastembed_embedder::FastEmbedder;
     use crate::hash_embedder::HashEmbedder;
     use colored::Colorize;
     use indicatif::{ProgressBar, ProgressStyle};
     use rayon::prelude::*;
     use std::collections::{HashMap, HashSet};
     use std::time::Instant;
-    use tracing::warn;
+    use tracing::{info, warn};
 
     // Type alias for embedding records: (doc_id, doc_type, embedding, content_hash)
     type EmbedRecord = (String, String, Vec<f32>, Option<[u8; 32]>);
 
     const EMBED_CHUNK_SIZE: usize = 1000;
-    const STORE_BATCH_SIZE: usize = 100;
+    // Use smaller batches for semantic embeddings (more memory intensive)
+    let store_batch_size = if config.use_semantic { 50 } else { 100 };
     let embed_start = Instant::now();
-    let embedder = HashEmbedder::default();
 
-    if show_progress {
+    // Create the appropriate embedder based on config
+    let semantic_embedder: Option<FastEmbedder>;
+    let embedder: &dyn Embedder = if config.use_semantic {
+        info!("Loading FastEmbed model for semantic embeddings...");
+        semantic_embedder = Some(FastEmbedder::try_load().map_err(|e| {
+            anyhow::anyhow!(
+                "Failed to load semantic model: {e}. Run 'xf setup-semantic' to download."
+            )
+        })?);
+        info!("FastEmbed model loaded successfully");
+        semantic_embedder.as_ref().unwrap()
+    } else {
+        semantic_embedder = None;
+        // Return reference to static lifetime via Box leak (HashEmbedder is small)
+        Box::leak(Box::new(HashEmbedder::default()))
+    };
+
+    if config.show_progress {
         println!();
-        println!("{}", "Generating semantic embeddings...".bold().cyan());
+        let mode = if config.use_semantic {
+            "semantic (ML)"
+        } else {
+            "hash-based"
+        };
+        println!(
+            "{}",
+            format!("Generating {mode} embeddings...").bold().cyan()
+        );
     }
 
     // Fetch all collections first to pre-allocate
@@ -281,7 +356,7 @@ pub fn generate_embeddings(storage: &Storage, show_progress: bool) -> Result<()>
     }
 
     if docs.is_empty() {
-        if show_progress {
+        if config.show_progress {
             println!("  {} No documents to embed", "⚠".yellow());
         }
         return Ok(());
@@ -296,7 +371,7 @@ pub fn generate_embeddings(storage: &Storage, show_progress: bool) -> Result<()>
     }
 
     // Create progress bar
-    let pb = if show_progress {
+    let pb = if config.show_progress {
         let pb = ProgressBar::new(docs.len() as u64);
         let style = ProgressStyle::default_bar()
             .template("  {spinner:.green} [{bar:40.cyan/blue}] {pos}/{len} ({eta})")
@@ -418,7 +493,7 @@ pub fn generate_embeddings(storage: &Storage, show_progress: bool) -> Result<()>
 
         // Store batch
         if !batch.is_empty() {
-            for chunk in batch.chunks(STORE_BATCH_SIZE) {
+            for chunk in batch.chunks(store_batch_size) {
                 storage.store_embeddings_batch(chunk)?;
                 stored_count += chunk.len();
             }
@@ -431,7 +506,7 @@ pub fn generate_embeddings(storage: &Storage, show_progress: bool) -> Result<()>
 
     let embed_elapsed = format_duration(embed_start.elapsed());
     let generated_count = stored_count.saturating_sub(reused_count);
-    if show_progress {
+    if config.show_progress {
         println!(
             "  {} {} embeddings stored {}",
             "✓".green(),
