@@ -1,0 +1,8 @@
+[start] cutoff=2025-11-01 pipeline_tag=text-ranking
+[page 1] fetched 100 models
+[page 2] fetched 100 models
+[cutoff] reached models older than cutoff; stopping
+[scan] total models scanned=200
+[done] eligible=154 baseline=3 rejected=0 elapsed=38.02s
+[counts] eligible=154 baseline=3 rejected=0
+[done] 2026-01-23T22:05:10Z

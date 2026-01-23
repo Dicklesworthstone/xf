@@ -1,0 +1,6901 @@
+{
+  "generated_at": "2026-01-23T22:05:10.782984Z",
+  "cutoff_date": "2025-11-01",
+  "pipeline_tag": "text-ranking",
+  "eligible": [
+    {
+      "model_id": "Tayyab112/crossencoder-hardneg",
+      "created_at": "2026-01-23T18:08:42Z",
+      "last_modified": "2026-01-23T18:08:50Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:20000",
+        "loss:BinaryCrossEntropyLoss",
+        "dataset_size:15447",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/Tayyab112/crossencoder-hardneg"
+    },
+    {
+      "model_id": "OloriBern/musique-bge-m3-2000-mixer-3ep",
+      "created_at": "2026-01-22T16:53:51Z",
+      "last_modified": "2026-01-22T16:54:04Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "csv",
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "xlm-roberta",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:6310",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/OloriBern/musique-bge-m3-2000-mixer-3ep"
+    },
+    {
+      "model_id": "OloriBern/checkpoints_musique_BAAI_bge-m3_3ep-bge-m3-2000-mixer-3ep",
+      "created_at": "2026-01-22T16:42:02Z",
+      "last_modified": "2026-01-22T16:52:52Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "csv",
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "xlm-roberta",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:9383",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "base_model:BAAI/bge-m3",
+        "base_model:finetune:BAAI/bge-m3",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/OloriBern/checkpoints_musique_BAAI_bge-m3_3ep-bge-m3-2000-mixer-3ep"
+    },
+    {
+      "model_id": "noooop9527/Qwen3-Reranker-0.6B-STv6",
+      "created_at": "2026-01-22T07:38:38Z",
+      "last_modified": "2026-01-22T09:42:24Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen3",
+        "text-generation",
+        "text-ranking",
+        "arxiv:2506.05176",
+        "base_model:Qwen/Qwen3-0.6B-Base",
+        "base_model:finetune:Qwen/Qwen3-0.6B-Base",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/noooop9527/Qwen3-Reranker-0.6B-STv6"
+    },
+    {
+      "model_id": "OloriBern/bge-m3-musique-mixer-3ep",
+      "created_at": "2026-01-21T11:32:05Z",
+      "last_modified": "2026-01-21T11:43:38Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "csv",
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "xlm-roberta",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:6313",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/OloriBern/bge-m3-musique-mixer-3ep"
+    },
+    {
+      "model_id": "OloriBern/bge-m3-musique-hybrid-3ep",
+      "created_at": "2026-01-21T10:51:18Z",
+      "last_modified": "2026-01-21T11:01:45Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "csv",
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "xlm-roberta",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:6310",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/OloriBern/bge-m3-musique-hybrid-3ep"
+    },
+    {
+      "model_id": "yeahbeen/Qwen3-Reranker-0.6B-Q8_0-GGUF",
+      "created_at": "2026-01-21T06:15:03Z",
+      "last_modified": "2026-01-21T06:15:08Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "base_model:Qwen/Qwen3-Reranker-0.6B",
+        "base_model:quantized:Qwen/Qwen3-Reranker-0.6B",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us",
+        "conversational"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/yeahbeen/Qwen3-Reranker-0.6B-Q8_0-GGUF"
+    },
+    {
+      "model_id": "Chiwei/Qwen3-Reranker-0.6B-Q8_0-GGUF",
+      "created_at": "2026-01-20T16:16:20Z",
+      "last_modified": "2026-01-20T16:16:27Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "base_model:Qwen/Qwen3-Reranker-0.6B",
+        "base_model:quantized:Qwen/Qwen3-Reranker-0.6B",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us",
+        "conversational"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/Chiwei/Qwen3-Reranker-0.6B-Q8_0-GGUF"
+    },
+    {
+      "model_id": "MedSwin/MedSwin-Reranker-bge-gemma",
+      "created_at": "2026-01-06T00:48:32Z",
+      "last_modified": "2026-01-20T04:47:41Z",
+      "pipeline_tag": "text-ranking",
+      "library": null,
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "model",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "safetensors",
+        "gemma",
+        "medical",
+        "rerank",
+        "text-ranking",
+        "en",
+        "dataset:BeIR/scidocs",
+        "dataset:miriad/miriad-4.4M",
+        "dataset:BioASQ-b",
+        "base_model:BAAI/bge-reranker-v2-gemma",
+        "base_model:finetune:BAAI/bge-reranker-v2-gemma",
+        "license:apache-2.0",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/MedSwin/MedSwin-Reranker-bge-gemma"
+    },
+    {
+      "model_id": "OloriBern/hybrid-bge-m3-tuned",
+      "created_at": "2026-01-19T11:52:31Z",
+      "last_modified": "2026-01-19T11:55:46Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "csv",
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "xlm-roberta",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:47770",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/OloriBern/hybrid-bge-m3-tuned"
+    },
+    {
+      "model_id": "noooop9527/Qwen3-Reranker-0.6B-seq-cls-STv6",
+      "created_at": "2026-01-19T06:11:43Z",
+      "last_modified": "2026-01-19T09:11:27Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "qwen3",
+        "text-classification",
+        "transformers",
+        "text-ranking",
+        "base_model:Qwen/Qwen3-0.6B-Base",
+        "base_model:finetune:Qwen/Qwen3-0.6B-Base",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/noooop9527/Qwen3-Reranker-0.6B-seq-cls-STv6"
+    },
+    {
+      "model_id": "Qwen/Qwen3-VL-Reranker-8B",
+      "created_at": "2026-01-07T03:11:53Z",
+      "last_modified": "2026-01-19T06:00:54Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "py",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen3_vl",
+        "image-to-text",
+        "multimodal rerank",
+        "text rerank",
+        "text-ranking",
+        "arxiv:2601.04720",
+        "base_model:Qwen/Qwen3-VL-8B-Instruct",
+        "base_model:finetune:Qwen/Qwen3-VL-8B-Instruct",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/Qwen/Qwen3-VL-Reranker-8B"
+    },
+    {
+      "model_id": "Qwen/Qwen3-VL-Reranker-2B",
+      "created_at": "2026-01-07T03:10:13Z",
+      "last_modified": "2026-01-19T06:00:44Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "py",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen3_vl",
+        "image-to-text",
+        "multimodal rerank",
+        "text rerank",
+        "text-ranking",
+        "arxiv:2601.04720",
+        "base_model:Qwen/Qwen3-VL-2B-Instruct",
+        "base_model:finetune:Qwen/Qwen3-VL-2B-Instruct",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/Qwen/Qwen3-VL-Reranker-2B"
+    },
+    {
+      "model_id": "Chiwei/Qwen3-Reranker-4B-Q3_K_M-GGUF",
+      "created_at": "2026-01-19T00:39:25Z",
+      "last_modified": "2026-01-19T00:39:37Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "base_model:Qwen/Qwen3-Reranker-4B",
+        "base_model:quantized:Qwen/Qwen3-Reranker-4B",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us",
+        "conversational"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/Chiwei/Qwen3-Reranker-4B-Q3_K_M-GGUF"
+    },
+    {
+      "model_id": "Chiwei/Qwen3-Reranker-4B-Q4_K_S-GGUF",
+      "created_at": "2026-01-19T00:35:38Z",
+      "last_modified": "2026-01-19T00:35:51Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "base_model:Qwen/Qwen3-Reranker-4B",
+        "base_model:quantized:Qwen/Qwen3-Reranker-4B",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us",
+        "conversational"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/Chiwei/Qwen3-Reranker-4B-Q4_K_S-GGUF"
+    },
+    {
+      "model_id": "Chiwei/Qwen3-Reranker-4B-Q4_K_M-GGUF",
+      "created_at": "2026-01-19T00:32:34Z",
+      "last_modified": "2026-01-19T00:32:50Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "base_model:Qwen/Qwen3-Reranker-4B",
+        "base_model:quantized:Qwen/Qwen3-Reranker-4B",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us",
+        "conversational"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/Chiwei/Qwen3-Reranker-4B-Q4_K_M-GGUF"
+    },
+    {
+      "model_id": "guidalleprane/Qwen3-Reranker-4B-Q4_K_M-GGUF",
+      "created_at": "2026-01-17T18:41:07Z",
+      "last_modified": "2026-01-17T18:41:22Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "base_model:Qwen/Qwen3-Reranker-4B",
+        "base_model:quantized:Qwen/Qwen3-Reranker-4B",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us",
+        "conversational"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/guidalleprane/Qwen3-Reranker-4B-Q4_K_M-GGUF"
+    },
+    {
+      "model_id": "AQ-MedAI/Diver-Retriever-4B",
+      "created_at": "2025-08-22T03:33:29Z",
+      "last_modified": "2026-01-17T02:22:46Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jpg",
+        "json",
+        "md",
+        "png",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen3",
+        "text-generation",
+        "medical",
+        "code",
+        "math",
+        "reasoning",
+        "general",
+        "text-ranking",
+        "zh",
+        "en",
+        "dataset:Raderspace/MATH_qCoT_LLMquery_questionasquery_lexicalquery",
+        "dataset:reasonir/reasonir-data",
+        "dataset:truehealth/medqa",
+        "dataset:AQ-MedAI/PRGB-ZH",
+        "arxiv:2508.07995",
+        "base_model:Qwen/Qwen3-Embedding-4B",
+        "base_model:finetune:Qwen/Qwen3-Embedding-4B",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/AQ-MedAI/Diver-Retriever-4B"
+    },
+    {
+      "model_id": "noooop9527/llama-nemotron-rerank-1b-v2-STv6",
+      "created_at": "2026-01-13T06:02:48Z",
+      "last_modified": "2026-01-16T09:00:45Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "bin",
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "py",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "pytorch",
+        "safetensors",
+        "llama_bidirec",
+        "text-classification",
+        "text",
+        "reranker",
+        "cross-encoder",
+        "retrieval",
+        "semantic-search",
+        "text-ranking",
+        "custom_code",
+        "multilingual",
+        "license:other",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/noooop9527/llama-nemotron-rerank-1b-v2-STv6"
+    },
+    {
+      "model_id": "OverSamu/reranker-sapbert-ncbi-disease-bce-context-title",
+      "created_at": "2026-01-15T11:57:35Z",
+      "last_modified": "2026-01-15T11:57:48Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:222541",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "en",
+        "arxiv:1908.10084",
+        "base_model:cambridgeltl/SapBERT-from-PubMedBERT-fulltext",
+        "base_model:finetune:cambridgeltl/SapBERT-from-PubMedBERT-fulltext",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/OverSamu/reranker-sapbert-ncbi-disease-bce-context-title"
+    },
+    {
+      "model_id": "thebajajra/RexReranker-0.6B",
+      "created_at": "2026-01-09T18:18:08Z",
+      "last_modified": "2026-01-15T01:37:35Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen3",
+        "text-generation",
+        "ecommerce",
+        "e-commerce",
+        "retail",
+        "marketplace",
+        "shopping",
+        "amazon",
+        "ebay",
+        "alibaba",
+        "google",
+        "rakuten",
+        "bestbuy",
+        "walmart",
+        "flipkart",
+        "wayfair",
+        "shein",
+        "target",
+        "etsy",
+        "shopify",
+        "taobao",
+        "asos",
+        "carrefour",
+        "costco",
+        "overstock",
+        "pretraining",
+        "decoder",
+        "language-modeling",
+        "foundation-model",
+        "text-ranking",
+        "en",
+        "base_model:Qwen/Qwen3-Reranker-0.6B",
+        "base_model:finetune:Qwen/Qwen3-Reranker-0.6B",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/thebajajra/RexReranker-0.6B"
+    },
+    {
+      "model_id": "Zygisluk/Qwen3-Reranker-4B-Q8_0-GGUF",
+      "created_at": "2026-01-14T09:04:39Z",
+      "last_modified": "2026-01-14T09:05:02Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "base_model:Qwen/Qwen3-Reranker-4B",
+        "base_model:quantized:Qwen/Qwen3-Reranker-4B",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us",
+        "conversational"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/Zygisluk/Qwen3-Reranker-4B-Q8_0-GGUF"
+    },
+    {
+      "model_id": "taido/minilm",
+      "created_at": "2026-01-14T03:28:54Z",
+      "last_modified": "2026-01-14T03:33:46Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:1485",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "base_model:cross-encoder/ms-marco-MiniLM-L12-v2",
+        "base_model:finetune:cross-encoder/ms-marco-MiniLM-L12-v2",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/taido/minilm"
+    },
+    {
+      "model_id": "usamaahmedsh/roberta-base-reranker-llm-weaklabels-v1",
+      "created_at": "2026-01-13T15:29:19Z",
+      "last_modified": "2026-01-13T15:29:26Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "bin",
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "roberta",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:2152512",
+        "loss:PairwiseMarginLoss",
+        "text-ranking",
+        "dataset:usamaahmedsh/weak-labels-wiki",
+        "arxiv:1908.10084",
+        "base_model:FacebookAI/roberta-base",
+        "base_model:finetune:FacebookAI/roberta-base",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/usamaahmedsh/roberta-base-reranker-llm-weaklabels-v1"
+    },
+    {
+      "model_id": "Zygisluk/Qwen3-Reranker-4B-Q4_K_M-GGUF",
+      "created_at": "2026-01-13T14:16:28Z",
+      "last_modified": "2026-01-13T14:16:45Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "base_model:Qwen/Qwen3-Reranker-4B",
+        "base_model:quantized:Qwen/Qwen3-Reranker-4B",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us",
+        "conversational"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/Zygisluk/Qwen3-Reranker-4B-Q4_K_M-GGUF"
+    },
+    {
+      "model_id": "thebajajra/RexReranker-0.6B-MXFP4",
+      "created_at": "2026-01-12T02:42:53Z",
+      "last_modified": "2026-01-12T23:43:58Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen3",
+        "text-generation",
+        "reranker",
+        "mxfp4",
+        "quantized",
+        "qat",
+        "text-ranking",
+        "microscaling",
+        "en",
+        "base_model:thebajajra/RexReranker-0.6B",
+        "base_model:quantized:thebajajra/RexReranker-0.6B",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/thebajajra/RexReranker-0.6B-MXFP4"
+    },
+    {
+      "model_id": "laura2243/cross-encoder-expert",
+      "created_at": "2026-01-11T19:56:13Z",
+      "last_modified": "2026-01-11T23:23:06Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "csv",
+        "gitattributes",
+        "json",
+        "md",
+        "model",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "deberta-v2",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:43188",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "base_model:cross-encoder/nli-deberta-v3-base",
+        "base_model:finetune:cross-encoder/nli-deberta-v3-base",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/laura2243/cross-encoder-expert"
+    },
+    {
+      "model_id": "godkingleto/zerank-2-Q8_0-GGUF",
+      "created_at": "2026-01-11T09:47:13Z",
+      "last_modified": "2026-01-11T09:47:32Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "gguf",
+        "finance",
+        "legal",
+        "code",
+        "stem",
+        "medical",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "en",
+        "base_model:zeroentropy/zerank-2",
+        "base_model:quantized:zeroentropy/zerank-2",
+        "license:cc-by-nc-4.0",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/godkingleto/zerank-2-Q8_0-GGUF"
+    },
+    {
+      "model_id": "godkingleto/zerank-2-Q4_K_M-GGUF",
+      "created_at": "2026-01-11T09:38:04Z",
+      "last_modified": "2026-01-11T09:38:18Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "gguf",
+        "finance",
+        "legal",
+        "code",
+        "stem",
+        "medical",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "en",
+        "base_model:zeroentropy/zerank-2",
+        "base_model:quantized:zeroentropy/zerank-2",
+        "license:cc-by-nc-4.0",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/godkingleto/zerank-2-Q4_K_M-GGUF"
+    },
+    {
+      "model_id": "thebajajra/RexReranker-0.6B-FP8",
+      "created_at": "2026-01-10T14:26:10Z",
+      "last_modified": "2026-01-11T03:57:34Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "safetensors",
+        "txt",
+        "yaml"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen3",
+        "text-generation",
+        "reranker",
+        "fp8",
+        "quantized",
+        "text-ranking",
+        "en",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "compressed-tensors",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/thebajajra/RexReranker-0.6B-FP8"
+    },
+    {
+      "model_id": "cometadata/jina-reranker-v2-multilingual-affiliations-v5",
+      "created_at": "2026-01-06T20:18:44Z",
+      "last_modified": "2026-01-06T20:58:53Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "py",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:30310",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "custom_code",
+        "multilingual",
+        "arxiv:1908.10084",
+        "base_model:jinaai/jina-reranker-v2-base-multilingual",
+        "base_model:finetune:jinaai/jina-reranker-v2-base-multilingual",
+        "license:cc-by-nc-4.0",
+        "model-index",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/cometadata/jina-reranker-v2-multilingual-affiliations-v5"
+    },
+    {
+      "model_id": "cometadata/gte-multilingual-reranker-affiliations",
+      "created_at": "2026-01-03T06:03:16Z",
+      "last_modified": "2026-01-03T06:03:30Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "py",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "new",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:16862",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "custom_code",
+        "multilingual",
+        "arxiv:1908.10084",
+        "base_model:Alibaba-NLP/gte-multilingual-reranker-base",
+        "base_model:finetune:Alibaba-NLP/gte-multilingual-reranker-base",
+        "license:apache-2.0",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/cometadata/gte-multilingual-reranker-affiliations"
+    },
+    {
+      "model_id": "voIsung/bge-reranker-cvjd",
+      "created_at": "2026-01-02T20:18:03Z",
+      "last_modified": "2026-01-03T00:18:29Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "xlm-roberta",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:5616",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "base_model:BAAI/bge-reranker-base",
+        "base_model:finetune:BAAI/bge-reranker-base",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/voIsung/bge-reranker-cvjd"
+    },
+    {
+      "model_id": "ReddaGlue/Qwen3-Reranker-4B-Q8_0-GGUF",
+      "created_at": "2026-01-02T19:47:45Z",
+      "last_modified": "2026-01-02T19:48:07Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "base_model:Qwen/Qwen3-Reranker-4B",
+        "base_model:quantized:Qwen/Qwen3-Reranker-4B",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us",
+        "conversational"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/ReddaGlue/Qwen3-Reranker-4B-Q8_0-GGUF"
+    },
+    {
+      "model_id": "cometadata/jina-reranker-v2-multilingual-affiliations-large",
+      "created_at": "2026-01-01T08:00:23Z",
+      "last_modified": "2026-01-02T08:46:56Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "bin",
+        "csv",
+        "gitattributes",
+        "json",
+        "md",
+        "py",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:170000",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "custom_code",
+        "multilingual",
+        "arxiv:1908.10084",
+        "base_model:jinaai/jina-reranker-v2-base-multilingual",
+        "base_model:finetune:jinaai/jina-reranker-v2-base-multilingual",
+        "license:cc-by-nc-4.0",
+        "model-index",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/cometadata/jina-reranker-v2-multilingual-affiliations-large"
+    },
+    {
+      "model_id": "bansalaman18/reranker-msmarco-v1.1-ettin-encoder-400m-listnet",
+      "created_at": "2026-01-01T05:34:14Z",
+      "last_modified": "2026-01-01T05:34:29Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:78704",
+        "loss:ListNetLoss",
+        "text-ranking",
+        "en",
+        "dataset:microsoft/ms_marco",
+        "arxiv:1908.10084",
+        "base_model:jhu-clsp/ettin-encoder-400m",
+        "base_model:finetune:jhu-clsp/ettin-encoder-400m",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-400m-listnet"
+    },
+    {
+      "model_id": "bansalaman18/reranker-msmarco-v1.1-ettin-encoder-150m-listnet",
+      "created_at": "2026-01-01T01:48:16Z",
+      "last_modified": "2026-01-01T01:48:24Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:78704",
+        "loss:ListNetLoss",
+        "text-ranking",
+        "en",
+        "dataset:microsoft/ms_marco",
+        "arxiv:1908.10084",
+        "base_model:jhu-clsp/ettin-encoder-150m",
+        "base_model:finetune:jhu-clsp/ettin-encoder-150m",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-150m-listnet"
+    },
+    {
+      "model_id": "cometadata/jina-reranker-v2-multilingual-affiliations",
+      "created_at": "2025-12-31T07:58:27Z",
+      "last_modified": "2026-01-01T00:05:47Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "py",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:16862",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "custom_code",
+        "multilingual",
+        "arxiv:1908.10084",
+        "base_model:jinaai/jina-reranker-v2-base-multilingual",
+        "base_model:finetune:jinaai/jina-reranker-v2-base-multilingual",
+        "license:cc-by-nc-4.0",
+        "model-index",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/cometadata/jina-reranker-v2-multilingual-affiliations"
+    },
+    {
+      "model_id": "bansalaman18/reranker-msmarco-v1.1-ettin-encoder-68m-listnet",
+      "created_at": "2025-12-31T23:39:46Z",
+      "last_modified": "2025-12-31T23:39:50Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:78704",
+        "loss:ListNetLoss",
+        "text-ranking",
+        "en",
+        "dataset:microsoft/ms_marco",
+        "arxiv:1908.10084",
+        "base_model:jhu-clsp/ettin-encoder-68m",
+        "base_model:finetune:jhu-clsp/ettin-encoder-68m",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-68m-listnet"
+    },
+    {
+      "model_id": "bansalaman18/reranker-msmarco-v1.1-ettin-encoder-32m-listnet",
+      "created_at": "2025-12-31T21:59:48Z",
+      "last_modified": "2025-12-31T21:59:51Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:78704",
+        "loss:ListNetLoss",
+        "text-ranking",
+        "en",
+        "dataset:microsoft/ms_marco",
+        "arxiv:1908.10084",
+        "base_model:jhu-clsp/ettin-encoder-32m",
+        "base_model:finetune:jhu-clsp/ettin-encoder-32m",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-32m-listnet"
+    },
+    {
+      "model_id": "bansalaman18/reranker-msmarco-v1.1-ettin-encoder-17m-listnet",
+      "created_at": "2025-12-31T20:34:12Z",
+      "last_modified": "2025-12-31T20:34:16Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:78704",
+        "loss:ListNetLoss",
+        "text-ranking",
+        "en",
+        "dataset:microsoft/ms_marco",
+        "arxiv:1908.10084",
+        "base_model:jhu-clsp/ettin-encoder-17m",
+        "base_model:finetune:jhu-clsp/ettin-encoder-17m",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-17m-listnet"
+    },
+    {
+      "model_id": "bansalaman18/reranker-msmarco-v1.1-ettin-encoder-400m-ranknet",
+      "created_at": "2025-12-30T22:31:51Z",
+      "last_modified": "2025-12-30T22:32:08Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:78704",
+        "loss:RankNetLoss",
+        "text-ranking",
+        "en",
+        "dataset:microsoft/ms_marco",
+        "arxiv:1908.10084",
+        "base_model:jhu-clsp/ettin-encoder-400m",
+        "base_model:finetune:jhu-clsp/ettin-encoder-400m",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-400m-ranknet"
+    },
+    {
+      "model_id": "bansalaman18/reranker-msmarco-v1.1-ettin-encoder-150m-ranknet",
+      "created_at": "2025-12-30T21:49:34Z",
+      "last_modified": "2025-12-30T21:49:43Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:78704",
+        "loss:RankNetLoss",
+        "text-ranking",
+        "en",
+        "dataset:microsoft/ms_marco",
+        "arxiv:1908.10084",
+        "base_model:jhu-clsp/ettin-encoder-150m",
+        "base_model:finetune:jhu-clsp/ettin-encoder-150m",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-150m-ranknet"
+    },
+    {
+      "model_id": "bansalaman18/reranker-msmarco-v1.1-ettin-encoder-17m-ranknet",
+      "created_at": "2025-12-30T21:14:44Z",
+      "last_modified": "2025-12-30T21:14:49Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:78704",
+        "loss:RankNetLoss",
+        "text-ranking",
+        "en",
+        "dataset:microsoft/ms_marco",
+        "arxiv:1908.10084",
+        "base_model:jhu-clsp/ettin-encoder-17m",
+        "base_model:finetune:jhu-clsp/ettin-encoder-17m",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-17m-ranknet"
+    },
+    {
+      "model_id": "bansalaman18/reranker-msmarco-v1.1-ettin-encoder-68m-ranknet",
+      "created_at": "2025-12-30T21:02:53Z",
+      "last_modified": "2025-12-30T21:03:00Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:78704",
+        "loss:RankNetLoss",
+        "text-ranking",
+        "en",
+        "dataset:microsoft/ms_marco",
+        "arxiv:1908.10084",
+        "base_model:jhu-clsp/ettin-encoder-68m",
+        "base_model:finetune:jhu-clsp/ettin-encoder-68m",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-68m-ranknet"
+    },
+    {
+      "model_id": "bansalaman18/reranker-msmarco-v1.1-ettin-encoder-32m-ranknet",
+      "created_at": "2025-12-30T20:55:17Z",
+      "last_modified": "2025-12-30T20:55:22Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:78704",
+        "loss:RankNetLoss",
+        "text-ranking",
+        "en",
+        "dataset:microsoft/ms_marco",
+        "arxiv:1908.10084",
+        "base_model:jhu-clsp/ettin-encoder-32m",
+        "base_model:finetune:jhu-clsp/ettin-encoder-32m",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-32m-ranknet"
+    },
+    {
+      "model_id": "cringeee/ce_finetuned_bce",
+      "created_at": "2025-12-30T15:48:00Z",
+      "last_modified": "2025-12-30T15:49:47Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "py",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "new",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:1548",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "custom_code",
+        "arxiv:1908.10084",
+        "base_model:Alibaba-NLP/gte-multilingual-reranker-base",
+        "base_model:finetune:Alibaba-NLP/gte-multilingual-reranker-base",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/cringeee/ce_finetuned_bce"
+    },
+    {
+      "model_id": "chungimungi/fine-tuned-msmarco",
+      "created_at": "2025-12-30T11:18:09Z",
+      "last_modified": "2025-12-30T11:54:52Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "csv",
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "text-ranking",
+        "en",
+        "arxiv:2504.21015",
+        "base_model:distilbert/distilbert-base-uncased",
+        "base_model:finetune:distilbert/distilbert-base-uncased",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/chungimungi/fine-tuned-msmarco"
+    },
+    {
+      "model_id": "iyanello/Qwen3-Reranker-0.6B-GGUF",
+      "created_at": "2025-12-28T04:30:42Z",
+      "last_modified": "2025-12-28T04:38:51Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "text-ranking",
+        "arxiv:2506.05176",
+        "base_model:Qwen/Qwen3-0.6B-Base",
+        "base_model:quantized:Qwen/Qwen3-0.6B-Base",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us",
+        "conversational"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/iyanello/Qwen3-Reranker-0.6B-GGUF"
+    },
+    {
+      "model_id": "ntAnh-dev/mmarco-mMiniLMv2-L12-H384-v1-bk-quyche",
+      "created_at": "2025-12-26T11:26:00Z",
+      "last_modified": "2025-12-26T11:26:11Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "model",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "xlm-roberta",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:12260",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "base_model:cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
+        "base_model:finetune:cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/ntAnh-dev/mmarco-mMiniLMv2-L12-H384-v1-bk-quyche"
+    },
+    {
+      "model_id": "varin/jamniti-law-reranker-v1",
+      "created_at": "2025-12-26T05:16:50Z",
+      "last_modified": "2025-12-26T10:56:07Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "csv",
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "qwen3",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:37350",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/varin/jamniti-law-reranker-v1"
+    },
+    {
+      "model_id": "ntAnh-dev/mmarco-mMiniLMv2-L12-H384-v1",
+      "created_at": "2025-12-25T03:39:49Z",
+      "last_modified": "2025-12-25T03:40:08Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "model",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "xlm-roberta",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:12260",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "base_model:cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
+        "base_model:finetune:cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/ntAnh-dev/mmarco-mMiniLMv2-L12-H384-v1"
+    },
+    {
+      "model_id": "oddadmix/arabic-reranker-v1",
+      "created_at": "2024-11-10T01:10:12Z",
+      "last_modified": "2025-12-25T00:37:43Z",
+      "pipeline_tag": "text-ranking",
+      "library": null,
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "safetensors",
+        "bert",
+        "reranking",
+        "arabic-nlp",
+        "nlp",
+        "text-ranking",
+        "ar",
+        "dataset:oddadmix/arabic-triplets-large",
+        "dataset:akhooli/arabic-triplets-1m-curated-sims-len",
+        "base_model:Omartificial-Intelligence-Space/Arabic-Triplet-Matryoshka-V2",
+        "base_model:finetune:Omartificial-Intelligence-Space/Arabic-Triplet-Matryoshka-V2",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/oddadmix/arabic-reranker-v1"
+    },
+    {
+      "model_id": "DocDBrown/Qwen3-rerank-8B-onnx",
+      "created_at": "2025-12-12T12:45:03Z",
+      "last_modified": "2025-12-24T01:41:07Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "onnx",
+        "txt",
+        "weight"
+      ],
+      "cpu_runtimes": [
+        "onnxruntime"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "onnx",
+        "qwen3",
+        "text-generation",
+        "text-ranking",
+        "arxiv:2506.05176",
+        "base_model:Qwen/Qwen3-8B-Base",
+        "base_model:quantized:Qwen/Qwen3-8B-Base",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/DocDBrown/Qwen3-rerank-8B-onnx"
+    },
+    {
+      "model_id": "OverSamu/reranker-sapbert-ncbi-disease-bce-context",
+      "created_at": "2025-12-23T11:26:28Z",
+      "last_modified": "2025-12-23T11:26:59Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:222348",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "en",
+        "arxiv:1908.10084",
+        "base_model:cambridgeltl/SapBERT-from-PubMedBERT-fulltext",
+        "base_model:finetune:cambridgeltl/SapBERT-from-PubMedBERT-fulltext",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/OverSamu/reranker-sapbert-ncbi-disease-bce-context"
+    },
+    {
+      "model_id": "OverSamu/reranker-sapbert-ncbi-disease-bce",
+      "created_at": "2025-12-22T21:36:34Z",
+      "last_modified": "2025-12-22T21:41:51Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:64921",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "en",
+        "arxiv:1908.10084",
+        "base_model:cambridgeltl/SapBERT-from-PubMedBERT-fulltext",
+        "base_model:finetune:cambridgeltl/SapBERT-from-PubMedBERT-fulltext",
+        "license:apache-2.0",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/OverSamu/reranker-sapbert-ncbi-disease-bce"
+    },
+    {
+      "model_id": "NeuML/biomedbert-base-reranker",
+      "created_at": "2025-12-22T20:56:14Z",
+      "last_modified": "2025-12-22T20:58:00Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "csv",
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "text-classification",
+        "cross-encoder",
+        "reranker",
+        "sentence-similarity",
+        "transformers",
+        "text-ranking",
+        "en",
+        "base_model:microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext",
+        "base_model:finetune:microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/NeuML/biomedbert-base-reranker"
+    },
+    {
+      "model_id": "cross-encoder-testing/ctxl-rerank-v2-instruct-multilingual-1b-STv6",
+      "created_at": "2025-12-22T16:42:47Z",
+      "last_modified": "2025-12-22T16:43:14Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "qwen3",
+        "cross-encoder",
+        "reranker",
+        "text-ranking",
+        "base_model:ContextualAI/ctxl-rerank-v2-instruct-multilingual-1b",
+        "base_model:finetune:ContextualAI/ctxl-rerank-v2-instruct-multilingual-1b",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/cross-encoder-testing/ctxl-rerank-v2-instruct-multilingual-1b-STv6"
+    },
+    {
+      "model_id": "ContextualAI/ctxl-rerank-v2-instruct-multilingual-1b-nvfp4",
+      "created_at": "2025-08-19T21:11:41Z",
+      "last_modified": "2025-12-22T16:13:21Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "png",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen3",
+        "text-generation",
+        "text-ranking",
+        "license:cc-by-nc-sa-4.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "compressed-tensors",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/ContextualAI/ctxl-rerank-v2-instruct-multilingual-1b-nvfp4"
+    },
+    {
+      "model_id": "ContextualAI/ctxl-rerank-v2-instruct-multilingual-2b-nvfp4",
+      "created_at": "2025-08-19T21:11:45Z",
+      "last_modified": "2025-12-22T16:13:18Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "png",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen3",
+        "text-generation",
+        "text-ranking",
+        "license:cc-by-nc-sa-4.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "8-bit",
+        "compressed-tensors",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/ContextualAI/ctxl-rerank-v2-instruct-multilingual-2b-nvfp4"
+    },
+    {
+      "model_id": "ContextualAI/ctxl-rerank-v2-instruct-multilingual-6b-nvfp4",
+      "created_at": "2025-08-19T21:11:47Z",
+      "last_modified": "2025-12-22T16:11:22Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "png",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "mistral",
+        "text-generation",
+        "text-ranking",
+        "license:cc-by-nc-sa-4.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "8-bit",
+        "compressed-tensors",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/ContextualAI/ctxl-rerank-v2-instruct-multilingual-6b-nvfp4"
+    },
+    {
+      "model_id": "ContextualAI/ctxl-rerank-v2-instruct-multilingual-1b",
+      "created_at": "2025-08-19T21:08:51Z",
+      "last_modified": "2025-12-22T16:05:42Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "png",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen3",
+        "text-generation",
+        "text-ranking",
+        "license:cc-by-nc-sa-4.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/ContextualAI/ctxl-rerank-v2-instruct-multilingual-1b"
+    },
+    {
+      "model_id": "ContextualAI/ctxl-rerank-v2-instruct-multilingual-2b",
+      "created_at": "2025-08-19T21:11:24Z",
+      "last_modified": "2025-12-22T16:05:22Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "png",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen3",
+        "text-generation",
+        "text-ranking",
+        "license:cc-by-nc-sa-4.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/ContextualAI/ctxl-rerank-v2-instruct-multilingual-2b"
+    },
+    {
+      "model_id": "ContextualAI/ctxl-rerank-v2-instruct-multilingual-6b",
+      "created_at": "2025-08-19T21:11:28Z",
+      "last_modified": "2025-12-22T16:05:03Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "png",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "mistral",
+        "text-generation",
+        "text-ranking",
+        "license:cc-by-nc-sa-4.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/ContextualAI/ctxl-rerank-v2-instruct-multilingual-6b"
+    },
+    {
+      "model_id": "vkimbris/qwen3_06b_items_reranker",
+      "created_at": "2025-12-22T15:23:41Z",
+      "last_modified": "2025-12-22T15:24:30Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "qwen3",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:1047",
+        "loss:MultipleNegativesRankingLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "base_model:Qwen/Qwen3-Embedding-0.6B",
+        "base_model:finetune:Qwen/Qwen3-Embedding-0.6B",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/vkimbris/qwen3_06b_items_reranker"
+    },
+    {
+      "model_id": "bansalaman18/reranker-msmarco-v1.1-ettin-encoder-150m-bce",
+      "created_at": "2025-12-21T09:10:38Z",
+      "last_modified": "2025-12-21T09:11:25Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:654438",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "en",
+        "dataset:microsoft/ms_marco",
+        "arxiv:1908.10084",
+        "base_model:jhu-clsp/ettin-encoder-150m",
+        "base_model:finetune:jhu-clsp/ettin-encoder-150m",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-150m-bce"
+    },
+    {
+      "model_id": "bansalaman18/reranker-msmarco-v1.1-ettin-encoder-68m-bce",
+      "created_at": "2025-12-21T07:53:19Z",
+      "last_modified": "2025-12-21T07:53:25Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:654438",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "en",
+        "dataset:microsoft/ms_marco",
+        "arxiv:1908.10084",
+        "base_model:jhu-clsp/ettin-encoder-68m",
+        "base_model:finetune:jhu-clsp/ettin-encoder-68m",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-68m-bce"
+    },
+    {
+      "model_id": "bansalaman18/reranker-msmarco-v1.1-ettin-encoder-32m-bce",
+      "created_at": "2025-12-21T07:11:01Z",
+      "last_modified": "2025-12-21T07:11:09Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:654438",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "en",
+        "dataset:microsoft/ms_marco",
+        "arxiv:1908.10084",
+        "base_model:jhu-clsp/ettin-encoder-32m",
+        "base_model:finetune:jhu-clsp/ettin-encoder-32m",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-32m-bce"
+    },
+    {
+      "model_id": "bansalaman18/reranker-msmarco-v1.1-ettin-encoder-17m-bce",
+      "created_at": "2025-12-21T07:00:05Z",
+      "last_modified": "2025-12-21T07:00:09Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:654438",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "en",
+        "dataset:microsoft/ms_marco",
+        "arxiv:1908.10084",
+        "base_model:jhu-clsp/ettin-encoder-17m",
+        "base_model:finetune:jhu-clsp/ettin-encoder-17m",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-17m-bce"
+    },
+    {
+      "model_id": "svk2118/reranker-22m",
+      "created_at": "2025-12-20T00:38:59Z",
+      "last_modified": "2025-12-20T00:41:29Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "bin",
+        "gitattributes",
+        "json",
+        "md",
+        "pt",
+        "pth",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:175555",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "base_model:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "base_model:finetune:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/svk2118/reranker-22m"
+    },
+    {
+      "model_id": "cross-encoder-testing/Qwen3-Reranker-0.6B-STv6",
+      "created_at": "2025-12-19T13:14:28Z",
+      "last_modified": "2025-12-19T15:01:54Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "qwen3",
+        "cross-encoder",
+        "reranker",
+        "text-ranking",
+        "base_model:Qwen/Qwen3-Reranker-0.6B",
+        "base_model:finetune:Qwen/Qwen3-Reranker-0.6B",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/cross-encoder-testing/Qwen3-Reranker-0.6B-STv6"
+    },
+    {
+      "model_id": "cross-encoder-testing/Qwen3-Reranker-0.6B-seq-cls-STv6",
+      "created_at": "2025-12-15T14:59:40Z",
+      "last_modified": "2025-12-19T15:01:38Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "qwen3",
+        "cross-encoder",
+        "reranker",
+        "text-ranking",
+        "base_model:tomaarsen/Qwen3-Reranker-0.6B-seq-cls",
+        "base_model:finetune:tomaarsen/Qwen3-Reranker-0.6B-seq-cls",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/cross-encoder-testing/Qwen3-Reranker-0.6B-seq-cls-STv6"
+    },
+    {
+      "model_id": "griffith-bigdata/GRAST-SQL-4B-BIRD-Reranker",
+      "created_at": "2025-10-01T07:24:45Z",
+      "last_modified": "2025-12-19T14:05:30Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "pt",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen3",
+        "text-generation",
+        "text-ranking",
+        "arxiv:2512.16083",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/griffith-bigdata/GRAST-SQL-4B-BIRD-Reranker"
+    },
+    {
+      "model_id": "griffith-bigdata/GRAST-SQL-8B-BIRD-Reranker",
+      "created_at": "2025-10-01T07:33:17Z",
+      "last_modified": "2025-12-19T14:05:20Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "pt",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen3",
+        "text-generation",
+        "text-to-sql",
+        "llm",
+        "schema-filtering",
+        "graph-reranker",
+        "text-ranking",
+        "arxiv:2512.16083",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/griffith-bigdata/GRAST-SQL-8B-BIRD-Reranker"
+    },
+    {
+      "model_id": "griffith-bigdata/GRAST-SQL-0.6B-BIRD-Reranker",
+      "created_at": "2025-10-01T07:19:59Z",
+      "last_modified": "2025-12-19T14:05:00Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "pt",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen3",
+        "text-generation",
+        "text-ranking",
+        "arxiv:2512.16083",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/griffith-bigdata/GRAST-SQL-0.6B-BIRD-Reranker"
+    },
+    {
+      "model_id": "cross-encoder-testing/mxbai-rerank-large-v2-STv6",
+      "created_at": "2025-12-15T16:11:48Z",
+      "last_modified": "2025-12-19T13:35:38Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "qwen2",
+        "cross-encoder",
+        "reranker",
+        "text-ranking",
+        "base_model:mixedbread-ai/mxbai-rerank-large-v2",
+        "base_model:finetune:mixedbread-ai/mxbai-rerank-large-v2",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/cross-encoder-testing/mxbai-rerank-large-v2-STv6"
+    },
+    {
+      "model_id": "cross-encoder-testing/mxbai-rerank-base-v2-STv6",
+      "created_at": "2025-12-15T16:06:48Z",
+      "last_modified": "2025-12-19T13:34:12Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "qwen2",
+        "cross-encoder",
+        "reranker",
+        "text-ranking",
+        "base_model:mixedbread-ai/mxbai-rerank-base-v2",
+        "base_model:finetune:mixedbread-ai/mxbai-rerank-base-v2",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/cross-encoder-testing/mxbai-rerank-base-v2-STv6"
+    },
+    {
+      "model_id": "OverSamu/reranker-biomedbert-base-ncbi-disease-bce-1",
+      "created_at": "2025-12-17T11:04:34Z",
+      "last_modified": "2025-12-17T11:04:49Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:3287660",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "en",
+        "arxiv:1908.10084",
+        "base_model:microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract",
+        "base_model:finetune:microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract",
+        "license:apache-2.0",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/OverSamu/reranker-biomedbert-base-ncbi-disease-bce-1"
+    },
+    {
+      "model_id": "andreribeiro87/aethel-reranker-en-v1-mmarco-pt-pt-finetuned",
+      "created_at": "2025-12-16T11:44:47Z",
+      "last_modified": "2025-12-16T21:43:12Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:257341",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "pt",
+        "en",
+        "base_model:lumees/aethel-reranker-en-v1",
+        "base_model:finetune:lumees/aethel-reranker-en-v1",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/andreribeiro87/aethel-reranker-en-v1-mmarco-pt-pt-finetuned"
+    },
+    {
+      "model_id": "chingackgook/reranker-ModernBERT-base-gooaq-bce",
+      "created_at": "2025-12-16T15:19:18Z",
+      "last_modified": "2025-12-16T15:20:59Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:198",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "en",
+        "arxiv:1908.10084",
+        "base_model:answerdotai/ModernBERT-base",
+        "base_model:finetune:answerdotai/ModernBERT-base",
+        "license:apache-2.0",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/chingackgook/reranker-ModernBERT-base-gooaq-bce"
+    },
+    {
+      "model_id": "redis/langcache-reranker-v2-softmnrl-triplet",
+      "created_at": "2025-12-06T09:54:46Z",
+      "last_modified": "2025-12-16T05:04:41Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "bin",
+        "csv",
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "cross-encoder",
+        "text-classification",
+        "sentence-pair-classification",
+        "semantic-similarity",
+        "semantic-search",
+        "retrieval",
+        "reranking",
+        "generated_from_trainer",
+        "dataset_size:76348209",
+        "loss:MultipleNegativesRankingLoss",
+        "text-ranking",
+        "en",
+        "dataset:redis/langcache-sentencepairs-v3",
+        "arxiv:1908.10084",
+        "base_model:Alibaba-NLP/gte-reranker-modernbert-base",
+        "base_model:finetune:Alibaba-NLP/gte-reranker-modernbert-base",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/redis/langcache-reranker-v2-softmnrl-triplet"
+    },
+    {
+      "model_id": "TakoData/chart-reranker",
+      "created_at": "2025-10-17T19:53:29Z",
+      "last_modified": "2025-12-15T05:07:51Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "csv",
+        "gitattributes",
+        "json",
+        "md",
+        "py",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "new",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:24588",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "custom_code",
+        "arxiv:1908.10084",
+        "base_model:Alibaba-NLP/gte-multilingual-reranker-base",
+        "base_model:finetune:Alibaba-NLP/gte-multilingual-reranker-base",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/TakoData/chart-reranker"
+    },
+    {
+      "model_id": "filmonfeme/financial-chatbot-reranker",
+      "created_at": "2025-12-15T01:43:58Z",
+      "last_modified": "2025-12-15T01:44:03Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:2000",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "base_model:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "base_model:finetune:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/filmonfeme/financial-chatbot-reranker"
+    },
+    {
+      "model_id": "XingTuLab/BinSeek-Reranker",
+      "created_at": "2025-12-10T07:16:37Z",
+      "last_modified": "2025-12-12T02:36:17Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "qwen3",
+        "text-classification",
+        "transformers",
+        "binary code",
+        "binary",
+        "sentence-similarity",
+        "text-ranking",
+        "en",
+        "zh",
+        "arxiv:2512.10393",
+        "license:gpl-3.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/XingTuLab/BinSeek-Reranker"
+    },
+    {
+      "model_id": "mdmasud8800/cost-free",
+      "created_at": "2025-12-11T05:20:30Z",
+      "last_modified": "2025-12-11T05:21:40Z",
+      "pipeline_tag": "text-ranking",
+      "library": "asteroid",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "asteroid",
+        "text-ranking",
+        "af",
+        "dataset:Anthropic/AnthropicInterviewer",
+        "base_model:Tongyi-MAI/Z-Image-Turbo",
+        "base_model:finetune:Tongyi-MAI/Z-Image-Turbo",
+        "license:bigcode-openrail-m",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/mdmasud8800/cost-free"
+    },
+    {
+      "model_id": "Ete423/finetuned-cat-reranker",
+      "created_at": "2025-12-10T08:29:19Z",
+      "last_modified": "2025-12-10T09:20:54Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "csv",
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:588",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "base_model:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "base_model:finetune:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/Ete423/finetuned-cat-reranker"
+    },
+    {
+      "model_id": "MosRat/ucas-ir-2025-Qwen3-Reranker-8B-finetuned",
+      "created_at": "2025-12-09T01:49:40Z",
+      "last_modified": "2025-12-09T03:30:37Z",
+      "pipeline_tag": "text-ranking",
+      "library": null,
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "safetensors",
+        "qwen3",
+        "text-ranking",
+        "zh",
+        "en",
+        "dataset:MosRat/ucas-ir-2025-webq-sampled",
+        "base_model:Qwen/Qwen3-Reranker-8B",
+        "base_model:finetune:Qwen/Qwen3-Reranker-8B",
+        "license:mit",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/MosRat/ucas-ir-2025-Qwen3-Reranker-8B-finetuned"
+    },
+    {
+      "model_id": "homesome/qwen3-reranker-4b-homesome",
+      "created_at": "2025-12-07T05:31:22Z",
+      "last_modified": "2025-12-07T05:38:37Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "py",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen3",
+        "text-generation",
+        "text-ranking",
+        "arxiv:2506.05176",
+        "base_model:Qwen/Qwen3-4B-Base",
+        "base_model:finetune:Qwen/Qwen3-4B-Base",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/homesome/qwen3-reranker-4b-homesome"
+    },
+    {
+      "model_id": "redis/langcache-reranker-v1-miniL6",
+      "created_at": "2025-12-05T17:12:05Z",
+      "last_modified": "2025-12-05T23:48:25Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "bin",
+        "csv",
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "text-classification",
+        "sentence-pair-classification",
+        "semantic-similarity",
+        "semantic-search",
+        "retrieval",
+        "reranking",
+        "generated_from_trainer",
+        "dataset_size:1056095",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "en",
+        "dataset:redis/langcache-sentencepairs-v1",
+        "arxiv:1908.10084",
+        "base_model:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "base_model:finetune:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/redis/langcache-reranker-v1-miniL6"
+    },
+    {
+      "model_id": "redis/langcache-reranker-v1-miniL6-softmnrl-triplet",
+      "created_at": "2025-12-04T23:14:56Z",
+      "last_modified": "2025-12-05T16:47:42Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "bin",
+        "csv",
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "text-classification",
+        "sentence-pair-classification",
+        "semantic-similarity",
+        "semantic-search",
+        "retrieval",
+        "reranking",
+        "generated_from_trainer",
+        "dataset_size:1452533",
+        "loss:MultipleNegativesRankingLoss",
+        "text-ranking",
+        "en",
+        "dataset:redis/langcache-sentencepairs-v1",
+        "arxiv:1908.10084",
+        "base_model:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "base_model:finetune:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "license:apache-2.0",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/redis/langcache-reranker-v1-miniL6-softmnrl-triplet"
+    },
+    {
+      "model_id": "mradermacher/Diver-GroupRank-7B-i1-GGUF",
+      "created_at": "2025-11-20T02:13:18Z",
+      "last_modified": "2025-12-05T07:31:16Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "passage ranking",
+        "text-ranking",
+        "reasoning",
+        "Information-Retrieval",
+        "en",
+        "dataset:xlangai/BRIGHT",
+        "dataset:liuwenhan/reasonrank_data_13k",
+        "base_model:AQ-MedAI/Diver-GroupRank-7B",
+        "base_model:quantized:AQ-MedAI/Diver-GroupRank-7B",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us",
+        "imatrix",
+        "conversational"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/mradermacher/Diver-GroupRank-7B-i1-GGUF"
+    },
+    {
+      "model_id": "alantang2025/reranker-MiniLM-L12-H384-uncased-msmarco-margin-mse",
+      "created_at": "2025-12-05T02:56:45Z",
+      "last_modified": "2025-12-05T02:56:48Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:1990000",
+        "loss:MarginMSELoss",
+        "text-ranking",
+        "en",
+        "dataset:sentence-transformers/msmarco",
+        "arxiv:1908.10084",
+        "arxiv:2010.02666",
+        "base_model:microsoft/MiniLM-L12-H384-uncased",
+        "base_model:finetune:microsoft/MiniLM-L12-H384-uncased",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/alantang2025/reranker-MiniLM-L12-H384-uncased-msmarco-margin-mse"
+    },
+    {
+      "model_id": "ingridchien/harvard-loop-reranker",
+      "created_at": "2025-12-04T21:13:08Z",
+      "last_modified": "2025-12-04T21:16:37Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "xlm-roberta",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:68056",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "base_model:BAAI/bge-reranker-v2-m3",
+        "base_model:finetune:BAAI/bge-reranker-v2-m3",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/ingridchien/harvard-loop-reranker"
+    },
+    {
+      "model_id": "cross-encoder-testing/reranker-bert-tiny-gooaq-bce-v6",
+      "created_at": "2025-12-03T10:57:47Z",
+      "last_modified": "2025-12-03T10:58:29Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "py",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "text-classification",
+        "generated_from_trainer",
+        "dataset_size:578402",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "en",
+        "arxiv:1908.10084",
+        "base_model:prajjwal1/bert-tiny",
+        "base_model:finetune:prajjwal1/bert-tiny",
+        "license:apache-2.0",
+        "co2_eq_emissions",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/cross-encoder-testing/reranker-bert-tiny-gooaq-bce-v6"
+    },
+    {
+      "model_id": "naver/xprovence-reranker-bgem3-v2",
+      "created_at": "2025-11-25T16:57:57Z",
+      "last_modified": "2025-12-03T09:13:17Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "model",
+        "py",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "xlm-roberta",
+        "feature-extraction",
+        "XProvence",
+        "RAG",
+        "Multilingual",
+        "Provence",
+        "text-ranking",
+        "custom_code",
+        "ar",
+        "en",
+        "fr",
+        "es",
+        "bn",
+        "fa",
+        "fi",
+        "hi",
+        "id",
+        "ja",
+        "ko",
+        "ru",
+        "sw",
+        "te",
+        "th",
+        "zh",
+        "base_model:BAAI/bge-reranker-v2-m3",
+        "base_model:finetune:BAAI/bge-reranker-v2-m3",
+        "license:cc-by-nc-nd-4.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/naver/xprovence-reranker-bgem3-v2"
+    },
+    {
+      "model_id": "sofiakris/audit-match",
+      "created_at": "2025-11-22T00:08:20Z",
+      "last_modified": "2025-12-02T02:15:41Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:2860",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "base_model:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "base_model:finetune:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/sofiakris/audit-match"
+    },
+    {
+      "model_id": "mjaliz/product-titles-reranker-v1",
+      "created_at": "2025-11-29T18:54:52Z",
+      "last_modified": "2025-11-29T19:02:30Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "bin",
+        "gitattributes",
+        "json",
+        "md",
+        "pt",
+        "pth",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "xlm-roberta",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:991734",
+        "loss:CachedMultipleNegativesRankingLoss",
+        "text-ranking",
+        "dataset:mjaliz/basalam-query-triplet-grmma27-1M",
+        "arxiv:1908.10084",
+        "base_model:mjaliz/product_titles_27M_bge-m3-retromae",
+        "base_model:finetune:mjaliz/product_titles_27M_bge-m3-retromae",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/mjaliz/product-titles-reranker-v1"
+    },
+    {
+      "model_id": "redis/langcache-reranker-v1-softmnrl-triplet",
+      "created_at": "2025-11-27T04:08:39Z",
+      "last_modified": "2025-11-29T12:01:24Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "bin",
+        "csv",
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "cross-encoder",
+        "text-classification",
+        "sentence-pair-classification",
+        "semantic-similarity",
+        "semantic-search",
+        "retrieval",
+        "reranking",
+        "generated_from_trainer",
+        "dataset_size:1452533",
+        "loss:MultipleNegativesRankingLoss",
+        "text-ranking",
+        "en",
+        "dataset:redis/langcache-sentencepairs-v1",
+        "arxiv:1908.10084",
+        "base_model:Alibaba-NLP/gte-reranker-modernbert-base",
+        "base_model:finetune:Alibaba-NLP/gte-reranker-modernbert-base",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/redis/langcache-reranker-v1-softmnrl-triplet"
+    },
+    {
+      "model_id": "rk-transformers/ms-marco-MiniLM-L12-v2",
+      "created_at": "2025-11-27T08:20:25Z",
+      "last_modified": "2025-11-29T01:41:31Z",
+      "pipeline_tag": "text-ranking",
+      "library": "rk-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "rknn",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "rk-transformers",
+        "bert",
+        "text-classification",
+        "transformers",
+        "rknn",
+        "rockchip",
+        "npu",
+        "rk3588",
+        "text-ranking",
+        "en",
+        "dataset:sentence-transformers/natural-questions",
+        "base_model:cross-encoder/ms-marco-MiniLM-L12-v2",
+        "base_model:finetune:cross-encoder/ms-marco-MiniLM-L12-v2",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/rk-transformers/ms-marco-MiniLM-L12-v2"
+    },
+    {
+      "model_id": "ahmedfarazsyk/ms-marco-MiniLM-L6-v2-finetuned-scidocs",
+      "created_at": "2025-11-27T10:04:10Z",
+      "last_modified": "2025-11-27T14:03:01Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "12",
+        "bin",
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "tensorboard",
+        "safetensors",
+        "bert",
+        "text-classification",
+        "generated_from_trainer",
+        "text-ranking",
+        "en",
+        "base_model:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "base_model:finetune:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/ahmedfarazsyk/ms-marco-MiniLM-L6-v2-finetuned-scidocs"
+    },
+    {
+      "model_id": "Laseung/klue-roberta-small-klue-mrc-cross-encoder-finetuned",
+      "created_at": "2025-11-27T08:19:48Z",
+      "last_modified": "2025-11-27T08:19:54Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "roberta",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:35108",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "base_model:klue/roberta-small",
+        "base_model:finetune:klue/roberta-small",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/Laseung/klue-roberta-small-klue-mrc-cross-encoder-finetuned"
+    },
+    {
+      "model_id": "jinaai/jina-reranker-v3",
+      "created_at": "2025-09-18T08:10:25Z",
+      "last_modified": "2025-11-27T03:06:06Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "py",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen3",
+        "feature-extraction",
+        "reranker",
+        "text-ranking",
+        "custom_code",
+        "multilingual",
+        "arxiv:2509.25085",
+        "base_model:Qwen/Qwen3-0.6B",
+        "base_model:finetune:Qwen/Qwen3-0.6B",
+        "license:cc-by-nc-4.0",
+        "text-embeddings-inference",
+        "region:eu"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/jinaai/jina-reranker-v3"
+    },
+    {
+      "model_id": "bourdoiscatie/crossencoder-camembert-base-mmarcoFR",
+      "created_at": "2025-11-25T23:28:17Z",
+      "last_modified": "2025-11-25T23:31:10Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "onnx"
+      ],
+      "cpu_runtimes": [
+        "onnxruntime"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "onnx",
+        "camembert",
+        "passage-reranking",
+        "text-ranking",
+        "fr",
+        "dataset:unicamp-dl/mmarco",
+        "base_model:almanach/camembert-base",
+        "base_model:quantized:almanach/camembert-base",
+        "license:mit",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/bourdoiscatie/crossencoder-camembert-base-mmarcoFR"
+    },
+    {
+      "model_id": "redsquirrel/Qwen3-Reranker-8B-Q8_0-GGUF",
+      "created_at": "2025-11-25T19:55:56Z",
+      "last_modified": "2025-11-25T19:56:33Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "base_model:Qwen/Qwen3-Reranker-8B",
+        "base_model:quantized:Qwen/Qwen3-Reranker-8B",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us",
+        "conversational"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/redsquirrel/Qwen3-Reranker-8B-Q8_0-GGUF"
+    },
+    {
+      "model_id": "nvidia/llama-nemotron-rerank-1b-v2",
+      "created_at": "2025-10-16T23:09:22Z",
+      "last_modified": "2025-11-25T19:52:11Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "bin",
+        "gitattributes",
+        "json",
+        "md",
+        "py",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "pytorch",
+        "safetensors",
+        "llama_bidirec",
+        "text-classification",
+        "text",
+        "reranker",
+        "cross-encoder",
+        "retrieval",
+        "semantic-search",
+        "text-ranking",
+        "custom_code",
+        "multilingual",
+        "license:other",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/nvidia/llama-nemotron-rerank-1b-v2"
+    },
+    {
+      "model_id": "redsquirrel/Qwen3-Reranker-8B-Q4_K_M-GGUF",
+      "created_at": "2025-11-25T19:40:04Z",
+      "last_modified": "2025-11-25T19:40:28Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "base_model:Qwen/Qwen3-Reranker-8B",
+        "base_model:quantized:Qwen/Qwen3-Reranker-8B",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us",
+        "conversational"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/redsquirrel/Qwen3-Reranker-8B-Q4_K_M-GGUF"
+    },
+    {
+      "model_id": "tomaarsen/ms-marco-ettin-17m-reranker",
+      "created_at": "2025-11-24T16:21:03Z",
+      "last_modified": "2025-11-24T16:21:06Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:39770704",
+        "loss:MarginMSELoss",
+        "text-ranking",
+        "en",
+        "dataset:sentence-transformers/msmarco",
+        "arxiv:1908.10084",
+        "arxiv:2010.02666",
+        "base_model:jhu-clsp/ettin-encoder-17m",
+        "base_model:finetune:jhu-clsp/ettin-encoder-17m",
+        "model-index",
+        "co2_eq_emissions",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/tomaarsen/ms-marco-ettin-17m-reranker"
+    },
+    {
+      "model_id": "tomaarsen/ms-marco-ettin-32m-reranker",
+      "created_at": "2025-11-24T16:20:19Z",
+      "last_modified": "2025-11-24T16:20:23Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:39770704",
+        "loss:MarginMSELoss",
+        "text-ranking",
+        "en",
+        "dataset:sentence-transformers/msmarco",
+        "arxiv:1908.10084",
+        "arxiv:2010.02666",
+        "base_model:jhu-clsp/ettin-encoder-32m",
+        "base_model:finetune:jhu-clsp/ettin-encoder-32m",
+        "model-index",
+        "co2_eq_emissions",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/tomaarsen/ms-marco-ettin-32m-reranker"
+    },
+    {
+      "model_id": "tomaarsen/ms-marco-ettin-68m-reranker",
+      "created_at": "2025-11-24T16:19:48Z",
+      "last_modified": "2025-11-24T16:19:57Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:39770704",
+        "loss:MarginMSELoss",
+        "text-ranking",
+        "en",
+        "dataset:sentence-transformers/msmarco",
+        "arxiv:1908.10084",
+        "arxiv:2010.02666",
+        "base_model:jhu-clsp/ettin-encoder-68m",
+        "base_model:finetune:jhu-clsp/ettin-encoder-68m",
+        "model-index",
+        "co2_eq_emissions",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/tomaarsen/ms-marco-ettin-68m-reranker"
+    },
+    {
+      "model_id": "tomaarsen/ms-marco-ettin-150m-reranker",
+      "created_at": "2025-11-24T16:18:56Z",
+      "last_modified": "2025-11-24T16:18:59Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:39770704",
+        "loss:MarginMSELoss",
+        "text-ranking",
+        "en",
+        "dataset:sentence-transformers/msmarco",
+        "arxiv:1908.10084",
+        "arxiv:2010.02666",
+        "base_model:jhu-clsp/ettin-encoder-150m",
+        "base_model:finetune:jhu-clsp/ettin-encoder-150m",
+        "model-index",
+        "co2_eq_emissions",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/tomaarsen/ms-marco-ettin-150m-reranker"
+    },
+    {
+      "model_id": "AQ-MedAI/Diver-GroupRank-7B",
+      "created_at": "2025-11-18T03:59:46Z",
+      "last_modified": "2025-11-23T09:43:10Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen2",
+        "text-generation",
+        "passage ranking",
+        "text-ranking",
+        "reasoning",
+        "Information-Retrieval",
+        "en",
+        "dataset:xlangai/BRIGHT",
+        "dataset:liuwenhan/reasonrank_data_13k",
+        "arxiv:2511.11653",
+        "base_model:Qwen/Qwen2.5-7B-Instruct",
+        "base_model:finetune:Qwen/Qwen2.5-7B-Instruct",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/AQ-MedAI/Diver-GroupRank-7B"
+    },
+    {
+      "model_id": "AQ-MedAI/Diver-GroupRank-32B",
+      "created_at": "2025-11-18T03:59:28Z",
+      "last_modified": "2025-11-23T09:41:50Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen2",
+        "text-generation",
+        "passage ranking",
+        "text-ranking",
+        "reasoning",
+        "Information-Retrieval",
+        "en",
+        "dataset:xlangai/BRIGHT",
+        "dataset:liuwenhan/reasonrank_data_13k",
+        "arxiv:2511.11653",
+        "base_model:Qwen/Qwen2.5-32B-Instruct",
+        "base_model:finetune:Qwen/Qwen2.5-32B-Instruct",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/AQ-MedAI/Diver-GroupRank-32B"
+    },
+    {
+      "model_id": "hotchpotch/open-provence-reranker-v1-gte-modernbert-base",
+      "created_at": "2025-10-29T09:54:15Z",
+      "last_modified": "2025-11-22T01:12:05Z",
+      "pipeline_tag": "text-ranking",
+      "library": null,
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "py",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "safetensors",
+        "open_provence",
+        "text-ranking",
+        "custom_code",
+        "en",
+        "dataset:hotchpotch/msmarco-context-relevance",
+        "dataset:hotchpotch/gooaq-context-relevance-130k",
+        "dataset:hotchpotch/natural-questions-context-relevance",
+        "arxiv:2501.16214",
+        "base_model:Alibaba-NLP/gte-reranker-modernbert-base",
+        "base_model:finetune:Alibaba-NLP/gte-reranker-modernbert-base",
+        "license:mit",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/hotchpotch/open-provence-reranker-v1-gte-modernbert-base"
+    },
+    {
+      "model_id": "hotchpotch/open-provence-reranker-large-v1",
+      "created_at": "2025-10-29T09:50:18Z",
+      "last_modified": "2025-11-22T01:12:03Z",
+      "pipeline_tag": "text-ranking",
+      "library": null,
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "model",
+        "py",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "safetensors",
+        "open_provence",
+        "text-ranking",
+        "custom_code",
+        "en",
+        "ja",
+        "dataset:hotchpotch/msmarco-context-relevance",
+        "dataset:hotchpotch/japanese-context-relevance",
+        "dataset:hotchpotch/gooaq-context-relevance-130k",
+        "dataset:hotchpotch/natural-questions-context-relevance",
+        "arxiv:2501.16214",
+        "base_model:cl-nagoya/ruri-v3-reranker-310m",
+        "base_model:finetune:cl-nagoya/ruri-v3-reranker-310m",
+        "license:mit",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/hotchpotch/open-provence-reranker-large-v1"
+    },
+    {
+      "model_id": "hotchpotch/open-provence-reranker-xsmall-v1",
+      "created_at": "2025-10-29T09:55:25Z",
+      "last_modified": "2025-11-22T01:11:59Z",
+      "pipeline_tag": "text-ranking",
+      "library": null,
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "model",
+        "py",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "safetensors",
+        "open_provence",
+        "text-ranking",
+        "custom_code",
+        "en",
+        "ja",
+        "dataset:hotchpotch/msmarco-context-relevance",
+        "dataset:hotchpotch/japanese-context-relevance",
+        "dataset:hotchpotch/gooaq-context-relevance-130k",
+        "dataset:hotchpotch/natural-questions-context-relevance",
+        "arxiv:2501.16214",
+        "base_model:hotchpotch/japanese-reranker-xsmall-v2",
+        "base_model:finetune:hotchpotch/japanese-reranker-xsmall-v2",
+        "license:mit",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/hotchpotch/open-provence-reranker-xsmall-v1"
+    },
+    {
+      "model_id": "hotchpotch/open-provence-reranker-v1",
+      "created_at": "2025-10-29T09:53:14Z",
+      "last_modified": "2025-11-22T01:11:57Z",
+      "pipeline_tag": "text-ranking",
+      "library": null,
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "model",
+        "py",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "safetensors",
+        "open_provence",
+        "text-ranking",
+        "custom_code",
+        "en",
+        "ja",
+        "dataset:hotchpotch/msmarco-context-relevance",
+        "dataset:hotchpotch/japanese-context-relevance",
+        "dataset:hotchpotch/gooaq-context-relevance-130k",
+        "dataset:hotchpotch/natural-questions-context-relevance",
+        "arxiv:2501.16214",
+        "base_model:hotchpotch/japanese-reranker-base-v2",
+        "base_model:finetune:hotchpotch/japanese-reranker-base-v2",
+        "license:mit",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/hotchpotch/open-provence-reranker-v1"
+    },
+    {
+      "model_id": "tomaarsen/reranker-MiniLM-L12-H384-msmarco-mse",
+      "created_at": "2025-02-14T12:02:13Z",
+      "last_modified": "2025-11-21T12:40:10Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "text-classification",
+        "generated_from_trainer",
+        "dataset_size:1990000",
+        "loss:MSELoss",
+        "text-ranking",
+        "dataset:tomaarsen/ms-marco-shuffled",
+        "arxiv:1908.10084",
+        "base_model:microsoft/MiniLM-L12-H384-uncased",
+        "base_model:finetune:microsoft/MiniLM-L12-H384-uncased",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/tomaarsen/reranker-MiniLM-L12-H384-msmarco-mse"
+    },
+    {
+      "model_id": "zeroentropy/zerank-2",
+      "created_at": "2025-11-19T05:19:06Z",
+      "last_modified": "2025-11-20T08:22:50Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "py",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "qwen3",
+        "finance",
+        "legal",
+        "code",
+        "stem",
+        "medical",
+        "text-ranking",
+        "en",
+        "base_model:Qwen/Qwen3-4B",
+        "base_model:finetune:Qwen/Qwen3-4B",
+        "license:cc-by-nc-4.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/zeroentropy/zerank-2"
+    },
+    {
+      "model_id": "mradermacher/Diver-GroupRank-7B-GGUF",
+      "created_at": "2025-11-19T23:11:52Z",
+      "last_modified": "2025-11-20T02:29:52Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "passage ranking",
+        "text-ranking",
+        "reasoning",
+        "Information-Retrieval",
+        "en",
+        "dataset:xlangai/BRIGHT",
+        "dataset:liuwenhan/reasonrank_data_13k",
+        "base_model:AQ-MedAI/Diver-GroupRank-7B",
+        "base_model:quantized:AQ-MedAI/Diver-GroupRank-7B",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us",
+        "conversational"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/mradermacher/Diver-GroupRank-7B-GGUF"
+    },
+    {
+      "model_id": "andrewma5/harvard-loop-reranker",
+      "created_at": "2025-11-20T02:03:05Z",
+      "last_modified": "2025-11-20T02:27:46Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:114138",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "base_model:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "base_model:finetune:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/andrewma5/harvard-loop-reranker"
+    },
+    {
+      "model_id": "lumees/aethel-reranker-en-v1",
+      "created_at": "2025-11-20T00:18:13Z",
+      "last_modified": "2025-11-20T02:07:44Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "model",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "reranker",
+        "text-ranking",
+        "en",
+        "license:cc-by-nc-4.0",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/lumees/aethel-reranker-en-v1"
+    },
+    {
+      "model_id": "hasankursun/reranker-Multilingual-MiniLM-L12-H384-msmarco-mse",
+      "created_at": "2025-11-20T00:03:54Z",
+      "last_modified": "2025-11-20T00:04:04Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "model",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:1990000",
+        "loss:MSELoss",
+        "text-ranking",
+        "en",
+        "dataset:sentence-transformers/msmarco",
+        "arxiv:1908.10084",
+        "base_model:microsoft/Multilingual-MiniLM-L12-H384",
+        "base_model:finetune:microsoft/Multilingual-MiniLM-L12-H384",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/hasankursun/reranker-Multilingual-MiniLM-L12-H384-msmarco-mse"
+    },
+    {
+      "model_id": "ManiKumarAdapala/Qwen3-Reranker-0.6B-Q8_0-Safetensors",
+      "created_at": "2025-11-19T05:53:57Z",
+      "last_modified": "2025-11-19T06:49:12Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen3",
+        "text-generation",
+        "text-ranking",
+        "arxiv:2506.05176",
+        "base_model:Qwen/Qwen3-Reranker-0.6B",
+        "base_model:quantized:Qwen/Qwen3-Reranker-0.6B",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "8-bit",
+        "bitsandbytes",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/ManiKumarAdapala/Qwen3-Reranker-0.6B-Q8_0-Safetensors"
+    },
+    {
+      "model_id": "zeroentropy/zerank-1",
+      "created_at": "2025-06-30T23:46:23Z",
+      "last_modified": "2025-11-19T05:39:43Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "py",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "qwen3",
+        "finance",
+        "legal",
+        "code",
+        "stem",
+        "medical",
+        "text-ranking",
+        "custom_code",
+        "en",
+        "base_model:Qwen/Qwen3-4B",
+        "base_model:finetune:Qwen/Qwen3-4B",
+        "license:cc-by-nc-4.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/zeroentropy/zerank-1"
+    },
+    {
+      "model_id": "ManiKumarAdapala/Qwen3-Reranker-0.6B-Q8_0-GGUF",
+      "created_at": "2025-11-18T11:24:09Z",
+      "last_modified": "2025-11-18T11:24:16Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "base_model:Qwen/Qwen3-Reranker-0.6B",
+        "base_model:quantized:Qwen/Qwen3-Reranker-0.6B",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us",
+        "conversational"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/ManiKumarAdapala/Qwen3-Reranker-0.6B-Q8_0-GGUF"
+    },
+    {
+      "model_id": "songtingyu/limrank",
+      "created_at": "2025-06-05T07:27:40Z",
+      "last_modified": "2025-11-18T03:16:17Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen2",
+        "text-generation",
+        "text-ranking",
+        "arxiv:2510.23544",
+        "license:mit",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/songtingyu/limrank"
+    },
+    {
+      "model_id": "Lipdog/Qwen3-Reranker-4B-mlx-fp16",
+      "created_at": "2025-11-17T23:05:49Z",
+      "last_modified": "2025-11-17T23:06:29Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "jinja",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen3",
+        "text-generation",
+        "mlx",
+        "text-ranking",
+        "base_model:Qwen/Qwen3-Reranker-4B",
+        "base_model:finetune:Qwen/Qwen3-Reranker-4B",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/Lipdog/Qwen3-Reranker-4B-mlx-fp16"
+    },
+    {
+      "model_id": "bnkc123/modernbert-base-gooaq-bce",
+      "created_at": "2025-11-17T19:47:50Z",
+      "last_modified": "2025-11-17T19:48:57Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "reranking",
+        "cross-encoder",
+        "gooaq",
+        "generated_from_trainer",
+        "dataset_size:54000",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "en",
+        "arxiv:1908.10084",
+        "base_model:answerdotai/ModernBERT-base",
+        "base_model:finetune:answerdotai/ModernBERT-base",
+        "license:apache-2.0",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/bnkc123/modernbert-base-gooaq-bce"
+    },
+    {
+      "model_id": "emilwin/reranker-ms-marco-sympathy-docs",
+      "created_at": "2025-11-17T13:34:49Z",
+      "last_modified": "2025-11-17T13:34:58Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:18884",
+        "loss:BinaryCrossEntropyLoss",
+        "loss:CachedMultipleNegativesRankingLoss",
+        "text-ranking",
+        "en",
+        "arxiv:1908.10084",
+        "base_model:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "base_model:finetune:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "license:apache-2.0",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/emilwin/reranker-ms-marco-sympathy-docs"
+    },
+    {
+      "model_id": "aqweteddy/AuroraX-Reranker-Base-v1.0",
+      "created_at": "2025-10-13T06:21:43Z",
+      "last_modified": "2025-11-14T16:12:28Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "modernbert",
+        "text-classification",
+        "reranker",
+        "English",
+        "zh-tw",
+        "zh-cn",
+        "text-ranking",
+        "en",
+        "zh",
+        "base_model:jhu-clsp/mmBERT-base",
+        "base_model:finetune:jhu-clsp/mmBERT-base",
+        "license:mit",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/aqweteddy/AuroraX-Reranker-Base-v1.0"
+    },
+    {
+      "model_id": "kazalbrur/jina-reranker-v2-base-multilingual-finetuned-Q8_0-GGUF",
+      "created_at": "2025-11-14T06:15:28Z",
+      "last_modified": "2025-11-14T06:15:33Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "gguf",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:6964",
+        "loss:CachedMultipleNegativesRankingLoss",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "base_model:cuadron11/jina-reranker-v2-base-multilingual-finetuned",
+        "base_model:quantized:cuadron11/jina-reranker-v2-base-multilingual-finetuned",
+        "model-index",
+        "endpoints_compatible",
+        "region:us",
+        "feature-extraction"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/kazalbrur/jina-reranker-v2-base-multilingual-finetuned-Q8_0-GGUF"
+    },
+    {
+      "model_id": "kazalbrur/jina-reranker-v2-base-multilingual-Q8_0-GGUF",
+      "created_at": "2025-11-13T16:22:41Z",
+      "last_modified": "2025-11-13T16:22:46Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "reranker",
+        "cross-encoder",
+        "transformers.js",
+        "sentence-transformers",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "multilingual",
+        "base_model:jinaai/jina-reranker-v2-base-multilingual",
+        "base_model:quantized:jinaai/jina-reranker-v2-base-multilingual",
+        "license:cc-by-nc-4.0",
+        "region:us",
+        "feature-extraction"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/kazalbrur/jina-reranker-v2-base-multilingual-Q8_0-GGUF"
+    },
+    {
+      "model_id": "webis/colbert",
+      "created_at": "2024-08-28T13:41:47Z",
+      "last_modified": "2025-11-12T15:13:33Z",
+      "pipeline_tag": "text-ranking",
+      "library": "lightning-ir",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt",
+        "yaml"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "lightning-ir",
+        "safetensors",
+        "col",
+        "bi-encoder",
+        "text-ranking",
+        "base_model:google-bert/bert-base-uncased",
+        "base_model:finetune:google-bert/bert-base-uncased",
+        "license:apache-2.0",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/webis/colbert"
+    },
+    {
+      "model_id": "webis/splade",
+      "created_at": "2024-08-28T13:41:59Z",
+      "last_modified": "2025-11-12T15:12:03Z",
+      "pipeline_tag": "text-ranking",
+      "library": "lightning-ir",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt",
+        "yaml"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "lightning-ir",
+        "safetensors",
+        "splade",
+        "bi-encoder",
+        "text-ranking",
+        "base_model:google-bert/bert-base-uncased",
+        "base_model:finetune:google-bert/bert-base-uncased",
+        "license:apache-2.0",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/webis/splade"
+    },
+    {
+      "model_id": "webis/bert-bi-encoder",
+      "created_at": "2024-08-28T13:42:12Z",
+      "last_modified": "2025-11-12T15:10:47Z",
+      "pipeline_tag": "text-ranking",
+      "library": "lightning-ir",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt",
+        "yaml"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "lightning-ir",
+        "safetensors",
+        "lir-dpr",
+        "bi-encoder",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "base_model:google-bert/bert-base-uncased",
+        "base_model:finetune:google-bert/bert-base-uncased",
+        "license:apache-2.0",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/webis/bert-bi-encoder"
+    },
+    {
+      "model_id": "tikanosa/mk_crossencoder",
+      "created_at": "2025-11-12T01:44:42Z",
+      "last_modified": "2025-11-12T03:03:56Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:942",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "base_model:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "base_model:finetune:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/tikanosa/mk_crossencoder"
+    },
+    {
+      "model_id": "tikanosa/syllabus_crossencoder",
+      "created_at": "2025-11-11T04:13:10Z",
+      "last_modified": "2025-11-12T02:45:21Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:189",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "base_model:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "base_model:finetune:cross-encoder/ms-marco-MiniLM-L6-v2",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/tikanosa/syllabus_crossencoder"
+    },
+    {
+      "model_id": "hutuhehe/finretriever-cross-reranker",
+      "created_at": "2025-11-11T04:54:27Z",
+      "last_modified": "2025-11-11T04:54:47Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "text-classification",
+        "transformers",
+        "text-ranking",
+        "en",
+        "dataset:sentence-transformers/msmarco",
+        "base_model:cross-encoder/ms-marco-MiniLM-L12-v2",
+        "base_model:finetune:cross-encoder/ms-marco-MiniLM-L12-v2",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/hutuhehe/finretriever-cross-reranker"
+    },
+    {
+      "model_id": "IoannisKat1/bge_reranker_ft",
+      "created_at": "2025-10-28T14:06:55Z",
+      "last_modified": "2025-11-10T20:12:23Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "model",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "xlm-roberta",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:6763",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "base_model:BAAI/bge-reranker-v2-m3",
+        "base_model:finetune:BAAI/bge-reranker-v2-m3",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/IoannisKat1/bge_reranker_ft"
+    },
+    {
+      "model_id": "skygudanr/klue-roberta-small-cross-encoder",
+      "created_at": "2025-11-07T05:12:53Z",
+      "last_modified": "2025-11-10T03:32:50Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "roberta",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:35108",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "base_model:klue/roberta-small",
+        "base_model:finetune:klue/roberta-small",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/skygudanr/klue-roberta-small-cross-encoder"
+    },
+    {
+      "model_id": "truong1301/PhoRanker_vinum",
+      "created_at": "2025-11-08T05:27:19Z",
+      "last_modified": "2025-11-08T05:27:46Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "codes",
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "roberta",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:29700",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "base_model:itdainb/PhoRanker",
+        "base_model:finetune:itdainb/PhoRanker",
+        "model-index",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/truong1301/PhoRanker_vinum"
+    },
+    {
+      "model_id": "bdesnos/Qwen3-Reranker-8B-Q6_K-GGUF",
+      "created_at": "2025-11-08T04:30:26Z",
+      "last_modified": "2025-11-08T04:30:55Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "base_model:Qwen/Qwen3-Reranker-8B",
+        "base_model:quantized:Qwen/Qwen3-Reranker-8B",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us",
+        "conversational"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/bdesnos/Qwen3-Reranker-8B-Q6_K-GGUF"
+    },
+    {
+      "model_id": "Adarsh921/cross-encoder",
+      "created_at": "2025-11-06T18:59:31Z",
+      "last_modified": "2025-11-06T18:59:35Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "text-classification",
+        "transformers",
+        "text-ranking",
+        "en",
+        "dataset:sentence-transformers/msmarco",
+        "base_model:cross-encoder/ms-marco-MiniLM-L12-v2",
+        "base_model:finetune:cross-encoder/ms-marco-MiniLM-L12-v2",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/Adarsh921/cross-encoder"
+    },
+    {
+      "model_id": "ibm-granite/granite-embedding-reranker-english-r2",
+      "created_at": "2025-08-04T17:17:12Z",
+      "last_modified": "2025-11-06T15:57:11Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "modernbert",
+        "text-classification",
+        "granite",
+        "transformers",
+        "embeddings",
+        "mteb",
+        "text-embeddings-inference",
+        "text-ranking",
+        "en",
+        "arxiv:2508.21085",
+        "base_model:ibm-granite/granite-embedding-english-r2",
+        "base_model:finetune:ibm-granite/granite-embedding-english-r2",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "deploy:azure",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/ibm-granite/granite-embedding-reranker-english-r2"
+    },
+    {
+      "model_id": "na399/THIRAWAT-reranker-beta",
+      "created_at": "2025-11-01T16:01:56Z",
+      "last_modified": "2025-11-06T05:38:11Z",
+      "pipeline_tag": "text-ranking",
+      "library": null,
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "model",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "safetensors",
+        "xlm-roberta",
+        "medical",
+        "text-ranking",
+        "base_model:cambridgeltl/SapBERT-UMLS-2020AB-all-lang-from-XLMR",
+        "base_model:finetune:cambridgeltl/SapBERT-UMLS-2020AB-all-lang-from-XLMR",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/na399/THIRAWAT-reranker-beta"
+    },
+    {
+      "model_id": "akinsella-socrate/Qwen3-Reranker-4B-Q5_K_M-GGUF",
+      "created_at": "2025-11-05T15:24:20Z",
+      "last_modified": "2025-11-05T15:24:37Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "base_model:Qwen/Qwen3-Reranker-4B",
+        "base_model:quantized:Qwen/Qwen3-Reranker-4B",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us",
+        "conversational"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/akinsella-socrate/Qwen3-Reranker-4B-Q5_K_M-GGUF"
+    },
+    {
+      "model_id": "akinsella-socrate/Qwen3-Reranker-4B-Q6_K-GGUF",
+      "created_at": "2025-11-05T15:18:20Z",
+      "last_modified": "2025-11-05T15:18:39Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "base_model:Qwen/Qwen3-Reranker-4B",
+        "base_model:quantized:Qwen/Qwen3-Reranker-4B",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us",
+        "conversational"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/akinsella-socrate/Qwen3-Reranker-4B-Q6_K-GGUF"
+    },
+    {
+      "model_id": "fixergroup/polish-reranker-base-mse-quantized-onnx",
+      "created_at": "2025-11-04T18:07:27Z",
+      "last_modified": "2025-11-04T18:50:07Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "onnx",
+        "py"
+      ],
+      "cpu_runtimes": [
+        "onnxruntime"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "onnx",
+        "roberta",
+        "text-ranking",
+        "custom_code",
+        "pl",
+        "arxiv:2402.14318",
+        "base_model:sdadas/polish-reranker-base-mse",
+        "base_model:quantized:sdadas/polish-reranker-base-mse",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/fixergroup/polish-reranker-base-mse-quantized-onnx"
+    },
+    {
+      "model_id": "tmy100000001/LitDD_crossencoder",
+      "created_at": "2025-11-03T15:46:55Z",
+      "last_modified": "2025-11-03T15:47:24Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "bin",
+        "gitattributes",
+        "json",
+        "md",
+        "safetensors",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "safetensors",
+        "bert",
+        "cross-encoder",
+        "reranker",
+        "generated_from_trainer",
+        "dataset_size:35474",
+        "loss:BinaryCrossEntropyLoss",
+        "text-ranking",
+        "arxiv:1908.10084",
+        "base_model:ncbi/MedCPT-Cross-Encoder",
+        "base_model:finetune:ncbi/MedCPT-Cross-Encoder",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/tmy100000001/LitDD_crossencoder"
+    },
+    {
+      "model_id": "castorini/monoelectra-base",
+      "created_at": "2025-11-01T20:49:34Z",
+      "last_modified": "2025-11-01T21:02:09Z",
+      "pipeline_tag": "text-ranking",
+      "library": null,
+      "license": "",
+      "formats": [
+        "bin",
+        "gitattributes",
+        "json",
+        "md",
+        "txt"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "pytorch",
+        "electra",
+        "text-ranking",
+        "en",
+        "arxiv:2312.02724",
+        "base_model:google/electra-base-discriminator",
+        "base_model:finetune:google/electra-base-discriminator",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/castorini/monoelectra-base"
+    },
+    {
+      "model_id": "qq574599829/jina-reranker-v3",
+      "created_at": "2025-11-01T15:53:45Z",
+      "last_modified": "2025-11-01T15:54:59Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "py",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "pytorch"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "safetensors",
+        "qwen3",
+        "feature-extraction",
+        "reranker",
+        "text-ranking",
+        "custom_code",
+        "multilingual",
+        "arxiv:2509.25085",
+        "base_model:Qwen/Qwen3-0.6B",
+        "base_model:finetune:Qwen/Qwen3-0.6B",
+        "license:cc-by-nc-4.0",
+        "text-embeddings-inference",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/qq574599829/jina-reranker-v3"
+    },
+    {
+      "model_id": "endyjasmi/Qwen3-Reranker-0.6B-Q4_K_M-GGUF",
+      "created_at": "2025-11-01T10:16:45Z",
+      "last_modified": "2025-11-01T10:16:51Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "base_model:Qwen/Qwen3-Reranker-0.6B",
+        "base_model:quantized:Qwen/Qwen3-Reranker-0.6B",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/endyjasmi/Qwen3-Reranker-0.6B-Q4_K_M-GGUF"
+    },
+    {
+      "model_id": "endyjasmi/Qwen3-Reranker-4B-Q4_K_M-GGUF",
+      "created_at": "2025-11-01T10:06:50Z",
+      "last_modified": "2025-11-01T10:07:06Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "base_model:Qwen/Qwen3-Reranker-4B",
+        "base_model:quantized:Qwen/Qwen3-Reranker-4B",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/endyjasmi/Qwen3-Reranker-4B-Q4_K_M-GGUF"
+    },
+    {
+      "model_id": "endyjasmi/Qwen3-Reranker-8B-Q4_K_M-GGUF",
+      "created_at": "2025-11-01T10:02:20Z",
+      "last_modified": "2025-11-01T10:02:44Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gguf",
+        "gitattributes",
+        "md"
+      ],
+      "cpu_runtimes": [
+        "ggml/llama.cpp"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "gguf",
+        "llama-cpp",
+        "gguf-my-repo",
+        "text-ranking",
+        "base_model:Qwen/Qwen3-Reranker-8B",
+        "base_model:quantized:Qwen/Qwen3-Reranker-8B",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "eligible",
+      "reject_reason": null,
+      "url": "https://huggingface.co/endyjasmi/Qwen3-Reranker-8B-Q4_K_M-GGUF"
+    }
+  ],
+  "baseline": [
+    {
+      "model_id": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+      "created_at": "2022-03-02T23:29:05Z",
+      "last_modified": "2025-08-29T14:36:10Z",
+      "pipeline_tag": "text-ranking",
+      "library": "sentence-transformers",
+      "license": "",
+      "formats": [
+        "bin",
+        "gitattributes",
+        "json",
+        "md",
+        "msgpack",
+        "onnx",
+        "safetensors",
+        "txt",
+        "xml"
+      ],
+      "cpu_runtimes": [
+        "onnxruntime"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "sentence-transformers",
+        "pytorch",
+        "jax",
+        "onnx",
+        "safetensors",
+        "openvino",
+        "bert",
+        "text-classification",
+        "transformers",
+        "text-ranking",
+        "en",
+        "dataset:sentence-transformers/msmarco",
+        "base_model:cross-encoder/ms-marco-MiniLM-L12-v2",
+        "base_model:quantized:cross-encoder/ms-marco-MiniLM-L12-v2",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "baseline",
+      "reject_reason": null,
+      "url": "https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2"
+    },
+    {
+      "model_id": "mixedbread-ai/mxbai-rerank-xsmall-v1",
+      "created_at": "2024-02-29T10:31:57Z",
+      "last_modified": "2025-04-02T14:42:01Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "model",
+        "onnx",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "onnxruntime"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "onnx",
+        "safetensors",
+        "deberta-v2",
+        "text-classification",
+        "reranker",
+        "transformers.js",
+        "sentence-transformers",
+        "text-ranking",
+        "en",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "baseline",
+      "reject_reason": null,
+      "url": "https://huggingface.co/mixedbread-ai/mxbai-rerank-xsmall-v1"
+    },
+    {
+      "model_id": "mixedbread-ai/mxbai-rerank-base-v1",
+      "created_at": "2024-02-29T14:36:24Z",
+      "last_modified": "2025-04-02T14:40:30Z",
+      "pipeline_tag": "text-ranking",
+      "library": "transformers",
+      "license": "",
+      "formats": [
+        "gitattributes",
+        "json",
+        "md",
+        "model",
+        "onnx",
+        "safetensors"
+      ],
+      "cpu_runtimes": [
+        "onnxruntime"
+      ],
+      "min_weight_mb": null,
+      "max_weight_mb": null,
+      "tags": [
+        "transformers",
+        "onnx",
+        "safetensors",
+        "deberta-v2",
+        "text-classification",
+        "reranker",
+        "transformers.js",
+        "sentence-transformers",
+        "text-ranking",
+        "en",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "flags": [
+        "license_unknown",
+        "size_unknown"
+      ],
+      "status": "baseline",
+      "reject_reason": null,
+      "url": "https://huggingface.co/mixedbread-ai/mxbai-rerank-base-v1"
+    }
+  ],
+  "rejected": [],
+  "stats": {
+    "eligible": 154,
+    "baseline": 3,
+    "rejected": 0
+  }
+}
