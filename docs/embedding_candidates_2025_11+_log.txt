@@ -1,19 +1,4 @@
-[start] cutoff=2025-11-01 pipeline_tag=feature-extraction
-[page 1] fetched 100 models
-[page 2] fetched 100 models
-[page 3] fetched 100 models
-[page 4] fetched 100 models
-[page 5] fetched 100 models
-[page 6] fetched 100 models
-[page 7] fetched 100 models
-[page 8] fetched 100 models
-[page 9] fetched 100 models
-[page 10] fetched 100 models
-[page 11] fetched 100 models
-[page 12] fetched 100 models
-[page 13] fetched 100 models
-[cutoff] reached models older than cutoff; stopping
-[scan] total models scanned=1300
-[done] eligible=0 baseline=0 rejected=1264 elapsed=693.76s
-[counts] eligible=0 baseline=0 rejected=1264
-[done] 2026-01-23T22:49:48Z
+[start] 2026-01-23T23:05:50Z
+[run] embedding discovery
+
+[abort] 2026-01-23T23:14:59Z embedding_discovery_e2e.sh stopped after HF API call stalled; rerun required

@@ -1,7 +1,7 @@
 {
   "generated_at": "2026-01-23T22:36:43.884876Z",
   "cutoff_date": "2025-11-01",
-  "notes": "Web scan focused on post-2025-10 announcements for tiny (<=500M params) CPU-viable embeddings. No clearly new post-cutoff tiny embedding models were found; leads below are pre-cutoff or above size.",
+  "notes": "Web scan focused on post-2025-10 announcements for tiny (<=500M params) CPU-viable embeddings. No clearly new post-cutoff tiny embedding models were found; leads below are pre-cutoff or above size (including Jasper-Token-Compression-600M at 0.6B).",
   "sources": [
     {
       "title": "EmbeddingGemma launch",
@@ -22,6 +22,16 @@
       "title": "OpenVINO 2025.4 release notes",
       "url": "https://docs.openvino.ai/2025/about-openvino/release-notes-openvino.html",
       "date": "2025-12-01"
+    },
+    {
+      "title": "Jasper-Token-Compression-600M Technical Report (arXiv)",
+      "url": "https://arxiv.org/abs/2511.14405",
+      "date": "2025-11-18"
+    },
+    {
+      "title": "Jasper-Token-Compression-600M model card (Hugging Face)",
+      "url": "https://huggingface.co/infgrad/Jasper-Token-Compression-600M",
+      "date": "2025-11-18"
     }
   ],
   "leads": [
@@ -72,6 +82,19 @@
       ],
       "notes": "Listed as supported by OpenVINO 2025.4 on CPUs/GPUs; model size exceeds tiny threshold.",
       "release_source_url": "https://docs.openvino.ai/2025/about-openvino/release-notes-openvino.html"
+    },
+    {
+      "model_name": "Jasper-Token-Compression-600M",
+      "hf_model_id": "infgrad/Jasper-Token-Compression-600M",
+      "release_date": "2025-11-18",
+      "size_params_b": 0.6,
+      "status": "out_of_scope",
+      "reasons": [
+        "size_gt_500m",
+        "custom_code_required"
+      ],
+      "notes": "Embedding model based on Qwen2.5-0.5B; HF card indicates custom code requirements and 0.6B params, above tiny threshold.",
+      "release_source_url": "https://arxiv.org/abs/2511.14405"
     }
   ]
 }
