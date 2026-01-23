@@ -1,0 +1,26 @@
+{
+  "generated_at": "2026-01-23T22:36:43.884876Z",
+  "cutoff_date": "2025-11-01",
+  "notes": "Web scan focused on post-2025-10 tiny CPU reranker announcements. No clearly new post-cutoff tiny reranker releases were found; lead below is above size threshold.",
+  "sources": [
+    {
+      "title": "OpenVINO 2025.4 release notes",
+      "url": "https://docs.openvino.ai/2025/about-openvino/release-notes-openvino.html",
+      "date": "2025-12-01"
+    }
+  ],
+  "leads": [
+    {
+      "model_name": "Qwen3-Reranker-0.6B",
+      "hf_model_id": "Qwen/Qwen3-Reranker-0.6B",
+      "release_date": "2025-12-01",
+      "size_params_b": 0.6,
+      "status": "out_of_scope",
+      "reasons": [
+        "size_gt_500m"
+      ],
+      "notes": "Listed as supported by OpenVINO 2025.4 on CPUs/GPUs; exceeds tiny threshold.",
+      "release_source_url": "https://docs.openvino.ai/2025/about-openvino/release-notes-openvino.html"
+    }
+  ]
+}

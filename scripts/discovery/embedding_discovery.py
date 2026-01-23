@@ -21,6 +21,7 @@ PIPELINE_TAG = "feature-extraction"
 BASE_URL = "https://huggingface.co/api/models"
 MODEL_INFO_URL = "https://huggingface.co/api/models/{model_id}"
 USER_AGENT = "xf-bakeoff-discovery/0.1"
+WEB_LEADS_PATH = "docs/embedding_web_leads_2025_11+.json"
 
 BASELINES = [
     # Common historical baselines (pre-2025-11)
@@ -182,23 +183,41 @@ def entry_from_model(model: dict, info: Optional[dict], cutoff_dt: dt.datetime) 
         flags.append("license_unknown")
     if min_mb is None:
         flags.append("size_unknown")
+    if not created and not modified:
+        flags.append("date_unknown")
+    if any(tag == "custom_code" for tag in tags):
+        flags.append("custom_code")
 
     tiny = None
     if min_mb is not None:
         tiny = min_mb <= 500.0
+    has_weight_files = any(ext in WEIGHT_EXTS for ext in formats)
 
     status = "eligible"
     reject_reason = None
-    if is_noncommercial(license_str):
+    if not license_str:
+        status = "reject"
+        reject_reason = "license_unknown"
+    elif is_noncommercial(license_str):
         status = "reject"
         reject_reason = "noncommercial_license"
     if tiny is False:
         status = "reject"
         reject_reason = "size_gt_500mb"
+    if min_mb is None:
+        status = "reject"
+        reject_reason = "size_unknown"
+    if not has_weight_files:
+        status = "reject"
+        reject_reason = "no_weight_files"
+    if not created and not modified:
+        status = "reject"
+        reject_reason = "date_unknown"
 
-    # Ensure eligibility by date
-    if modified and modified < cutoff_dt:
+    # Ensure eligibility by date (baseline only if otherwise eligible)
+    if status == "eligible" and modified and modified < cutoff_dt:
         status = "baseline"
+        flags.append("pre_cutoff")
 
     return {
         "model_id": model_id,
@@ -217,6 +236,21 @@ def entry_from_model(model: dict, info: Optional[dict], cutoff_dt: dt.datetime) 
         "reject_reason": reject_reason,
         "url": f"https://huggingface.co/{model_id}" if model_id else None,
     }
+
+
+def load_web_leads(root: str) -> List[dict]:
+    path = os.path.join(root, WEB_LEADS_PATH)
+    if not os.path.exists(path):
+        return []
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+        leads = payload.get("leads", [])
+        if isinstance(leads, list):
+            return leads
+    except Exception:
+        return []
+    return []
 
 
 def main() -> int:
@@ -310,8 +344,12 @@ def main() -> int:
             "license": info.get("license"),
         }
         entry = entry_from_model(model_stub, info, cutoff_dt)
-        entry["status"] = "baseline"
-        baseline.append(entry)
+        if entry["status"] == "eligible":
+            entry["status"] = "baseline"
+            entry["flags"].append("pre_cutoff")
+            baseline.append(entry)
+        else:
+            rejected.append(entry)
 
     # Sort by lastModified desc
     def sort_key(e: dict) -> str:
@@ -321,6 +359,16 @@ def main() -> int:
     baseline.sort(key=sort_key, reverse=True)
     rejected.sort(key=sort_key, reverse=True)
 
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(args.output_json)))
+    web_leads = load_web_leads(repo_root)
+    lead_unmatched = []
+    if web_leads:
+        known_ids = {e.get("model_id") for e in eligible + baseline + rejected if e.get("model_id")}
+        for lead in web_leads:
+            hf_id = lead.get("hf_model_id")
+            if hf_id and hf_id not in known_ids:
+                lead_unmatched.append(lead)
+
     output = {
         "generated_at": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
         "cutoff_date": args.cutoff,
@@ -328,10 +376,14 @@ def main() -> int:
         "eligible": eligible,
         "baseline": baseline,
         "rejected": rejected,
+        "web_leads": web_leads,
+        "web_leads_unmatched": lead_unmatched,
         "stats": {
             "eligible": len(eligible),
             "baseline": len(baseline),
             "rejected": len(rejected),
+            "web_leads": len(web_leads),
+            "web_leads_unmatched": len(lead_unmatched),
         },
     }
 
@@ -341,21 +393,28 @@ def main() -> int:
 
     # Markdown
     def md_table(items: List[dict]) -> str:
-        lines = ["| Model | Last Modified | Size MB (min/max) | License | Formats | Flags |",
-                 "|---|---|---|---|---|---|"]
+        lines = [
+            "| Model | Last Modified | Size MB (min/max) | License | Formats | Flags |",
+            "|---|---|---|---|---|---|",
+        ]
         for e in items:
             size = ""
             if e.get("min_weight_mb") is not None or e.get("max_weight_mb") is not None:
                 size = f"{e.get('min_weight_mb')}/{e.get('max_weight_mb')}"
             flags = ",".join(e.get("flags", []))
-            lines.append("| {model} | {lm} | {size} | {lic} | {fmt} | {flags} |".format(
-                model=f"[{e['model_id']}]({e['url']})" if e.get("url") else e.get("model_id"),
-                lm=e.get("last_modified") or "",
-                size=size,
-                lic=e.get("license") or "",
-                fmt=",".join(e.get("formats", [])),
-                flags=flags,
-            ))
+            model_id = e.get("model_id") or e.get("hf_model_id") or e.get("model_name") or ""
+            url = e.get("url") or (f"https://huggingface.co/{model_id}" if model_id else None)
+            model = f"[{model_id}]({url})" if url and model_id else model_id
+            lines.append(
+                "| {model} | {lm} | {size} | {lic} | {fmt} | {flags} |".format(
+                    model=model,
+                    lm=e.get("last_modified") or e.get("release_date") or "",
+                    size=size,
+                    lic=e.get("license") or "",
+                    fmt=",".join(e.get("formats", [])),
+                    flags=flags,
+                )
+            )
         return "\n".join(lines)
 
     md = [
@@ -371,6 +430,12 @@ def main() -> int:
         "",
         "## Rejected",
         md_table(rejected),
+        "",
+        "## Web Leads (manual scan)",
+        md_table(web_leads) if web_leads else "_None recorded_",
+        "",
+        "## Web Leads (not found via HF API)",
+        md_table(lead_unmatched) if lead_unmatched else "_None_",
         "",
     ]
 

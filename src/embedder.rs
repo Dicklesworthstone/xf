@@ -33,10 +33,14 @@ pub type EmbedderResult<T> = Result<T, EmbedderError>;
 pub struct EmbedderInfo {
     /// Unique identifier for this embedder (e.g., "fnv1a-384", "minilm-384").
     pub id: String,
+    /// Human-readable model name (registry key).
+    pub model_name: String,
     /// Output dimension of embeddings.
     pub dimension: usize,
     /// Whether this is a semantic (ML-based) embedder.
     pub is_semantic: bool,
+    /// Whether this embedder supports MRL truncation.
+    pub supports_mrl: bool,
 }
 
 /// Trait for text embedding implementations.
@@ -79,17 +83,63 @@ pub trait Embedder: Send + Sync {
     /// Get the unique identifier for this embedder.
     fn id(&self) -> &str;
 
+    /// Human-readable model name (registry key).
+    ///
+    /// Defaults to `id()` if not overridden.
+    fn model_name(&self) -> &str {
+        self.id()
+    }
+
     /// Check if this is a semantic (ML-based) embedder.
     ///
     /// Hash-based embedders return `false`, ML embedders return `true`.
     fn is_semantic(&self) -> bool;
 
+    /// Whether this model supports Matryoshka truncation.
+    ///
+    /// Defaults to `false`.
+    fn supports_mrl(&self) -> bool {
+        false
+    }
+
+    /// Truncate an embedding to a target dimension.
+    ///
+    /// By default, truncation is supported only when `supports_mrl()` is true.
+    fn truncate_embedding(&self, embedding: &[f32], target_dim: usize) -> EmbedderResult<Vec<f32>> {
+        if !self.supports_mrl() {
+            return Err(EmbedderError::InvalidInput(
+                "model does not support MRL truncation".to_string(),
+            ));
+        }
+        if target_dim == 0 || target_dim > embedding.len() {
+            return Err(EmbedderError::InvalidInput(format!(
+                "invalid target_dim {target_dim} for embedding length {}",
+                embedding.len()
+            )));
+        }
+        Ok(embedding[..target_dim].to_vec())
+    }
+
+    /// Truncate a batch of embeddings to a target dimension.
+    fn truncate_batch(
+        &self,
+        embeddings: &[Vec<f32>],
+        target_dim: usize,
+    ) -> EmbedderResult<Vec<Vec<f32>>> {
+        embeddings
+            .iter()
+            .map(|e| self.truncate_embedding(e, target_dim))
+            .collect()
+    }
+
     /// Get information about this embedder.
     fn info(&self) -> EmbedderInfo {
         EmbedderInfo {
             id: self.id().to_string(),
+            model_name: self.model_name().to_string(),
             dimension: self.dimension(),
             is_semantic: self.is_semantic(),
+            supports_mrl: self.supports_mrl(),
         }
     }
 }

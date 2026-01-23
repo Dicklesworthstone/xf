@@ -55,6 +55,58 @@ pub struct FastEmbedder {
     dimension: usize,
 }
 
+/// Generic FastEmbed-based embedder for multiple models.
+pub struct FastEmbedModelEmbedder {
+    model: Mutex<TextEmbedding>,
+    id: String,
+    model_name: String,
+    dimension: usize,
+}
+
+impl FastEmbedModelEmbedder {
+    /// Load or download the specified FastEmbed model.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the model cannot be loaded or downloaded.
+    pub fn load_or_download(
+        model: EmbeddingModel,
+        model_name: &str,
+        cache_dir: Option<std::path::PathBuf>,
+        show_progress: bool,
+    ) -> EmbedderResult<Self> {
+        let mut init = InitOptions::new(model).with_show_download_progress(show_progress);
+        if let Some(dir) = cache_dir {
+            init = init.with_cache_dir(dir);
+        }
+
+        let embedding = TextEmbedding::try_new(init).map_err(|e| {
+            EmbedderError::Internal(format!("failed to load FastEmbed model: {e}"))
+        })?;
+
+        let dim = {
+            // Probe a single embedding to derive dimension.
+            let probe = embedding
+                .embed(vec!["dimension probe"], None)
+                .map_err(|e| EmbedderError::EmbeddingFailed(format!("probe failed: {e}")))?;
+            probe.first().map(|v| v.len()).unwrap_or(0)
+        };
+
+        if dim == 0 {
+            return Err(EmbedderError::Internal(
+                "failed to determine embedding dimension".to_string(),
+            ));
+        }
+
+        Ok(Self {
+            model: Mutex::new(embedding),
+            id: format!("fastembed-{model_name}"),
+            model_name: model_name.to_string(),
+            dimension: dim,
+        })
+    }
+}
+
 impl FastEmbedder {
     /// Load the embedder from a model directory.
     ///
@@ -278,8 +330,103 @@ impl Embedder for FastEmbedder {
         &self.id
     }
 
+    fn model_name(&self) -> &str {
+        MODEL_DIR_NAME
+    }
+
     fn is_semantic(&self) -> bool {
         true // This IS a semantic embedder
+    }
+}
+
+impl std::fmt::Debug for FastEmbedModelEmbedder {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("FastEmbedModelEmbedder")
+            .field("id", &self.id)
+            .field("model_name", &self.model_name)
+            .field("dimension", &self.dimension)
+            .finish_non_exhaustive()
+    }
+}
+
+impl Embedder for FastEmbedModelEmbedder {
+    fn embed(&self, text: &str) -> EmbedderResult<Vec<f32>> {
+        if text.is_empty() {
+            return Err(EmbedderError::InvalidInput("empty text".to_string()));
+        }
+
+        let model = self.model.lock().map_err(|e| {
+            EmbedderError::Internal(format!("model lock poisoned: {e}"))
+        })?;
+
+        let embeddings = model.embed(vec![text], None).map_err(|e| {
+            EmbedderError::EmbeddingFailed(format!("embedding failed: {e}"))
+        })?;
+
+        let mut embedding = embeddings.into_iter().next().ok_or_else(|| {
+            EmbedderError::Internal("no embedding returned".to_string())
+        })?;
+
+        l2_normalize(&mut embedding);
+        Ok(embedding)
+    }
+
+    fn embed_batch(&self, texts: &[&str]) -> EmbedderResult<Vec<Vec<f32>>> {
+        if texts.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let (non_empty_indices, non_empty_texts): (Vec<_>, Vec<_>) = texts
+            .iter()
+            .enumerate()
+            .filter(|(_, t)| !t.is_empty())
+            .map(|(i, t)| (i, *t))
+            .unzip();
+
+        if non_empty_texts.is_empty() {
+            return Err(EmbedderError::InvalidInput("all texts are empty".to_string()));
+        }
+
+        let model = self.model.lock().map_err(|e| {
+            EmbedderError::Internal(format!("model lock poisoned: {e}"))
+        })?;
+
+        let mut embeddings = model.embed(non_empty_texts, None).map_err(|e| {
+            EmbedderError::EmbeddingFailed(format!("batch embedding failed: {e}"))
+        })?;
+
+        for embedding in &mut embeddings {
+            l2_normalize(embedding);
+        }
+
+        let mut result = vec![Vec::new(); texts.len()];
+        for (result_idx, embedding) in non_empty_indices.into_iter().zip(embeddings) {
+            result[result_idx] = embedding;
+        }
+
+        for (i, text) in texts.iter().enumerate() {
+            if text.is_empty() && result[i].is_empty() {
+                result[i] = vec![0.0; self.dimension];
+            }
+        }
+
+        Ok(result)
+    }
+
+    fn dimension(&self) -> usize {
+        self.dimension
+    }
+
+    fn id(&self) -> &str {
+        &self.id
+    }
+
+    fn model_name(&self) -> &str {
+        &self.model_name
+    }
+
+    fn is_semantic(&self) -> bool {
+        true
     }
 }
 

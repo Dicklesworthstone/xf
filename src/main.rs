@@ -20,6 +20,9 @@ use tracing::{Level, info, warn};
 use tracing_subscriber::EnvFilter;
 
 use xf::canonicalize::canonicalize_for_embedding;
+use xf::benchmark::datasets::BenchmarkCorpus;
+use xf::benchmark::reporters;
+use xf::benchmark::runner::{BenchmarkConfig, run_embedding_benchmark};
 use xf::cli;
 use xf::config::Config;
 use xf::date_parser;
@@ -27,6 +30,7 @@ use xf::embedder::Embedder;
 use xf::fastembed_embedder::FastEmbedder;
 use xf::hash_embedder::HashEmbedder;
 use xf::hybrid::{self, SearchMode};
+use xf::model_registry::{EmbedderConfig, ModelRegistry};
 use xf::repl;
 use xf::search;
 use xf::stats_analytics::{self, ContentStats, EngagementStats, TemporalStats};
@@ -244,6 +248,7 @@ fn main() -> Result<()> {
         }
         Some(Commands::Doctor(args)) => cmd_doctor(&cli, args),
         Some(Commands::Shell(args)) => cmd_shell(&cli, args),
+        Some(Commands::Benchmark(args)) => cmd_benchmark(&cli, args),
     }
 }
 
@@ -1089,6 +1094,8 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs) -> Result<()> {
     let embed_config = xf::EmbeddingConfig {
         show_progress: !cli.quiet,
         use_semantic: args.semantic,
+        model: None,
+        dimensions: None,
     };
     xf::generate_embeddings_with_config(&storage, &embed_config)?;
 
@@ -1295,16 +1302,27 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs) -> Result<()> {
             // Semantic-only search using vector similarity
             let vector_index = vector_index
                 .ok_or_else(|| anyhow::anyhow!("vector index required for semantic"))?;
-            // Use FastEmbedder if available, otherwise fall back to HashEmbedder
-            let fast_embedder = get_semantic_embedder();
-            let hash_embedder_fallback;
-            let embedder: &dyn Embedder = if let Some(fe) = fast_embedder {
+            // Use explicit model if provided, otherwise FastEmbedder fallback
+            let mut embedder_box: Option<Box<dyn Embedder>> = None;
+            let mut hash_embedder_fallback: Option<HashEmbedder> = None;
+            let embedder: &dyn Embedder = if let Some(model) = &args.model {
+                if let Some(dims) = args.dimensions {
+                    validate_mrl_dims(dims)?;
+                }
+                let registry = ModelRegistry::new();
+                let mut cfg = EmbedderConfig::new(model);
+                cfg.dimensions = args.dimensions;
+                cfg.show_progress = false;
+                let boxed = registry.embedder(&cfg)?;
+                embedder_box = Some(boxed);
+                embedder_box.as_ref().unwrap().as_ref()
+            } else if let Some(fe) = get_semantic_embedder() {
                 info!("Using semantic embeddings for search");
                 fe
             } else {
                 warn!("FastEmbed model not available, using hash embeddings for search");
-                hash_embedder_fallback = HashEmbedder::default();
-                &hash_embedder_fallback
+                hash_embedder_fallback = Some(HashEmbedder::default());
+                hash_embedder_fallback.as_ref().unwrap()
             };
             let canonical_query = canonicalize_for_embedding(&args.query);
 
@@ -1354,14 +1372,25 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs) -> Result<()> {
 
         SearchMode::Hybrid => {
             // Hybrid search using RRF fusion
-            // Use FastEmbedder if available, otherwise fall back to HashEmbedder
-            let fast_embedder = get_semantic_embedder();
-            let hash_embedder_fallback;
-            let embedder: &dyn Embedder = if let Some(fe) = fast_embedder {
+            // Use explicit model if provided, otherwise FastEmbedder fallback
+            let mut embedder_box: Option<Box<dyn Embedder>> = None;
+            let mut hash_embedder_fallback: Option<HashEmbedder> = None;
+            let embedder: &dyn Embedder = if let Some(model) = &args.model {
+                if let Some(dims) = args.dimensions {
+                    validate_mrl_dims(dims)?;
+                }
+                let registry = ModelRegistry::new();
+                let mut cfg = EmbedderConfig::new(model);
+                cfg.dimensions = args.dimensions;
+                cfg.show_progress = false;
+                let boxed = registry.embedder(&cfg)?;
+                embedder_box = Some(boxed);
+                embedder_box.as_ref().unwrap().as_ref()
+            } else if let Some(fe) = get_semantic_embedder() {
                 fe
             } else {
-                hash_embedder_fallback = HashEmbedder::default();
-                &hash_embedder_fallback
+                hash_embedder_fallback = Some(HashEmbedder::default());
+                hash_embedder_fallback.as_ref().unwrap()
             };
             let canonical_query = canonicalize_for_embedding(&args.query);
             let candidate_count = hybrid::candidate_count(args.limit, args.offset);
@@ -2001,6 +2030,13 @@ fn validate_output_fields(fields: &[String]) -> Result<()> {
         }
     }
     Ok(())
+}
+
+fn validate_mrl_dims(dims: usize) -> Result<()> {
+    match dims {
+        256 | 512 | 768 | 1024 => Ok(()),
+        _ => anyhow::bail!("MRL dimensions must be 256, 512, 768, or 1024; got {dims}"),
+    }
 }
 
 fn filter_results_fields(
@@ -3680,6 +3716,62 @@ fn cmd_shell(cli: &Cli, args: &cli::ShellArgs) -> Result<()> {
     };
 
     repl::run(storage, search, config)
+}
+
+fn cmd_benchmark(_cli: &Cli, args: &cli::BenchmarkArgs) -> Result<()> {
+    let corpus = BenchmarkCorpus::load(&args.corpus)
+        .with_context(|| format!("Failed to load corpus: {}", args.corpus.display()))?;
+    corpus.validate().with_context(|| "Corpus validation failed")?;
+
+    let registry = ModelRegistry::new();
+    let mut config = EmbedderConfig::new(&args.model);
+    config.dimensions = args.dimensions;
+    config.show_progress = true;
+
+    let bench_cfg = BenchmarkConfig {
+        warmup_iters: args.warmup_iters,
+        measure_iters: args.measure_iters,
+        batch_size: args.batch_size,
+    };
+
+    let model_name = args.model.clone();
+    let result = run_embedding_benchmark(
+        || {
+            let embedder = registry.embedder(&config)?;
+            Ok(embedder)
+        },
+        &corpus,
+        &bench_cfg,
+    )
+    .with_context(|| format!("Benchmark failed for model {model_name}"))?;
+
+    let output_dir = &args.output_dir;
+    std::fs::create_dir_all(output_dir)
+        .with_context(|| format!("Failed to create output dir: {}", output_dir.display()))?;
+
+    let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S");
+    let base = output_dir.join(format!(
+        "benchmark_{}_{}",
+        result.metadata.model.replace('/', "_"),
+        timestamp
+    ));
+    let json_path = base.with_extension("json");
+    let md_path = base.with_extension("md");
+    let csv_path = base.with_extension("csv");
+
+    reporters::write_json(&json_path, &result)?;
+    reporters::write_markdown(&md_path, &result)?;
+    reporters::write_csv(&csv_path, &result)?;
+
+    println!(
+        "{} Wrote benchmark reports:\n  {}\n  {}\n  {}",
+        "✓".green(),
+        json_path.display(),
+        md_path.display(),
+        csv_path.display()
+    );
+
+    Ok(())
 }
 
 // ============================================================================

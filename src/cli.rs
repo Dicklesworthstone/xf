@@ -105,6 +105,9 @@ pub enum Commands {
 
     /// Launch interactive REPL mode
     Shell(ShellArgs),
+
+    /// Run embedding/reranker benchmarks
+    Benchmark(BenchmarkArgs),
 }
 
 #[derive(Args, Debug)]
@@ -223,6 +226,34 @@ pub struct SearchArgs {
     /// Search mode: lexical (keyword), semantic (meaning), or hybrid (both)
     #[arg(long, short = 'm', default_value = "hybrid")]
     pub mode: crate::hybrid::SearchMode,
+
+    /// Embedder model override
+    #[arg(long)]
+    pub model: Option<String>,
+
+    /// Optional MRL dimension override (256/512/768/1024)
+    #[arg(long)]
+    pub dimensions: Option<usize>,
+
+    /// Enable reranking stage
+    #[arg(long)]
+    pub rerank: bool,
+
+    /// Reranker model override
+    #[arg(long)]
+    pub reranker: Option<String>,
+
+    /// Number of candidates to rerank
+    #[arg(long, default_value = "100")]
+    pub rerank_top: usize,
+
+    /// Force daemon usage
+    #[arg(long, conflicts_with = "no_daemon")]
+    pub daemon: bool,
+
+    /// Force direct inference (no daemon)
+    #[arg(long, conflicts_with = "daemon")]
+    pub no_daemon: bool,
 }
 
 #[derive(Args, Debug)]
@@ -349,6 +380,42 @@ pub struct ShellArgs {
     /// Path to history file (default: `~/.xf_history`)
     #[arg(long)]
     pub history_file: Option<PathBuf>,
+}
+
+#[derive(Args, Debug)]
+#[command(after_help = r#"Examples:
+  xf benchmark --corpus tests/fixtures/benchmark_corpus.json --model all-MiniLM-L6-v2
+  xf benchmark --corpus tests/fixtures/benchmark_corpus.json --model bge-small-en-v1.5 --batch-size 64
+  xf benchmark --corpus tests/fixtures/benchmark_corpus.json --model hash-fnv1a-384 --output-dir results/
+"#)]
+pub struct BenchmarkArgs {
+    /// Corpus JSON file
+    #[arg(long)]
+    pub corpus: PathBuf,
+
+    /// Embedder model to benchmark
+    #[arg(long, default_value = "all-MiniLM-L6-v2")]
+    pub model: String,
+
+    /// Optional MRL dimension override
+    #[arg(long)]
+    pub dimensions: Option<usize>,
+
+    /// Batch size per embedding call
+    #[arg(long, default_value = "32")]
+    pub batch_size: usize,
+
+    /// Warmup iterations (discarded)
+    #[arg(long, default_value = "10")]
+    pub warmup_iters: usize,
+
+    /// Measurement iterations
+    #[arg(long, default_value = "100")]
+    pub measure_iters: usize,
+
+    /// Output directory for reports
+    #[arg(long, default_value = "results")]
+    pub output_dir: PathBuf,
 }
 
 #[derive(ValueEnum, Clone, Debug, PartialEq, Eq)]

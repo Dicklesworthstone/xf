@@ -74,6 +74,7 @@ chrono = { version = "0.4", default-features = false, features = ["std", "clock"
 chrono-english = "0.1"
 dirs = "5.0"
 fmmap = "0.4"
+rand = "0.8"
 rustyline = "12"
 walkdir = "2.5"
 glob = "0.3"
@@ -94,6 +95,7 @@ assert_cmd = "2.0"
 predicates = "3.1"
 tempfile = "3.14"
 criterion = { version = "0.5", features = ["html_reports"] }
+proptest = "1.5"
 
 [features]
 parallel-search = []
@@ -117,6 +119,8 @@ opt-level = 1       # Faster compile times during development
 unsafe_code = "forbid"
 
 [lints.clippy]
-all = "warn"
-pedantic = "warn"
-nursery = "warn"
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+missing_errors_doc = "allow"
+doc_markdown = "allow"

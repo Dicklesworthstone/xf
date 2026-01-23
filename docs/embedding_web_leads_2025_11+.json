@@ -1,0 +1,77 @@
+{
+  "generated_at": "2026-01-23T22:36:43.884876Z",
+  "cutoff_date": "2025-11-01",
+  "notes": "Web scan focused on post-2025-10 announcements for tiny (<=500M params) CPU-viable embeddings. No clearly new post-cutoff tiny embedding models were found; leads below are pre-cutoff or above size.",
+  "sources": [
+    {
+      "title": "EmbeddingGemma launch",
+      "url": "https://developers.googleblog.com/introducing-embeddinggemma/",
+      "date": "2025-09-04"
+    },
+    {
+      "title": "Gemma releases",
+      "url": "https://ai.google.dev/gemma/docs/releases",
+      "date": "2025-09-04"
+    },
+    {
+      "title": "Model2Vec updates (potion-multilingual-128M release)",
+      "url": "https://github.com/MinishLab/model2vec",
+      "date": "2025-05-23"
+    },
+    {
+      "title": "OpenVINO 2025.4 release notes",
+      "url": "https://docs.openvino.ai/2025/about-openvino/release-notes-openvino.html",
+      "date": "2025-12-01"
+    }
+  ],
+  "leads": [
+    {
+      "model_name": "EmbeddingGemma",
+      "hf_model_id": "google/embeddinggemma-300m",
+      "release_date": "2025-09-04",
+      "size_params_b": 0.308,
+      "status": "baseline",
+      "reasons": [
+        "pre_cutoff"
+      ],
+      "notes": "Open embedding model; model weights are gated and require license acceptance on HF.",
+      "release_source_url": "https://developers.googleblog.com/introducing-embeddinggemma/"
+    },
+    {
+      "model_name": "Model2Vec potion-multilingual-128M",
+      "hf_model_id": "minishlab/potion-multilingual-128M",
+      "release_date": "2025-05-23",
+      "size_params_b": 0.128,
+      "status": "baseline",
+      "reasons": [
+        "pre_cutoff"
+      ],
+      "notes": "Model2Vec multilingual static embeddings release date from Model2Vec updates.",
+      "release_source_url": "https://github.com/MinishLab/model2vec"
+    },
+    {
+      "model_name": "Model2Vec potion-retrieval-32M",
+      "hf_model_id": "minishlab/potion-retrieval-32M",
+      "release_date": "2025-01-30",
+      "size_params_b": 0.032,
+      "status": "baseline",
+      "reasons": [
+        "pre_cutoff"
+      ],
+      "notes": "Static retrieval-optimized model; release date from Model2Vec updates.",
+      "release_source_url": "https://github.com/MinishLab/model2vec"
+    },
+    {
+      "model_name": "Qwen3-Embedding-0.6B",
+      "hf_model_id": "Qwen/Qwen3-Embedding-0.6B",
+      "release_date": "2025-12-01",
+      "size_params_b": 0.6,
+      "status": "out_of_scope",
+      "reasons": [
+        "size_gt_500m"
+      ],
+      "notes": "Listed as supported by OpenVINO 2025.4 on CPUs/GPUs; model size exceeds tiny threshold.",
+      "release_source_url": "https://docs.openvino.ai/2025/about-openvino/release-notes-openvino.html"
+    }
+  ]
+}

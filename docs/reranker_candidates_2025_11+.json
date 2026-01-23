@@ -1,8 +1,10 @@
 {
-  "generated_at": "2026-01-23T22:05:10.782984Z",
+  "generated_at": "2026-01-23T22:43:21.418919Z",
   "cutoff_date": "2025-11-01",
   "pipeline_tag": "text-ranking",
-  "eligible": [
+  "eligible": [],
+  "baseline": [],
+  "rejected": [
     {
       "model_id": "Tayyab112/crossencoder-hardneg",
       "created_at": "2026-01-23T18:08:42Z",
@@ -42,8 +44,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Tayyab112/crossencoder-hardneg"
     },
     {
@@ -85,8 +87,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/OloriBern/musique-bge-m3-2000-mixer-3ep"
     },
     {
@@ -130,8 +132,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/OloriBern/checkpoints_musique_BAAI_bge-m3_3ep-bge-m3-2000-mixer-3ep"
     },
     {
@@ -172,8 +174,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/noooop9527/Qwen3-Reranker-0.6B-STv6"
     },
     {
@@ -215,8 +217,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/OloriBern/bge-m3-musique-mixer-3ep"
     },
     {
@@ -258,8 +260,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/OloriBern/bge-m3-musique-hybrid-3ep"
     },
     {
@@ -296,8 +298,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/yeahbeen/Qwen3-Reranker-0.6B-Q8_0-GGUF"
     },
     {
@@ -334,8 +336,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Chiwei/Qwen3-Reranker-0.6B-Q8_0-GGUF"
     },
     {
@@ -376,8 +378,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/MedSwin/MedSwin-Reranker-bge-gemma"
     },
     {
@@ -419,8 +421,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/OloriBern/hybrid-bge-m3-tuned"
     },
     {
@@ -461,8 +463,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/noooop9527/Qwen3-Reranker-0.6B-seq-cls-STv6"
     },
     {
@@ -505,8 +507,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Qwen/Qwen3-VL-Reranker-8B"
     },
     {
@@ -549,8 +551,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Qwen/Qwen3-VL-Reranker-2B"
     },
     {
@@ -587,8 +589,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Chiwei/Qwen3-Reranker-4B-Q3_K_M-GGUF"
     },
     {
@@ -625,8 +627,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Chiwei/Qwen3-Reranker-4B-Q4_K_S-GGUF"
     },
     {
@@ -663,8 +665,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Chiwei/Qwen3-Reranker-4B-Q4_K_M-GGUF"
     },
     {
@@ -701,8 +703,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/guidalleprane/Qwen3-Reranker-4B-Q4_K_M-GGUF"
     },
     {
@@ -755,8 +757,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/AQ-MedAI/Diver-Retriever-4B"
     },
     {
@@ -799,10 +801,11 @@
       ],
       "flags": [
         "license_unknown",
-        "size_unknown"
+        "size_unknown",
+        "custom_code"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/noooop9527/llama-nemotron-rerank-1b-v2-STv6"
     },
     {
@@ -847,8 +850,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/OverSamu/reranker-sapbert-ncbi-disease-bce-context-title"
     },
     {
@@ -916,8 +919,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/thebajajra/RexReranker-0.6B"
     },
     {
@@ -954,8 +957,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Zygisluk/Qwen3-Reranker-4B-Q8_0-GGUF"
     },
     {
@@ -999,8 +1002,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/taido/minilm"
     },
     {
@@ -1045,8 +1048,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/usamaahmedsh/roberta-base-reranker-llm-weaklabels-v1"
     },
     {
@@ -1083,8 +1086,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Zygisluk/Qwen3-Reranker-4B-Q4_K_M-GGUF"
     },
     {
@@ -1130,8 +1133,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/thebajajra/RexReranker-0.6B-MXFP4"
     },
     {
@@ -1176,8 +1179,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/laura2243/cross-encoder-expert"
     },
     {
@@ -1219,8 +1222,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/godkingleto/zerank-2-Q8_0-GGUF"
     },
     {
@@ -1262,8 +1265,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/godkingleto/zerank-2-Q4_K_M-GGUF"
     },
     {
@@ -1307,8 +1310,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/thebajajra/RexReranker-0.6B-FP8"
     },
     {
@@ -1350,10 +1353,11 @@
       ],
       "flags": [
         "license_unknown",
-        "size_unknown"
+        "size_unknown",
+        "custom_code"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cometadata/jina-reranker-v2-multilingual-affiliations-v5"
     },
     {
@@ -1398,10 +1402,11 @@
       ],
       "flags": [
         "license_unknown",
-        "size_unknown"
+        "size_unknown",
+        "custom_code"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cometadata/gte-multilingual-reranker-affiliations"
     },
     {
@@ -1443,8 +1448,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/voIsung/bge-reranker-cvjd"
     },
     {
@@ -1481,8 +1486,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ReddaGlue/Qwen3-Reranker-4B-Q8_0-GGUF"
     },
     {
@@ -1526,10 +1531,11 @@
       ],
       "flags": [
         "license_unknown",
-        "size_unknown"
+        "size_unknown",
+        "custom_code"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cometadata/jina-reranker-v2-multilingual-affiliations-large"
     },
     {
@@ -1573,8 +1579,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-400m-listnet"
     },
     {
@@ -1618,8 +1624,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-150m-listnet"
     },
     {
@@ -1661,10 +1667,11 @@
       ],
       "flags": [
         "license_unknown",
-        "size_unknown"
+        "size_unknown",
+        "custom_code"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cometadata/jina-reranker-v2-multilingual-affiliations"
     },
     {
@@ -1708,8 +1715,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-68m-listnet"
     },
     {
@@ -1753,8 +1760,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-32m-listnet"
     },
     {
@@ -1798,8 +1805,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-17m-listnet"
     },
     {
@@ -1843,8 +1850,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-400m-ranknet"
     },
     {
@@ -1888,8 +1895,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-150m-ranknet"
     },
     {
@@ -1933,8 +1940,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-17m-ranknet"
     },
     {
@@ -1978,8 +1985,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-68m-ranknet"
     },
     {
@@ -2023,8 +2030,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-32m-ranknet"
     },
     {
@@ -2066,10 +2073,11 @@
       ],
       "flags": [
         "license_unknown",
-        "size_unknown"
+        "size_unknown",
+        "custom_code"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cringeee/ce_finetuned_bce"
     },
     {
@@ -2106,8 +2114,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/chungimungi/fine-tuned-msmarco"
     },
     {
@@ -2143,8 +2151,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/iyanello/Qwen3-Reranker-0.6B-GGUF"
     },
     {
@@ -2188,8 +2196,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ntAnh-dev/mmarco-mMiniLMv2-L12-H384-v1-bk-quyche"
     },
     {
@@ -2233,8 +2241,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/varin/jamniti-law-reranker-v1"
     },
     {
@@ -2278,8 +2286,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ntAnh-dev/mmarco-mMiniLMv2-L12-H384-v1"
     },
     {
@@ -2319,8 +2327,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/oddadmix/arabic-reranker-v1"
     },
     {
@@ -2362,8 +2370,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/DocDBrown/Qwen3-rerank-8B-onnx"
     },
     {
@@ -2408,8 +2416,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/OverSamu/reranker-sapbert-ncbi-disease-bce-context"
     },
     {
@@ -2455,8 +2463,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/OverSamu/reranker-sapbert-ncbi-disease-bce"
     },
     {
@@ -2501,8 +2509,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/NeuML/biomedbert-base-reranker"
     },
     {
@@ -2542,8 +2550,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cross-encoder-testing/ctxl-rerank-v2-instruct-multilingual-1b-STv6"
     },
     {
@@ -2583,8 +2591,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ContextualAI/ctxl-rerank-v2-instruct-multilingual-1b-nvfp4"
     },
     {
@@ -2625,8 +2633,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ContextualAI/ctxl-rerank-v2-instruct-multilingual-2b-nvfp4"
     },
     {
@@ -2665,8 +2673,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ContextualAI/ctxl-rerank-v2-instruct-multilingual-6b-nvfp4"
     },
     {
@@ -2704,8 +2712,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ContextualAI/ctxl-rerank-v2-instruct-multilingual-1b"
     },
     {
@@ -2743,8 +2751,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ContextualAI/ctxl-rerank-v2-instruct-multilingual-2b"
     },
     {
@@ -2754,13 +2762,7 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "png",
-        "safetensors"
-      ],
+      "formats": [],
       "cpu_runtimes": [
         "pytorch"
       ],
@@ -2781,8 +2783,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "no_weight_files",
       "url": "https://huggingface.co/ContextualAI/ctxl-rerank-v2-instruct-multilingual-6b"
     },
     {
@@ -2792,14 +2794,7 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
+      "formats": [],
       "cpu_runtimes": [
         "pytorch"
       ],
@@ -2827,8 +2822,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "no_weight_files",
       "url": "https://huggingface.co/vkimbris/qwen3_06b_items_reranker"
     },
     {
@@ -2838,12 +2833,7 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
+      "formats": [],
       "cpu_runtimes": [
         "pytorch"
       ],
@@ -2873,8 +2863,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "no_weight_files",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-150m-bce"
     },
     {
@@ -2884,12 +2874,7 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
+      "formats": [],
       "cpu_runtimes": [
         "pytorch"
       ],
@@ -2919,8 +2904,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "no_weight_files",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-68m-bce"
     },
     {
@@ -2930,12 +2915,7 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
+      "formats": [],
       "cpu_runtimes": [
         "pytorch"
       ],
@@ -2965,8 +2945,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "no_weight_files",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-32m-bce"
     },
     {
@@ -3011,8 +2991,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-17m-bce"
     },
     {
@@ -3059,8 +3039,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/svk2118/reranker-22m"
     },
     {
@@ -3100,8 +3080,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cross-encoder-testing/Qwen3-Reranker-0.6B-STv6"
     },
     {
@@ -3140,8 +3120,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cross-encoder-testing/Qwen3-Reranker-0.6B-seq-cls-STv6"
     },
     {
@@ -3179,8 +3159,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/griffith-bigdata/GRAST-SQL-4B-BIRD-Reranker"
     },
     {
@@ -3223,8 +3203,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/griffith-bigdata/GRAST-SQL-8B-BIRD-Reranker"
     },
     {
@@ -3263,8 +3243,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/griffith-bigdata/GRAST-SQL-0.6B-BIRD-Reranker"
     },
     {
@@ -3304,8 +3284,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cross-encoder-testing/mxbai-rerank-large-v2-STv6"
     },
     {
@@ -3345,8 +3325,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cross-encoder-testing/mxbai-rerank-base-v2-STv6"
     },
     {
@@ -3392,8 +3372,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/OverSamu/reranker-biomedbert-base-ncbi-disease-bce-1"
     },
     {
@@ -3437,8 +3417,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/andreribeiro87/aethel-reranker-en-v1-mmarco-pt-pt-finetuned"
     },
     {
@@ -3483,8 +3463,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/chingackgook/reranker-ModernBERT-base-gooaq-bce"
     },
     {
@@ -3536,8 +3516,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/redis/langcache-reranker-v2-softmnrl-triplet"
     },
     {
@@ -3582,10 +3562,11 @@
       ],
       "flags": [
         "license_unknown",
-        "size_unknown"
+        "size_unknown",
+        "custom_code"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/TakoData/chart-reranker"
     },
     {
@@ -3628,8 +3609,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/filmonfeme/financial-chatbot-reranker"
     },
     {
@@ -3674,8 +3655,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/XingTuLab/BinSeek-Reranker"
     },
     {
@@ -3708,8 +3689,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "no_weight_files",
       "url": "https://huggingface.co/mdmasud8800/cost-free"
     },
     {
@@ -3754,8 +3735,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Ete423/finetuned-cat-reranker"
     },
     {
@@ -3794,8 +3775,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/MosRat/ucas-ir-2025-Qwen3-Reranker-8B-finetuned"
     },
     {
@@ -3836,8 +3817,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/homesome/qwen3-reranker-4b-homesome"
     },
     {
@@ -3890,8 +3871,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/redis/langcache-reranker-v1-miniL6"
     },
     {
@@ -3945,8 +3926,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/redis/langcache-reranker-v1-miniL6-softmnrl-triplet"
     },
     {
@@ -3988,8 +3969,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/mradermacher/Diver-GroupRank-7B-i1-GGUF"
     },
     {
@@ -4036,8 +4017,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/alantang2025/reranker-MiniLM-L12-H384-uncased-msmarco-margin-mse"
     },
     {
@@ -4081,8 +4062,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ingridchien/harvard-loop-reranker"
     },
     {
@@ -4129,8 +4110,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cross-encoder-testing/reranker-bert-tiny-gooaq-bce-v6"
     },
     {
@@ -4189,10 +4170,11 @@
       ],
       "flags": [
         "license_unknown",
-        "size_unknown"
+        "size_unknown",
+        "custom_code"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/naver/xprovence-reranker-bgem3-v2"
     },
     {
@@ -4235,8 +4217,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/sofiakris/audit-match"
     },
     {
@@ -4283,8 +4265,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/mjaliz/product-titles-reranker-v1"
     },
     {
@@ -4336,8 +4318,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/redis/langcache-reranker-v1-softmnrl-triplet"
     },
     {
@@ -4382,8 +4364,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "no_weight_files",
       "url": "https://huggingface.co/rk-transformers/ms-marco-MiniLM-L12-v2"
     },
     {
@@ -4427,8 +4409,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ahmedfarazsyk/ms-marco-MiniLM-L6-v2-finetuned-scidocs"
     },
     {
@@ -4472,8 +4454,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Laseung/klue-roberta-small-klue-mrc-cross-encoder-finetuned"
     },
     {
@@ -4513,10 +4495,11 @@
       ],
       "flags": [
         "license_unknown",
-        "size_unknown"
+        "size_unknown",
+        "custom_code"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/jinaai/jina-reranker-v3"
     },
     {
@@ -4557,8 +4540,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bourdoiscatie/crossencoder-camembert-base-mmarcoFR"
     },
     {
@@ -4595,8 +4578,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/redsquirrel/Qwen3-Reranker-8B-Q8_0-GGUF"
     },
     {
@@ -4638,10 +4621,11 @@
       ],
       "flags": [
         "license_unknown",
-        "size_unknown"
+        "size_unknown",
+        "custom_code"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/nvidia/llama-nemotron-rerank-1b-v2"
     },
     {
@@ -4678,8 +4662,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/redsquirrel/Qwen3-Reranker-8B-Q4_K_M-GGUF"
     },
     {
@@ -4726,8 +4710,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/tomaarsen/ms-marco-ettin-17m-reranker"
     },
     {
@@ -4774,8 +4758,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/tomaarsen/ms-marco-ettin-32m-reranker"
     },
     {
@@ -4822,8 +4806,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/tomaarsen/ms-marco-ettin-68m-reranker"
     },
     {
@@ -4870,8 +4854,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/tomaarsen/ms-marco-ettin-150m-reranker"
     },
     {
@@ -4918,8 +4902,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/AQ-MedAI/Diver-GroupRank-7B"
     },
     {
@@ -4966,8 +4950,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/AQ-MedAI/Diver-GroupRank-32B"
     },
     {
@@ -5006,10 +4990,11 @@
       ],
       "flags": [
         "license_unknown",
-        "size_unknown"
+        "size_unknown",
+        "custom_code"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/hotchpotch/open-provence-reranker-v1-gte-modernbert-base"
     },
     {
@@ -5051,10 +5036,11 @@
       ],
       "flags": [
         "license_unknown",
-        "size_unknown"
+        "size_unknown",
+        "custom_code"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/hotchpotch/open-provence-reranker-large-v1"
     },
     {
@@ -5096,10 +5082,11 @@
       ],
       "flags": [
         "license_unknown",
-        "size_unknown"
+        "size_unknown",
+        "custom_code"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/hotchpotch/open-provence-reranker-xsmall-v1"
     },
     {
@@ -5141,10 +5128,11 @@
       ],
       "flags": [
         "license_unknown",
-        "size_unknown"
+        "size_unknown",
+        "custom_code"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/hotchpotch/open-provence-reranker-v1"
     },
     {
@@ -5188,8 +5176,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/tomaarsen/reranker-MiniLM-L12-H384-msmarco-mse"
     },
     {
@@ -5235,8 +5223,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/zeroentropy/zerank-2"
     },
     {
@@ -5277,8 +5265,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/mradermacher/Diver-GroupRank-7B-GGUF"
     },
     {
@@ -5322,8 +5310,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/andrewma5/harvard-loop-reranker"
     },
     {
@@ -5363,8 +5351,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/lumees/aethel-reranker-en-v1"
     },
     {
@@ -5410,8 +5398,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/hasankursun/reranker-Multilingual-MiniLM-L12-H384-msmarco-mse"
     },
     {
@@ -5454,8 +5442,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ManiKumarAdapala/Qwen3-Reranker-0.6B-Q8_0-Safetensors"
     },
     {
@@ -5499,10 +5487,11 @@
       ],
       "flags": [
         "license_unknown",
-        "size_unknown"
+        "size_unknown",
+        "custom_code"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/zeroentropy/zerank-1"
     },
     {
@@ -5539,8 +5528,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ManiKumarAdapala/Qwen3-Reranker-0.6B-Q8_0-GGUF"
     },
     {
@@ -5578,8 +5567,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/songtingyu/limrank"
     },
     {
@@ -5620,8 +5609,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Lipdog/Qwen3-Reranker-4B-mlx-fp16"
     },
     {
@@ -5667,8 +5656,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bnkc123/modernbert-base-gooaq-bce"
     },
     {
@@ -5715,8 +5704,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/emilwin/reranker-ms-marco-sympathy-docs"
     },
     {
@@ -5760,8 +5749,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/aqweteddy/AuroraX-Reranker-Base-v1.0"
     },
     {
@@ -5803,8 +5792,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/kazalbrur/jina-reranker-v2-base-multilingual-finetuned-Q8_0-GGUF"
     },
     {
@@ -5845,8 +5834,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/kazalbrur/jina-reranker-v2-base-multilingual-Q8_0-GGUF"
     },
     {
@@ -5884,8 +5873,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/webis/colbert"
     },
     {
@@ -5923,8 +5912,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/webis/splade"
     },
     {
@@ -5963,8 +5952,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/webis/bert-bi-encoder"
     },
     {
@@ -6007,8 +5996,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/tikanosa/mk_crossencoder"
     },
     {
@@ -6051,8 +6040,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/tikanosa/syllabus_crossencoder"
     },
     {
@@ -6094,8 +6083,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/hutuhehe/finretriever-cross-reranker"
     },
     {
@@ -6139,8 +6128,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/IoannisKat1/bge_reranker_ft"
     },
     {
@@ -6184,8 +6173,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/skygudanr/klue-roberta-small-cross-encoder"
     },
     {
@@ -6228,8 +6217,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/truong1301/PhoRanker_vinum"
     },
     {
@@ -6266,8 +6255,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bdesnos/Qwen3-Reranker-8B-Q6_K-GGUF"
     },
     {
@@ -6309,8 +6298,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Adarsh921/cross-encoder"
     },
     {
@@ -6355,8 +6344,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ibm-granite/granite-embedding-reranker-english-r2"
     },
     {
@@ -6391,8 +6380,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/na399/THIRAWAT-reranker-beta"
     },
     {
@@ -6429,8 +6418,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/akinsella-socrate/Qwen3-Reranker-4B-Q5_K_M-GGUF"
     },
     {
@@ -6467,8 +6456,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/akinsella-socrate/Qwen3-Reranker-4B-Q6_K-GGUF"
     },
     {
@@ -6507,10 +6496,11 @@
       ],
       "flags": [
         "license_unknown",
-        "size_unknown"
+        "size_unknown",
+        "custom_code"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/fixergroup/polish-reranker-base-mse-quantized-onnx"
     },
     {
@@ -6555,8 +6545,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/tmy100000001/LitDD_crossencoder"
     },
     {
@@ -6592,8 +6582,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/castorini/monoelectra-base"
     },
     {
@@ -6633,10 +6623,11 @@
       ],
       "flags": [
         "license_unknown",
-        "size_unknown"
+        "size_unknown",
+        "custom_code"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/qq574599829/jina-reranker-v3"
     },
     {
@@ -6672,8 +6663,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/endyjasmi/Qwen3-Reranker-0.6B-Q4_K_M-GGUF"
     },
     {
@@ -6709,8 +6700,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/endyjasmi/Qwen3-Reranker-4B-Q4_K_M-GGUF"
     },
     {
@@ -6746,12 +6737,10 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "eligible",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/endyjasmi/Qwen3-Reranker-8B-Q4_K_M-GGUF"
-    }
-  ],
-  "baseline": [
+    },
     {
       "model_id": "cross-encoder/ms-marco-MiniLM-L-6-v2",
       "created_at": "2022-03-02T23:29:05Z",
@@ -6799,8 +6788,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "baseline",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2"
     },
     {
@@ -6843,8 +6832,8 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "baseline",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/mixedbread-ai/mxbai-rerank-xsmall-v1"
     },
     {
@@ -6887,15 +6876,44 @@
         "license_unknown",
         "size_unknown"
       ],
-      "status": "baseline",
-      "reject_reason": null,
+      "status": "reject",
+      "reject_reason": "size_unknown",
       "url": "https://huggingface.co/mixedbread-ai/mxbai-rerank-base-v1"
     }
   ],
-  "rejected": [],
+  "web_leads": [
+    {
+      "model_name": "Qwen3-Reranker-0.6B",
+      "hf_model_id": "Qwen/Qwen3-Reranker-0.6B",
+      "release_date": "2025-12-01",
+      "size_params_b": 0.6,
+      "status": "out_of_scope",
+      "reasons": [
+        "size_gt_500m"
+      ],
+      "notes": "Listed as supported by OpenVINO 2025.4 on CPUs/GPUs; exceeds tiny threshold.",
+      "release_source_url": "https://docs.openvino.ai/2025/about-openvino/release-notes-openvino.html"
+    }
+  ],
+  "web_leads_unmatched": [
+    {
+      "model_name": "Qwen3-Reranker-0.6B",
+      "hf_model_id": "Qwen/Qwen3-Reranker-0.6B",
+      "release_date": "2025-12-01",
+      "size_params_b": 0.6,
+      "status": "out_of_scope",
+      "reasons": [
+        "size_gt_500m"
+      ],
+      "notes": "Listed as supported by OpenVINO 2025.4 on CPUs/GPUs; exceeds tiny threshold.",
+      "release_source_url": "https://docs.openvino.ai/2025/about-openvino/release-notes-openvino.html"
+    }
+  ],
   "stats": {
-    "eligible": 154,
-    "baseline": 3,
-    "rejected": 0
+    "eligible": 0,
+    "baseline": 0,
+    "rejected": 157,
+    "web_leads": 1,
+    "web_leads_unmatched": 1
   }
 }

@@ -3,6 +3,6 @@
 [page 2] fetched 100 models
 [cutoff] reached models older than cutoff; stopping
 [scan] total models scanned=200
-[done] eligible=154 baseline=3 rejected=0 elapsed=38.02s
-[counts] eligible=154 baseline=3 rejected=0
-[done] 2026-01-23T22:05:10Z
+[done] eligible=0 baseline=0 rejected=157 elapsed=208.79s
+[counts] eligible=0 baseline=0 rejected=157
+[done] 2026-01-23T22:43:21Z

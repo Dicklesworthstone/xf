@@ -33,6 +33,14 @@ if [[ "$BAD_COUNT" != "0" ]]; then
   exit 1
 fi
 
+# Ensure eligible entries have verified license + size + weights
+BAD_ELIGIBLE_FLAGS=$(jq '[.eligible[] | select(.flags | index("license_unknown") or index("size_unknown") or index("date_unknown"))] | length' "$OUT_JSON")
+BAD_ELIGIBLE_WEIGHTS=$(jq '[.eligible[] | select(.reject_reason == "no_weight_files")] | length' "$OUT_JSON")
+if [[ "$BAD_ELIGIBLE_FLAGS" != "0" || "$BAD_ELIGIBLE_WEIGHTS" != "0" ]]; then
+  echo "[fail] Eligible models include unknown license/size/date or missing weights" | tee -a "$LOG"
+  exit 1
+fi
+
 jq -n \
   --arg generated "$(stamp)" \
   --argjson eligible "$ELIGIBLE_COUNT" \

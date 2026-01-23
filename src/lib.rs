@@ -18,15 +18,18 @@ pub mod config;
 pub mod date_parser;
 pub mod doctor;
 pub mod embedder;
+pub mod benchmark;
 pub mod error;
 pub mod fastembed_embedder;
 pub mod hash_embedder;
 pub mod hybrid;
 pub mod logging;
 pub mod model;
+pub mod model_registry;
 pub mod parser;
 pub mod perf;
 pub mod repl;
+pub mod reranker;
 pub mod search;
 pub mod stats_analytics;
 pub mod storage;
@@ -219,6 +222,10 @@ pub struct EmbeddingConfig {
     /// When true, uses FastEmbed with MiniLM model for true semantic similarity.
     /// When false, uses hash-based embeddings (faster but lexical, not semantic).
     pub use_semantic: bool,
+    /// Optional embedder model name (registry key).
+    pub model: Option<String>,
+    /// Optional MRL dimension override.
+    pub dimensions: Option<usize>,
 }
 
 impl Default for EmbeddingConfig {
@@ -226,6 +233,8 @@ impl Default for EmbeddingConfig {
         Self {
             show_progress: true,
             use_semantic: false,
+            model: None,
+            dimensions: None,
         }
     }
 }
@@ -237,6 +246,8 @@ pub fn generate_embeddings(storage: &Storage, show_progress: bool) -> Result<()>
         &EmbeddingConfig {
             show_progress,
             use_semantic: false,
+            model: None,
+            dimensions: None,
         },
     )
 }
@@ -262,8 +273,8 @@ pub fn generate_embeddings(storage: &Storage, show_progress: bool) -> Result<()>
 pub fn generate_embeddings_with_config(storage: &Storage, config: &EmbeddingConfig) -> Result<()> {
     use crate::canonicalize::{canonicalize_for_embedding, content_hash};
     use crate::embedder::Embedder;
-    use crate::fastembed_embedder::FastEmbedder;
     use crate::hash_embedder::HashEmbedder;
+    use crate::model_registry::{EmbedderConfig as RegistryConfig, ModelRegistry};
     use colored::Colorize;
     use indicatif::{ProgressBar, ProgressStyle};
     use rayon::prelude::*;
@@ -275,37 +286,37 @@ pub fn generate_embeddings_with_config(storage: &Storage, config: &EmbeddingConf
     type EmbedRecord = (String, String, Vec<f32>, Option<[u8; 32]>);
 
     const EMBED_CHUNK_SIZE: usize = 1000;
-    // Use smaller batches for semantic embeddings (more memory intensive)
-    let store_batch_size = if config.use_semantic { 50 } else { 100 };
     let embed_start = Instant::now();
 
     // Create the appropriate embedder based on config
-    // We need to store the FastEmbedder to keep it alive for the reference
-    let semantic_embedder: Option<FastEmbedder> = if config.use_semantic {
-        info!("Loading FastEmbed model for semantic embeddings...");
-        // Use load_or_download to auto-download the model if needed
-        let embedder = FastEmbedder::load_or_download(config.show_progress).map_err(|e| {
+    let registry = ModelRegistry::new();
+    let embedder_box: Box<dyn Embedder> = if let Some(model) = &config.model {
+        let mut cfg = RegistryConfig::new(model);
+        cfg.dimensions = config.dimensions;
+        cfg.show_progress = config.show_progress;
+        registry.embedder(&cfg).map_err(|e| {
+            anyhow::anyhow!("Failed to load embedder {model}: {e}")
+        })?
+    } else if config.use_semantic {
+        info!("Loading semantic embedder (default MiniLM)...");
+        let mut cfg = RegistryConfig::new("all-MiniLM-L6-v2");
+        cfg.dimensions = config.dimensions;
+        cfg.show_progress = config.show_progress;
+        let embedder = registry.embedder(&cfg).map_err(|e| {
             anyhow::anyhow!("Failed to load semantic model: {e}")
         })?;
-        info!("FastEmbed model loaded successfully");
-        Some(embedder)
+        info!("Semantic embedder loaded successfully");
+        embedder
     } else {
-        None
+        Box::new(HashEmbedder::default())
     };
-
-    // Create the embedder reference
-    let hash_embedder_box;
-    let embedder: &dyn Embedder = if let Some(ref fe) = semantic_embedder {
-        fe
-    } else {
-        // Return reference to static lifetime via Box leak (HashEmbedder is small)
-        hash_embedder_box = Box::new(HashEmbedder::default());
-        Box::leak(hash_embedder_box)
-    };
+    let embedder: &dyn Embedder = embedder_box.as_ref();
+    // Use smaller batches for semantic embeddings (more memory intensive)
+    let store_batch_size = if embedder.is_semantic() { 50 } else { 100 };
 
     if config.show_progress {
         println!();
-        let mode = if config.use_semantic {
+        let mode = if embedder.is_semantic() {
             "semantic (ML)"
         } else {
             "hash-based"
