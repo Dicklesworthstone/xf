@@ -273,7 +273,7 @@ def main() -> int:
             baseline.append(entry)
         else:
             rejected.append(entry)
-        time.sleep(0.1)
+        time.sleep(0.2)
 
     for model_id in BASELINES:
         if model_id in seen:

@@ -1,19 +1,2 @@
-[start] cutoff=2025-11-01 pipeline_tag=feature-extraction
-[page 1] fetched 100 models
-[page 2] fetched 100 models
-[page 3] fetched 100 models
-[page 4] fetched 100 models
-[page 5] fetched 100 models
-[page 6] fetched 100 models
-[page 7] fetched 100 models
-[page 8] fetched 100 models
-[page 9] fetched 100 models
-[page 10] fetched 100 models
-[page 11] fetched 100 models
-[page 12] fetched 100 models
-[page 13] fetched 100 models
-[cutoff] reached models older than cutoff; stopping
-[scan] total models scanned=1300
-[done] eligible=1257 baseline=0 rejected=0 elapsed=181.35s
-[counts] eligible=1257 baseline=0 rejected=0
-[done] 2026-01-23T21:52:01Z
+[start] 2026-01-23T21:54:04Z
+[run] embedding discovery
