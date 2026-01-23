@@ -1359,7 +1359,7 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs) -> Result<()> {
             // Get semantic results (if embeddings exist and query canonicalizes)
             let semantic_results = get_semantic_results(
                 vector_index,
-                &embedder,
+                embedder,
                 &canonical_query,
                 doc_types.as_deref(),
                 candidate_count,
@@ -1572,7 +1572,7 @@ fn has_embeddings_for_types(doc_types: Option<&[search::DocType]>) -> bool {
 /// Returns empty vector if vector index is None, query is empty, or embedding fails.
 fn get_semantic_results(
     vector_index: Option<&VectorIndex>,
-    embedder: &HashEmbedder,
+    embedder: &dyn Embedder,
     canonical_query: &str,
     doc_types: Option<&[search::DocType]>,
     candidate_count: usize,

@@ -280,20 +280,28 @@ pub fn generate_embeddings_with_config(storage: &Storage, config: &EmbeddingConf
     let embed_start = Instant::now();
 
     // Create the appropriate embedder based on config
-    let semantic_embedder: Option<FastEmbedder>;
-    let embedder: &dyn Embedder = if config.use_semantic {
+    // We need to store the FastEmbedder to keep it alive for the reference
+    let semantic_embedder: Option<FastEmbedder> = if config.use_semantic {
         info!("Loading FastEmbed model for semantic embeddings...");
-        semantic_embedder = Some(FastEmbedder::try_load().map_err(|e| {
+        let embedder = FastEmbedder::try_load().map_err(|e| {
             anyhow::anyhow!(
                 "Failed to load semantic model: {e}. Run 'xf setup-semantic' to download."
             )
-        })?);
+        })?;
         info!("FastEmbed model loaded successfully");
-        semantic_embedder.as_ref().unwrap()
+        Some(embedder)
     } else {
-        semantic_embedder = None;
+        None
+    };
+
+    // Create the embedder reference
+    let hash_embedder_box;
+    let embedder: &dyn Embedder = if let Some(ref fe) = semantic_embedder {
+        fe
+    } else {
         // Return reference to static lifetime via Box leak (HashEmbedder is small)
-        Box::leak(Box::new(HashEmbedder::default()))
+        hash_embedder_box = Box::new(HashEmbedder::default());
+        Box::leak(hash_embedder_box)
     };
 
     if config.show_progress {
