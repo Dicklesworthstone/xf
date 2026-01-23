@@ -1,0 +1,1272 @@
+# Embedding Candidates (>= 2025-11-01)
+
+Generated: 2026-01-23T21:52:01.172555Z
+
+## Eligible
+| Model | Last Modified | Size MB (min/max) | License | Formats | Flags |
+|---|---|---|---|---|---|
+| [emarro/test-hnet-upload-sweep_N_hg38_cnet_c3t1-C15-c4_N10_D512-512_mlp_election_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_cnet_c3t1-C15-c4_N10_D512-512_mlp_election_lr-0.0005) | 2026-01-23T21:47:46Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-sweep_N_hg38_8k_cnet_c3t1-C15-c4_N10_D512-512_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_8k_cnet_c3t1-C15-c4_N10_D512-512_lr-0.0005) | 2026-01-23T21:42:18Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-sweep_N_hg38_8k_cnet_c3t1-C15-c4_N5_D512-512_mlp_election_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_8k_cnet_c3t1-C15-c4_N5_D512-512_mlp_election_lr-0.0005) | 2026-01-23T21:38:48Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [mimimimi2002/openvla_goal_force_100k_12_ckpt](https://huggingface.co/mimimimi2002/openvla_goal_force_100k_12_ckpt) | 2026-01-23T20:36:40Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [mimimimi2002/openvla_goal_force_100k_ckpt](https://huggingface.co/mimimimi2002/openvla_goal_force_100k_ckpt) | 2026-01-23T20:10:28Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [alexchen4ai/moe_expert](https://huggingface.co/alexchen4ai/moe_expert) | 2026-01-23T20:03:40Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_1_2epo_cot_onlyp_all](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_1_2epo_cot_onlyp_all) | 2026-01-23T19:20:22Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_0_2epo_cot_onlyp_all](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_0_2epo_cot_onlyp_all) | 2026-01-23T19:20:21Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [mradermacher/Mursit-Embed-Qwen3-4B-TR-i1-GGUF](https://huggingface.co/mradermacher/Mursit-Embed-Qwen3-4B-TR-i1-GGUF) | 2026-01-23T19:12:37Z |  |  | gguf,gitattributes,md | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_2_2epo_cot_onlyp_all](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_2_2epo_cot_onlyp_all) | 2026-01-23T19:10:16Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_3_2epo_cot_onlyp_all](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_3_2epo_cot_onlyp_all) | 2026-01-23T18:46:16Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [mradermacher/Mursit-Embed-Qwen3-4B-TR-GGUF](https://huggingface.co/mradermacher/Mursit-Embed-Qwen3-4B-TR-GGUF) | 2026-01-23T18:45:45Z |  |  | gguf,gitattributes,md | license_unknown,size_unknown |
+| [mazesmazes/tiny-audio-multitask](https://huggingface.co/mazesmazes/tiny-audio-multitask) | 2026-01-23T18:41:35Z |  |  | bin,gitattributes,jinja,json,md,py,safetensors | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_2_2epo_cot_llm_op](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_2_2epo_cot_llm_op) | 2026-01-23T18:22:42Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_1_2epo_cot_llm_op](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_1_2epo_cot_llm_op) | 2026-01-23T18:02:48Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_3_2epo_cot_llm_op](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_3_2epo_cot_llm_op) | 2026-01-23T18:02:40Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_0_2epo_cot_llm_op](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_0_2epo_cot_llm_op) | 2026-01-23T18:02:33Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Shakibyzn/transformer-dgs-phoenix14t](https://huggingface.co/Shakibyzn/transformer-dgs-phoenix14t) | 2026-01-23T17:54:36Z |  |  | gitattributes,json,md,py,safetensors,txt | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-sweep_N_hg38_8k_cnet_c3t1-C15-c4_N3_D512-512_mlp_election_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_8k_cnet_c3t1-C15-c4_N3_D512-512_mlp_election_lr-0.0005) | 2026-01-23T17:39:13Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_1_2epo_cot_table_op](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_1_2epo_cot_table_op) | 2026-01-23T17:36:59Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_2_2epo_cot_table_op](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_2_2epo_cot_table_op) | 2026-01-23T17:36:56Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-sweep_N_hg38_8k_cnet_c3t1-C15-c4_N2_D512-512_mlp_election_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_8k_cnet_c3t1-C15-c4_N2_D512-512_mlp_election_lr-0.0005) | 2026-01-23T17:28:58Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [nickprock/splade-bert-base-italian-xxl-uncased-cv](https://huggingface.co/nickprock/splade-bert-base-italian-xxl-uncased-cv) | 2026-01-23T17:23:30Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [ammamariayfw5501/MyAwesomeModel-TestRepo](https://huggingface.co/ammamariayfw5501/MyAwesomeModel-TestRepo) | 2026-01-23T17:14:41Z |  |  | bin,gitattributes,json,md | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_3_2epo_cot_table_op](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_3_2epo_cot_table_op) | 2026-01-23T17:08:32Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_stdft_rs0_3_2epo_std](https://huggingface.co/Zack-Z/qwen3_8bi_stdft_rs0_3_2epo_std) | 2026-01-23T16:50:07Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_stdft_rs0_1_2epo_std](https://huggingface.co/Zack-Z/qwen3_8bi_stdft_rs0_1_2epo_std) | 2026-01-23T16:26:31Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_stdft_rs0_0_2epo_std](https://huggingface.co/Zack-Z/qwen3_8bi_stdft_rs0_0_2epo_std) | 2026-01-23T16:22:38Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_stdft_rs0_2_2epo_std](https://huggingface.co/Zack-Z/qwen3_8bi_stdft_rs0_2_2epo_std) | 2026-01-23T16:22:37Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [mradermacher/Mursit-Embed-Qwen3-1.7B-TR-i1-GGUF](https://huggingface.co/mradermacher/Mursit-Embed-Qwen3-1.7B-TR-i1-GGUF) | 2026-01-23T16:15:14Z |  |  | gguf,gitattributes,md | license_unknown,size_unknown |
+| [mradermacher/Mursit-Embed-Qwen3-1.7B-TR-GGUF](https://huggingface.co/mradermacher/Mursit-Embed-Qwen3-1.7B-TR-GGUF) | 2026-01-23T15:59:14Z |  |  | gguf,gitattributes,md | license_unknown,size_unknown |
+| [mradermacher/Qwen3-Embedding-Medical-0.6B-GGUF](https://huggingface.co/mradermacher/Qwen3-Embedding-Medical-0.6B-GGUF) | 2026-01-23T15:27:08Z |  |  | gguf,gitattributes,md | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_0_2epo_cot_table_op](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_0_2epo_cot_table_op) | 2026-01-23T15:23:14Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SOTAagi2030/MyAwesomeModel-TestRepo](https://huggingface.co/SOTAagi2030/MyAwesomeModel-TestRepo) | 2026-01-23T15:10:14Z |  |  | bin,gitattributes,json,md,png | license_unknown,size_unknown |
+| [optimum-internal-testing/tiny_random_bert_neuronx](https://huggingface.co/optimum-internal-testing/tiny_random_bert_neuronx) | 2026-01-23T14:43:21Z |  |  | gitattributes,json,neuron,txt | license_unknown,size_unknown |
+| [raphaelsty/model-test-onnx](https://huggingface.co/raphaelsty/model-test-onnx) | 2026-01-23T14:12:07Z |  |  | gitattributes,json,md,onnx | license_unknown,size_unknown |
+| [raphaelsty/model-test](https://huggingface.co/raphaelsty/model-test) | 2026-01-23T13:58:13Z |  |  | gitattributes,json,md,onnx | license_unknown,size_unknown |
+| [gpjt/test2](https://huggingface.co/gpjt/test2) | 2026-01-23T13:03:54Z |  |  | gitattributes,json,md,py,safetensors,txt | license_unknown,size_unknown |
+| [JerrryNie/ConceptCLIP](https://huggingface.co/JerrryNie/ConceptCLIP) | 2026-01-23T12:01:05Z |  |  | gitattributes,jpg,json,md,py,safetensors,txt | license_unknown,size_unknown |
+| [mixedbread-ai/mxbai-embed-large-v1](https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1) | 2026-01-23T11:59:58Z |  |  | bin,gguf,gitattributes,json,md,onnx,safetensors,txt,xml | license_unknown,size_unknown |
+| [KimiTool/MyAwesomeModel-TestRepo](https://huggingface.co/KimiTool/MyAwesomeModel-TestRepo) | 2026-01-23T11:30:37Z |  |  | bin,gitattributes,json,md,png | license_unknown,size_unknown |
+| [prophet123/Qwen3-Embedding-8B](https://huggingface.co/prophet123/Qwen3-Embedding-8B) | 2026-01-23T11:02:27Z |  |  | gitattributes,md | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-sweep_N_hg38_cnet_c3t1-C15-c4_N5_D512-512_mlp_election_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_cnet_c3t1-C15-c4_N5_D512-512_mlp_election_lr-0.0005) | 2026-01-23T10:16:49Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [universe-riez/affine-5H6qJv7HAWSr1zT2bgeE8mfNAU7hQEGvjy1aZgrwMW6qbSdV-2](https://huggingface.co/universe-riez/affine-5H6qJv7HAWSr1zT2bgeE8mfNAU7hQEGvjy1aZgrwMW6qbSdV-2) | 2026-01-23T10:13:40Z |  |  | gitattributes,jinja,json,md,safetensors,txt | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-sweep_N_hg38_8k_cnet_c3t1-C15-c4_N5_D512-512_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_8k_cnet_c3t1-C15-c4_N5_D512-512_lr-0.0005) | 2026-01-23T09:55:35Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [morningtea006/affine-stupidwebscraper991923-5CvvN4i1ywzVhmzZZJ76W3uGDPK1ny2tj2DBqGHr8FkAeLYB](https://huggingface.co/morningtea006/affine-stupidwebscraper991923-5CvvN4i1ywzVhmzZZJ76W3uGDPK1ny2tj2DBqGHr8FkAeLYB) | 2026-01-23T08:09:00Z |  |  | gitattributes,jinja,json,md,safetensors,txt | license_unknown,size_unknown |
+| [morningtea006/affine-mouse-5CvvN4i1ywzVhmzZZJ76W3uGDPK1ny2tj2DBqGHr8FkAeLYB](https://huggingface.co/morningtea006/affine-mouse-5CvvN4i1ywzVhmzZZJ76W3uGDPK1ny2tj2DBqGHr8FkAeLYB) | 2026-01-23T07:58:17Z |  |  | gitattributes,jinja,json,md,safetensors,txt | license_unknown,size_unknown |
+| [shenanwyq/MyAwesomeModel-TestRepo](https://huggingface.co/shenanwyq/MyAwesomeModel-TestRepo) | 2026-01-23T07:53:58Z |  |  | bin,gitattributes,json,md,png | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-sweep_N_hg38_8k_hnet_m3t1-M15-m4_N15_D512-512_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_8k_hnet_m3t1-M15-m4_N15_D512-512_lr-0.0005) | 2026-01-23T07:49:58Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [morningtea006/affine-hawk-5CvvN4i1ywzVhmzZZJ76W3uGDPK1ny2tj2DBqGHr8FkAeLYB](https://huggingface.co/morningtea006/affine-hawk-5CvvN4i1ywzVhmzZZJ76W3uGDPK1ny2tj2DBqGHr8FkAeLYB) | 2026-01-23T07:41:42Z |  |  | gitattributes,jinja,json,md,safetensors,txt | license_unknown,size_unknown |
+| [morningtea006/affine-worm-5CvvN4i1ywzVhmzZZJ76W3uGDPK1ny2tj2DBqGHr8FkAeLYB](https://huggingface.co/morningtea006/affine-worm-5CvvN4i1ywzVhmzZZJ76W3uGDPK1ny2tj2DBqGHr8FkAeLYB) | 2026-01-23T07:33:01Z |  |  | gitattributes,jinja,json,md,safetensors,txt | license_unknown,size_unknown |
+| [toolathlon/MyAwesomeModel-TestRepo](https://huggingface.co/toolathlon/MyAwesomeModel-TestRepo) | 2026-01-23T07:14:55Z |  |  | bin,gitattributes,json,md | license_unknown,size_unknown |
+| [bezzam/VibeVoice-AcousticTokenizer](https://huggingface.co/bezzam/VibeVoice-AcousticTokenizer) | 2026-01-23T06:35:54Z |  |  | gitattributes,json,md,png,safetensors | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-sweep_N_hg38_8k_hnet_m3t1-M15-m4_N10_D512-512_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_8k_hnet_m3t1-M15-m4_N10_D512-512_lr-0.0005) | 2026-01-23T05:39:13Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [KienNgyuen/deepseek_ocr_persian_mergedv1](https://huggingface.co/KienNgyuen/deepseek_ocr_persian_mergedv1) | 2026-01-23T05:13:54Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [voyageai/voyage-4-nano](https://huggingface.co/voyageai/voyage-4-nano) | 2026-01-23T01:49:34Z |  |  | gitattributes,json,md,py,safetensors,svg,txt | license_unknown,size_unknown |
+| [telepix/PIXIE-Rune-v1.0](https://huggingface.co/telepix/PIXIE-Rune-v1.0) | 2026-01-23T00:15:34Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [gbouras13/modernprost-profiles](https://huggingface.co/gbouras13/modernprost-profiles) | 2026-01-22T23:19:42Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-sweep_N_hg38_8k_hnet_m3t1-M15-m4_N5_D512-512_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_8k_hnet_m3t1-M15-m4_N5_D512-512_lr-0.0005) | 2026-01-22T22:59:44Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [morningtea006/affine-rat-5CvvN4i1ywzVhmzZZJ76W3uGDPK1ny2tj2DBqGHr8FkAeLYB](https://huggingface.co/morningtea006/affine-rat-5CvvN4i1ywzVhmzZZJ76W3uGDPK1ny2tj2DBqGHr8FkAeLYB) | 2026-01-22T22:36:25Z |  |  | gitattributes,jinja,json,md,safetensors,txt | license_unknown,size_unknown |
+| [morningtea006/affine-bird-5CvvN4i1ywzVhmzZZJ76W3uGDPK1ny2tj2DBqGHr8FkAeLYB](https://huggingface.co/morningtea006/affine-bird-5CvvN4i1ywzVhmzZZJ76W3uGDPK1ny2tj2DBqGHr8FkAeLYB) | 2026-01-22T22:30:52Z |  |  | gitattributes,jinja,json,md,safetensors,txt | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-sweep_N_hg38_8k_cnet_c3t1-C15-c4_N3_D512-512_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_8k_cnet_c3t1-C15-c4_N3_D512-512_lr-0.0005) | 2026-01-22T21:37:16Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [lightonai/answerai-colbert-small-v1-onnx](https://huggingface.co/lightonai/answerai-colbert-small-v1-onnx) | 2026-01-22T21:31:38Z |  |  | gitattributes,json,md,onnx | license_unknown,size_unknown |
+| [RamManavalan/Qwen3-VL-Embedding-8B-FP8](https://huggingface.co/RamManavalan/Qwen3-VL-Embedding-8B-FP8) | 2026-01-22T21:26:20Z |  |  | gitattributes,jinja,json,md,py,safetensors,txt,yaml | license_unknown,size_unknown |
+| [gpjt/test1](https://huggingface.co/gpjt/test1) | 2026-01-22T20:55:53Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-sweep_N_hg38_cnet_c3t1-C15-c4_N3_D512-512_mlp_election_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_cnet_c3t1-C15-c4_N3_D512-512_mlp_election_lr-0.0005) | 2026-01-22T19:55:03Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-sweep_N_hg38_8k_hnet_m3t1-M15-m4_N3_D512-512_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_8k_hnet_m3t1-M15-m4_N3_D512-512_lr-0.0005) | 2026-01-22T18:44:59Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-sweep_N_hg38_8k_hnet_m3t1-M15-m4_N2_D512-512_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_8k_hnet_m3t1-M15-m4_N2_D512-512_lr-0.0005) | 2026-01-22T18:41:32Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [jiosephlee/rejection_sampled_intern](https://huggingface.co/jiosephlee/rejection_sampled_intern) | 2026-01-22T17:37:15Z |  |  | bin,gitattributes,jinja,json,log,md,model,py,safetensors,txt | license_unknown,size_unknown |
+| [msugimura/vibes-clustering](https://huggingface.co/msugimura/vibes-clustering) | 2026-01-22T17:27:30Z |  |  | gitattributes,json,md,pkl | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-baseline_hg38_8k_cad_C3T1C19_NNone_D512_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-baseline_hg38_8k_cad_C3T1C19_NNone_D512_lr-0.0005) | 2026-01-22T17:00:03Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [jordiferrero/MOSES-2stg](https://huggingface.co/jordiferrero/MOSES-2stg) | 2026-01-22T16:27:19Z |  |  | gif,gitattributes,gz,json,md,pt,txt | license_unknown,size_unknown |
+| [jordiferrero/MOSES-nocat](https://huggingface.co/jordiferrero/MOSES-nocat) | 2026-01-22T16:16:21Z |  |  | gif,gitattributes,gz,json,md,pt,txt | license_unknown,size_unknown |
+| [jordiferrero/MOSES-340M](https://huggingface.co/jordiferrero/MOSES-340M) | 2026-01-22T16:06:35Z |  |  | gif,gitattributes,gz,json,md,pt,txt | license_unknown,size_unknown |
+| [jordiferrero/PI1M-2stg](https://huggingface.co/jordiferrero/PI1M-2stg) | 2026-01-22T15:56:41Z |  |  | gif,gitattributes,gz,json,md,pt,txt | license_unknown,size_unknown |
+| [jordiferrero/PI1M-nocat](https://huggingface.co/jordiferrero/PI1M-nocat) | 2026-01-22T15:45:46Z |  |  | gif,gitattributes,gz,json,md,pt,txt | license_unknown,size_unknown |
+| [jordiferrero/PI1M-1B](https://huggingface.co/jordiferrero/PI1M-1B) | 2026-01-22T15:36:10Z |  |  | gif,gitattributes,gz,json,md,pt,txt | license_unknown,size_unknown |
+| [jordiferrero/PI1M-340M](https://huggingface.co/jordiferrero/PI1M-340M) | 2026-01-22T14:59:55Z |  |  | gif,gitattributes,gz,json,md,pt,txt | license_unknown,size_unknown |
+| [jordiferrero/PI1M-68M](https://huggingface.co/jordiferrero/PI1M-68M) | 2026-01-22T14:49:52Z |  |  | gif,gitattributes,gz,json,md,pt,txt | license_unknown,size_unknown |
+| [unsloth/Qwen3-Embedding-8B](https://huggingface.co/unsloth/Qwen3-Embedding-8B) | 2026-01-22T14:32:05Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [unsloth/Qwen3-Embedding-4B](https://huggingface.co/unsloth/Qwen3-Embedding-4B) | 2026-01-22T14:31:15Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [unsloth/Qwen3-Embedding-0.6B](https://huggingface.co/unsloth/Qwen3-Embedding-0.6B) | 2026-01-22T14:30:48Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [mnm-matin/hyperbolic-clip](https://huggingface.co/mnm-matin/hyperbolic-clip) | 2026-01-22T13:30:12Z |  |  | data,gitattributes,md,onnx | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-sweep_N_hg38_8k_cnet_c3t1-C15-c4_N2_D512-512_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_8k_cnet_c3t1-C15-c4_N2_D512-512_lr-0.0005) | 2026-01-22T09:16:55Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-baseline_hg38_8k_hnet_M3T1M19_NNone_D512_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-baseline_hg38_8k_hnet_M3T1M19_NNone_D512_lr-0.0005) | 2026-01-22T09:01:13Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-sweep_N_hg38_cnet_c3t1-C15-c4_N2_D512-512_mlp_election_lr-0_0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_cnet_c3t1-C15-c4_N2_D512-512_mlp_election_lr-0_0005) | 2026-01-22T05:39:23Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [athlontool/MyAwesomeModel-TestRepo](https://huggingface.co/athlontool/MyAwesomeModel-TestRepo) | 2026-01-22T04:43:30Z |  |  | bin,gitattributes,json,md | license_unknown,size_unknown |
+| [Ragnarok9/FB_Qwen3_4B_Instruct](https://huggingface.co/Ragnarok9/FB_Qwen3_4B_Instruct) | 2026-01-22T04:22:06Z |  |  | bin,gitattributes,jinja,json,jsonl,md,png,pt,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [kamillkate/unsloth_finetune_TW_handwritting](https://huggingface.co/kamillkate/unsloth_finetune_TW_handwritting) | 2026-01-22T03:50:58Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-pcad2_cnet_pcad2_c3t1-C15-c4_N2_D512-512_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-pcad2_cnet_pcad2_c3t1-C15-c4_N2_D512-512_lr-0.0005) | 2026-01-22T01:50:07Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [armanakbari4/sdar_4b_opencodeinstruct-dynamic-10epochSansa__mix_0118_1622](https://huggingface.co/armanakbari4/sdar_4b_opencodeinstruct-dynamic-10epochSansa__mix_0118_1622) | 2026-01-21T22:31:20Z |  |  | bin,gitattributes,jinja,json,jsonl,md,png,py,safetensors,txt | license_unknown,size_unknown |
+| [ibm-granite/granite-embedding-small-english-r2](https://huggingface.co/ibm-granite/granite-embedding-small-english-r2) | 2026-01-21T18:38:43Z |  |  | bin,gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [lightonai/mxbai-edge-colbert-v0-32m-onnx](https://huggingface.co/lightonai/mxbai-edge-colbert-v0-32m-onnx) | 2026-01-21T16:33:19Z |  |  | gitattributes,json,md,onnx | license_unknown,size_unknown |
+| [mimimimi2002/openvla_spatial_force_150k_12_ckpt](https://huggingface.co/mimimimi2002/openvla_spatial_force_150k_12_ckpt) | 2026-01-21T13:54:30Z |  |  | gitattributes,json,md,model,pt,py,safetensors | license_unknown,size_unknown |
+| [NeuralTrustBank/jina-embeddings-v2-base-en](https://huggingface.co/NeuralTrustBank/jina-embeddings-v2-base-en) | 2026-01-21T11:03:55Z |  |  | bin,gitattributes,json,md,mlmodel,onnx,safetensors,txt | license_unknown,size_unknown |
+| [codefuse-ai/C2LLM-0.5B](https://huggingface.co/codefuse-ai/C2LLM-0.5B) | 2026-01-21T09:46:52Z |  |  | gitattributes,json,md,py,safetensors,txt | license_unknown,size_unknown |
+| [codefuse-ai/C2LLM-7B](https://huggingface.co/codefuse-ai/C2LLM-7B) | 2026-01-21T09:46:33Z |  |  | gitattributes,json,md,py,safetensors,txt | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-sweep_N_hg38_cnet_c3t1-C15-c4_N2_D512-512_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_cnet_c3t1-C15-c4_N2_D512-512_lr-0.0005) | 2026-01-21T08:18:09Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-pcad2_baseline_pcad2_C3T1C19_NNone_D512_lr-0_0005](https://huggingface.co/emarro/test-hnet-upload-pcad2_baseline_pcad2_C3T1C19_NNone_D512_lr-0_0005) | 2026-01-21T08:12:15Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [KienNgyuen/unsloth_finetune_deepseek](https://huggingface.co/KienNgyuen/unsloth_finetune_deepseek) | 2026-01-21T06:11:47Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [anchorzhonglucen/MyAwesomeModel-TestRepo](https://huggingface.co/anchorzhonglucen/MyAwesomeModel-TestRepo) | 2026-01-21T06:05:42Z |  |  | bin,gitattributes,json,md | license_unknown,size_unknown |
+| [z8086486/Qwen3-Embedding-0.6B-Q5_K_M-GGUF](https://huggingface.co/z8086486/Qwen3-Embedding-0.6B-Q5_K_M-GGUF) | 2026-01-21T05:04:33Z |  |  | gguf,gitattributes,md | license_unknown,size_unknown |
+| [mimimimi2002/openvla_object_force_100k_12_ckpt](https://huggingface.co/mimimimi2002/openvla_object_force_100k_12_ckpt) | 2026-01-21T04:14:34Z |  |  | gitattributes,json,md,model,pt,py,safetensors | license_unknown,size_unknown |
+| [mimimimi2002/openvla_spatial_force_100k_ckpt](https://huggingface.co/mimimimi2002/openvla_spatial_force_100k_ckpt) | 2026-01-21T04:09:46Z |  |  | gitattributes,json,md,model,pt,py,safetensors | license_unknown,size_unknown |
+| [mimimimi2002/openvla_spatial_force_100k_12_ckpt](https://huggingface.co/mimimimi2002/openvla_spatial_force_100k_12_ckpt) | 2026-01-21T03:52:16Z |  |  | gitattributes,json,md,model,pt,py,safetensors | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_2_2epo_cot_table_1](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_2_2epo_cot_table_1) | 2026-01-21T02:16:40Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_1_2epo_cot_table_2](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_1_2epo_cot_table_2) | 2026-01-21T01:51:24Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_1_2epo_cot_llm_all](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_1_2epo_cot_llm_all) | 2026-01-21T01:12:52Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_1_2epo_cot_table_1](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_1_2epo_cot_table_1) | 2026-01-21T00:52:50Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [jsonMartin/voyage-4-nano-ONNX-int8](https://huggingface.co/jsonMartin/voyage-4-nano-ONNX-int8) | 2026-01-21T00:49:53Z |  |  | gitattributes,jinja,json,md,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_2_2epo_cot_table_2](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_2_2epo_cot_table_2) | 2026-01-21T00:37:54Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-debug_hg38_hf_cnet_c3t1-C15-c4_N3_D512-512_mlp_election_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-debug_hg38_hf_cnet_c3t1-C15-c4_N3_D512-512_mlp_election_lr-0.0005) | 2026-01-20T23:42:05Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_1_2epo_cot_llm_1](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_1_2epo_cot_llm_1) | 2026-01-20T22:31:23Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_1_2epo_cot_llm_2](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_1_2epo_cot_llm_2) | 2026-01-20T22:06:19Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_2_2epo_cot_llm_all](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_2_2epo_cot_llm_all) | 2026-01-20T20:59:26Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_0_2epo_cot_table_1](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_0_2epo_cot_table_1) | 2026-01-20T19:33:46Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_2_2epo_cot_llm_1](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_2_2epo_cot_llm_1) | 2026-01-20T19:30:16Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_2_2epo_cot_llm_2](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_2_2epo_cot_llm_2) | 2026-01-20T19:20:43Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_3_2epo_cot_table_1](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_3_2epo_cot_table_1) | 2026-01-20T18:58:47Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_0_2epo_cot_llm_1](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_0_2epo_cot_llm_1) | 2026-01-20T18:17:45Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_3_2epo_cot_table_2](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_3_2epo_cot_table_2) | 2026-01-20T18:12:48Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_0_2epo_cot_llm_all](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_0_2epo_cot_llm_all) | 2026-01-20T17:41:36Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Lolalb/AMPLIFY_benchmark](https://huggingface.co/Lolalb/AMPLIFY_benchmark) | 2026-01-20T17:34:31Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_0_2epo_cot_table_2](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_0_2epo_cot_table_2) | 2026-01-20T17:33:22Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Bgoood/SpatialGT-MouseStroke-PT](https://huggingface.co/Bgoood/SpatialGT-MouseStroke-PT) | 2026-01-20T17:02:52Z |  |  | bin,gitattributes,md,pt,pth,safetensors | license_unknown,size_unknown |
+| [Chiwei/multilingual-e5-large-Q8_0-GGUF](https://huggingface.co/Chiwei/multilingual-e5-large-Q8_0-GGUF) | 2026-01-20T15:55:38Z |  |  | gguf,gitattributes,md | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_0_2epo_cot_llm_2](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_0_2epo_cot_llm_2) | 2026-01-20T15:29:45Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [ZoeYou/PatentMap-V0-SecPair-Claim](https://huggingface.co/ZoeYou/PatentMap-V0-SecPair-Claim) | 2026-01-20T15:16:20Z |  |  | gitattributes,json,md,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [ZoeYou/PatentMap-V0-SecPair-Summary](https://huggingface.co/ZoeYou/PatentMap-V0-SecPair-Summary) | 2026-01-20T15:15:46Z |  |  | gitattributes,json,md,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [ZoeYou/PatentMap-V0-SecPair-Background](https://huggingface.co/ZoeYou/PatentMap-V0-SecPair-Background) | 2026-01-20T15:15:17Z |  |  | gitattributes,json,md,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [ZoeYou/PatentMap-V0-SecPair-Drawing](https://huggingface.co/ZoeYou/PatentMap-V0-SecPair-Drawing) | 2026-01-20T15:14:51Z |  |  | gitattributes,json,md,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [ZoeYou/PatentMap-V0-SecPair-Description](https://huggingface.co/ZoeYou/PatentMap-V0-SecPair-Description) | 2026-01-20T15:14:25Z |  |  | gitattributes,json,md,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [ZoeYou/PatentMap-V0-SecPair-ClaimSummary](https://huggingface.co/ZoeYou/PatentMap-V0-SecPair-ClaimSummary) | 2026-01-20T15:14:01Z |  |  | gitattributes,json,md,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [ZoeYou/PatentMap-V0-SecPair-ClaimBackground](https://huggingface.co/ZoeYou/PatentMap-V0-SecPair-ClaimBackground) | 2026-01-20T15:13:33Z |  |  | gitattributes,json,md,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [ZoeYou/PatentMap-V0-SecPair-ClaimDrawing](https://huggingface.co/ZoeYou/PatentMap-V0-SecPair-ClaimDrawing) | 2026-01-20T15:13:07Z |  |  | gitattributes,json,md,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [ZoeYou/PatentMap-V0-SecPair-ClaimDescription](https://huggingface.co/ZoeYou/PatentMap-V0-SecPair-ClaimDescription) | 2026-01-20T15:12:42Z |  |  | gitattributes,json,md,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [ZoeYou/PatentMap-V0-SecPair-SummaryBackground](https://huggingface.co/ZoeYou/PatentMap-V0-SecPair-SummaryBackground) | 2026-01-20T15:12:06Z |  |  | gitattributes,json,md,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [ZoeYou/PatentMap-V0-SecPair-SummaryDrawing](https://huggingface.co/ZoeYou/PatentMap-V0-SecPair-SummaryDrawing) | 2026-01-20T15:10:50Z |  |  | gitattributes,json,md,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [ZoeYou/PatentMap-V0-SecPair-SummaryDescription](https://huggingface.co/ZoeYou/PatentMap-V0-SecPair-SummaryDescription) | 2026-01-20T15:10:21Z |  |  | gitattributes,json,md,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [ZoeYou/PatentMap-V0-SecPair-BackgroundDrawing](https://huggingface.co/ZoeYou/PatentMap-V0-SecPair-BackgroundDrawing) | 2026-01-20T15:09:52Z |  |  | gitattributes,json,md,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [ZoeYou/PatentMap-V0-SecPair-BackgroundDescription](https://huggingface.co/ZoeYou/PatentMap-V0-SecPair-BackgroundDescription) | 2026-01-20T15:09:30Z |  |  | gitattributes,json,md,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [ZoeYou/PatentMap-V0-SecPair-DrawingDescription](https://huggingface.co/ZoeYou/PatentMap-V0-SecPair-DrawingDescription) | 2026-01-20T15:09:03Z |  |  | gitattributes,json,md,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [ZoeYou/PatentMap-V0-Dropout](https://huggingface.co/ZoeYou/PatentMap-V0-Dropout) | 2026-01-20T15:08:33Z |  |  | gitattributes,json,md,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [ZoeYou/PatentMap-V0-IPC8](https://huggingface.co/ZoeYou/PatentMap-V0-IPC8) | 2026-01-20T15:08:02Z |  |  | gitattributes,json,md,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [ZoeYou/PatentMap-V0-Paraphrase](https://huggingface.co/ZoeYou/PatentMap-V0-Paraphrase) | 2026-01-20T15:07:33Z |  |  | gitattributes,json,md,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [ZoeYou/PatentMap-V0-RandCrop](https://huggingface.co/ZoeYou/PatentMap-V0-RandCrop) | 2026-01-20T15:07:03Z |  |  | gitattributes,json,md,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [ZoeYou/PatentMap-V0-SentShuffle](https://huggingface.co/ZoeYou/PatentMap-V0-SentShuffle) | 2026-01-20T15:06:33Z |  |  | gitattributes,json,md,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [ZoeYou/PatentMap-V0-CropShuffle](https://huggingface.co/ZoeYou/PatentMap-V0-CropShuffle) | 2026-01-20T15:05:54Z |  |  | gitattributes,json,md,pth,py,safetensors,txt | license_unknown,size_unknown |
+| [mimimimi2002/openvla_object_force_100k_ckpt](https://huggingface.co/mimimimi2002/openvla_object_force_100k_ckpt) | 2026-01-20T14:29:31Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_3_2epo_cot_llm_all](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_3_2epo_cot_llm_all) | 2026-01-20T12:29:55Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [BiliSakura/SkyCLIP-ViT-L-14](https://huggingface.co/BiliSakura/SkyCLIP-ViT-L-14) | 2026-01-20T12:18:32Z |  |  | gitattributes,json,md,pth,safetensors | license_unknown,size_unknown |
+| [BiliSakura/RS-M-CLIP-ViT-B-32](https://huggingface.co/BiliSakura/RS-M-CLIP-ViT-B-32) | 2026-01-20T12:18:30Z |  |  | gitattributes,md | license_unknown,size_unknown |
+| [BiliSakura/Remote-CLIP-ViT-L-14](https://huggingface.co/BiliSakura/Remote-CLIP-ViT-L-14) | 2026-01-20T12:18:27Z |  |  | gitattributes,json,md,pt,safetensors,txt | license_unknown,size_unknown |
+| [BiliSakura/GeoRSCLIP-ViT-L-14](https://huggingface.co/BiliSakura/GeoRSCLIP-ViT-L-14) | 2026-01-20T12:18:20Z |  |  | gitattributes,json,md,pt,safetensors,txt | license_unknown,size_unknown |
+| [BiliSakura/GeoRSCLIP-ViT-H-14](https://huggingface.co/BiliSakura/GeoRSCLIP-ViT-H-14) | 2026-01-20T12:18:18Z |  |  | gitattributes,json,md,pt,safetensors,txt | license_unknown,size_unknown |
+| [BiliSakura/GeoRSCLIP-ViT-B-32](https://huggingface.co/BiliSakura/GeoRSCLIP-ViT-B-32) | 2026-01-20T12:18:02Z |  |  | gitattributes,json,md,pt,safetensors,txt | license_unknown,size_unknown |
+| [BiliSakura/DOFA-CLIP-VIT-L-14](https://huggingface.co/BiliSakura/DOFA-CLIP-VIT-L-14) | 2026-01-20T12:17:04Z |  |  | bin,gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [BiliSakura/RSBuilding-ViT-L](https://huggingface.co/BiliSakura/RSBuilding-ViT-L) | 2026-01-20T12:06:47Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [BiliSakura/RSBuilding-Swin-T](https://huggingface.co/BiliSakura/RSBuilding-Swin-T) | 2026-01-20T12:06:18Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [BiliSakura/RSBuilding-Swin-B](https://huggingface.co/BiliSakura/RSBuilding-Swin-B) | 2026-01-20T12:05:51Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [BiliSakura/RSBuilding-ViT-B](https://huggingface.co/BiliSakura/RSBuilding-ViT-B) | 2026-01-20T12:05:34Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [preetshah4/my-awesome-model](https://huggingface.co/preetshah4/my-awesome-model) | 2026-01-20T11:58:10Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_3_2epo_cot_llm_2](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_3_2epo_cot_llm_2) | 2026-01-20T11:18:44Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_3_2epo_cot_llm_1](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_3_2epo_cot_llm_1) | 2026-01-20T10:52:19Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_1_2epo_cot_table_all](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_1_2epo_cot_table_all) | 2026-01-20T07:12:25Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Bgoood/SpatialGT-MouseStroke-Sham](https://huggingface.co/Bgoood/SpatialGT-MouseStroke-Sham) | 2026-01-20T06:44:42Z |  |  | bin,gitattributes,md,pt,pth,safetensors | license_unknown,size_unknown |
+| [Bgoood/SpatialGT-Pretrained](https://huggingface.co/Bgoood/SpatialGT-Pretrained) | 2026-01-20T06:43:26Z |  |  | bin,gitattributes,json,md,pt,pth,safetensors | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_2_2epo_cot_table_all](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_2_2epo_cot_table_all) | 2026-01-20T06:17:33Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [AnthonyDi/ds_parser_test](https://huggingface.co/AnthonyDi/ds_parser_test) | 2026-01-20T02:16:10Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-tiny-123M-mlm](https://huggingface.co/SaeedLab/MolDeBERTa-tiny-123M-mlm) | 2026-01-20T00:12:35Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-tiny-123M-mlc](https://huggingface.co/SaeedLab/MolDeBERTa-tiny-123M-mlc) | 2026-01-20T00:12:10Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-tiny-123M-mtr](https://huggingface.co/SaeedLab/MolDeBERTa-tiny-123M-mtr) | 2026-01-20T00:11:42Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-tiny-123M-contrastive_mtr](https://huggingface.co/SaeedLab/MolDeBERTa-tiny-123M-contrastive_mtr) | 2026-01-20T00:11:08Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-tiny-123M-contrastive_mlc](https://huggingface.co/SaeedLab/MolDeBERTa-tiny-123M-contrastive_mlc) | 2026-01-20T00:10:38Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-tiny-10M-mlm](https://huggingface.co/SaeedLab/MolDeBERTa-tiny-10M-mlm) | 2026-01-20T00:09:39Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-tiny-10M-mtr](https://huggingface.co/SaeedLab/MolDeBERTa-tiny-10M-mtr) | 2026-01-20T00:09:01Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-tiny-10M-mlc](https://huggingface.co/SaeedLab/MolDeBERTa-tiny-10M-mlc) | 2026-01-20T00:08:33Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-tiny-10M-contrastive_mlc](https://huggingface.co/SaeedLab/MolDeBERTa-tiny-10M-contrastive_mlc) | 2026-01-20T00:08:00Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-tiny-10M-contrastive_mtr](https://huggingface.co/SaeedLab/MolDeBERTa-tiny-10M-contrastive_mtr) | 2026-01-20T00:07:29Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-small-123M-mlm](https://huggingface.co/SaeedLab/MolDeBERTa-small-123M-mlm) | 2026-01-20T00:06:29Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-small-123M-mlc](https://huggingface.co/SaeedLab/MolDeBERTa-small-123M-mlc) | 2026-01-20T00:05:48Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-small-123M-mtr](https://huggingface.co/SaeedLab/MolDeBERTa-small-123M-mtr) | 2026-01-20T00:05:05Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-small-123M-contrastive_mtr](https://huggingface.co/SaeedLab/MolDeBERTa-small-123M-contrastive_mtr) | 2026-01-20T00:04:31Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-small-123M-contrastive_mlc](https://huggingface.co/SaeedLab/MolDeBERTa-small-123M-contrastive_mlc) | 2026-01-20T00:03:55Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-small-10M-mlm](https://huggingface.co/SaeedLab/MolDeBERTa-small-10M-mlm) | 2026-01-20T00:03:03Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-small-10M-mlc](https://huggingface.co/SaeedLab/MolDeBERTa-small-10M-mlc) | 2026-01-20T00:02:30Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-small-10M-mtr](https://huggingface.co/SaeedLab/MolDeBERTa-small-10M-mtr) | 2026-01-20T00:01:57Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-small-10M-contrastive_mtr](https://huggingface.co/SaeedLab/MolDeBERTa-small-10M-contrastive_mtr) | 2026-01-20T00:01:12Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-small-10M-contrastive_mlc](https://huggingface.co/SaeedLab/MolDeBERTa-small-10M-contrastive_mlc) | 2026-01-20T00:00:34Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-base-123M-mlm](https://huggingface.co/SaeedLab/MolDeBERTa-base-123M-mlm) | 2026-01-19T23:58:46Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-base-123M-mlc](https://huggingface.co/SaeedLab/MolDeBERTa-base-123M-mlc) | 2026-01-19T23:58:14Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-base-123M-mtr](https://huggingface.co/SaeedLab/MolDeBERTa-base-123M-mtr) | 2026-01-19T23:57:40Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-base-123M-contrastive_mtr](https://huggingface.co/SaeedLab/MolDeBERTa-base-123M-contrastive_mtr) | 2026-01-19T23:56:18Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-base-123M-contrastive_mlc](https://huggingface.co/SaeedLab/MolDeBERTa-base-123M-contrastive_mlc) | 2026-01-19T23:55:03Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-base-10M-mlm](https://huggingface.co/SaeedLab/MolDeBERTa-base-10M-mlm) | 2026-01-19T23:53:36Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-base-10M-mlc](https://huggingface.co/SaeedLab/MolDeBERTa-base-10M-mlc) | 2026-01-19T23:52:40Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-base-10M-mtr](https://huggingface.co/SaeedLab/MolDeBERTa-base-10M-mtr) | 2026-01-19T23:51:36Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-base-10M-contrastive_mtr](https://huggingface.co/SaeedLab/MolDeBERTa-base-10M-contrastive_mtr) | 2026-01-19T23:49:58Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [SaeedLab/MolDeBERTa-base-10M-contrastive_mlc](https://huggingface.co/SaeedLab/MolDeBERTa-base-10M-contrastive_mlc) | 2026-01-19T23:47:27Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_3_2epo_cot_table_all](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_3_2epo_cot_table_all) | 2026-01-19T22:27:35Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_8bi_cotft_rs0_0_2epo_cot_table_all](https://huggingface.co/Zack-Z/qwen3_8bi_cotft_rs0_0_2epo_cot_table_all) | 2026-01-19T22:10:33Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [lloydchristmasx/Qwen3-VL-Embedding-8B](https://huggingface.co/lloydchristmasx/Qwen3-VL-Embedding-8B) | 2026-01-19T21:05:03Z |  |  | gitattributes,json,md,py,txt | license_unknown,size_unknown |
+| [adityaghai07/qwen_invoices](https://huggingface.co/adityaghai07/qwen_invoices) | 2026-01-19T18:02:15Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [epeers/my-awesome-model](https://huggingface.co/epeers/my-awesome-model) | 2026-01-19T16:33:58Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [nielsr/test](https://huggingface.co/nielsr/test) | 2026-01-19T16:20:58Z |  |  | gitattributes,json,md,model,mov,safetensors,txt | license_unknown,size_unknown |
+| [Yujivus/pillars-compact-wikitext](https://huggingface.co/Yujivus/pillars-compact-wikitext) | 2026-01-19T13:18:42Z |  |  | bin,gitattributes,json,md,py | license_unknown,size_unknown |
+| [Yujivus/prism-v2-wikitext](https://huggingface.co/Yujivus/prism-v2-wikitext) | 2026-01-19T12:47:16Z |  |  | bin,gitattributes,json,md,py | license_unknown,size_unknown |
+| [Yuxuan63/MyAwesomeModel-TestRepo](https://huggingface.co/Yuxuan63/MyAwesomeModel-TestRepo) | 2026-01-19T12:38:40Z |  |  | bin,gitattributes,json,md,png | license_unknown,size_unknown |
+| [Yujivus/hybrid-fnet-prism-custom](https://huggingface.co/Yujivus/hybrid-fnet-prism-custom) | 2026-01-19T12:20:35Z |  |  | bin,gitattributes,json,md,py | license_unknown,size_unknown |
+| [virtual-human-chc/hyformer_molecules_50M](https://huggingface.co/virtual-human-chc/hyformer_molecules_50M) | 2026-01-19T12:06:40Z |  |  | gitattributes,json,md,npz,pt,smiles,txt,yaml | license_unknown,size_unknown |
+| [SaadRa/vllm_unsloth_finetune](https://huggingface.co/SaadRa/vllm_unsloth_finetune) | 2026-01-19T09:55:34Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-pcad2_baseline_pcad2_c3t1-C15-c4_N2_D512-512_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-pcad2_baseline_pcad2_c3t1-C15-c4_N2_D512-512_lr-0.0005) | 2026-01-19T09:16:07Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [sopagnaheang/noseg-spu-30k](https://huggingface.co/sopagnaheang/noseg-spu-30k) | 2026-01-19T08:33:39Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [sopagnaheang/noseg-spu-40k](https://huggingface.co/sopagnaheang/noseg-spu-40k) | 2026-01-19T08:33:08Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [sopagnaheang/noseg-spb-40k](https://huggingface.co/sopagnaheang/noseg-spb-40k) | 2026-01-19T08:32:39Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [sopagnaheang/noseg-spb-30k](https://huggingface.co/sopagnaheang/noseg-spb-30k) | 2026-01-19T08:32:14Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [sopagnaheang/mor-wp-30k](https://huggingface.co/sopagnaheang/mor-wp-30k) | 2026-01-19T08:30:46Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [sopagnaheang/mor-wp-40k](https://huggingface.co/sopagnaheang/mor-wp-40k) | 2026-01-19T08:29:53Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [sopagnaheang/mor-wp-50k](https://huggingface.co/sopagnaheang/mor-wp-50k) | 2026-01-19T08:29:22Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [sopagnaheang/com-wp-50k](https://huggingface.co/sopagnaheang/com-wp-50k) | 2026-01-19T08:28:41Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [sopagnaheang/com-wp-30k](https://huggingface.co/sopagnaheang/com-wp-30k) | 2026-01-19T08:27:55Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [sopagnaheang/com-wp-40k](https://huggingface.co/sopagnaheang/com-wp-40k) | 2026-01-19T08:27:03Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [mm-tool/MyAwesomeModel-TestRepo](https://huggingface.co/mm-tool/MyAwesomeModel-TestRepo) | 2026-01-19T07:50:51Z |  |  | bin,gitattributes,json,md,png | license_unknown,size_unknown |
+| [Qwen/Qwen3-VL-Embedding-2B](https://huggingface.co/Qwen/Qwen3-VL-Embedding-2B) | 2026-01-19T06:00:03Z |  |  | gitattributes,jinja,json,md,py,safetensors,txt | license_unknown,size_unknown |
+| [Qwen/Qwen3-VL-Embedding-8B](https://huggingface.co/Qwen/Qwen3-VL-Embedding-8B) | 2026-01-19T05:59:58Z |  |  | gitattributes,jinja,json,md,py,safetensors,txt | license_unknown,size_unknown |
+| [Chiwei/Qwen3-Embedding-4B-Q4_K_S-GGUF](https://huggingface.co/Chiwei/Qwen3-Embedding-4B-Q4_K_S-GGUF) | 2026-01-19T03:38:31Z |  |  | gguf,gitattributes,md | license_unknown,size_unknown |
+| [jsonMartin/voyage-4-nano-ONNX](https://huggingface.co/jsonMartin/voyage-4-nano-ONNX) | 2026-01-19T03:31:22Z |  |  | gitattributes,jinja,json,md,onnx,py,txt | license_unknown,size_unknown |
+| [Chiwei/Qwen3-Embedding-4B-Q4_K_M-GGUF](https://huggingface.co/Chiwei/Qwen3-Embedding-4B-Q4_K_M-GGUF) | 2026-01-19T03:25:16Z |  |  | gguf,gitattributes,md | license_unknown,size_unknown |
+| [ZhongRen11/VGT-Conv-Logic-Addition](https://huggingface.co/ZhongRen11/VGT-Conv-Logic-Addition) | 2026-01-19T02:22:39Z |  |  | bin,gitattributes,json,md,pth,py | license_unknown,size_unknown |
+| [SSUMedInfo/TeaBERT](https://huggingface.co/SSUMedInfo/TeaBERT) | 2026-01-19T01:26:37Z |  |  | bin,gitattributes,json,model,safetensors | license_unknown,size_unknown |
+| [vulturelabs/vector-rosetta-clip-vit-base-patch32-to-siglip-vit-base-patch16-224](https://huggingface.co/vulturelabs/vector-rosetta-clip-vit-base-patch32-to-siglip-vit-base-patch16-224) | 2026-01-19T01:13:35Z |  |  | gitattributes,json,md,pt,py | license_unknown,size_unknown |
+| [Chiwei/Qwen3-Embedding-8B-Q4_K_M-GGUF](https://huggingface.co/Chiwei/Qwen3-Embedding-8B-Q4_K_M-GGUF) | 2026-01-19T00:54:42Z |  |  | gguf,gitattributes,md | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_table_op_re2](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_table_op_re2) | 2026-01-18T23:44:18Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_table_op_re2](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_table_op_re2) | 2026-01-18T23:44:18Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_table_op_re2](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_table_op_re2) | 2026-01-18T23:42:48Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_table_op_re1](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_table_op_re1) | 2026-01-18T23:40:07Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_table_op_re1](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_table_op_re1) | 2026-01-18T23:39:54Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_table_op_re2](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_table_op_re2) | 2026-01-18T23:24:23Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_table_op_re1](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_table_op_re1) | 2026-01-18T23:14:37Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_table_op_re1](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_table_op_re1) | 2026-01-18T23:12:24Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [lexandstuff/mlx-contentvec](https://huggingface.co/lexandstuff/mlx-contentvec) | 2026-01-18T22:45:47Z |  |  | gitattributes,md,safetensors | license_unknown,size_unknown |
+| [VishwanathAS/LFM2_VL_carla](https://huggingface.co/VishwanathAS/LFM2_VL_carla) | 2026-01-18T14:10:48Z |  |  | gitattributes,jinja,json,md,safetensors | license_unknown,size_unknown |
+| [SaadRa/test_deepseek_hf_model](https://huggingface.co/SaadRa/test_deepseek_hf_model) | 2026-01-18T06:49:53Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [wi-lab/lwm-spectro](https://huggingface.co/wi-lab/lwm-spectro) | 2026-01-18T06:01:16Z |  |  | csv,gitattributes,json,md,pt,pth,py,sh,toml,txt,yml | license_unknown,size_unknown |
+| [TuKoResearch/AuriStreamDistillLarge_100M40PredTeacher_bad](https://huggingface.co/TuKoResearch/AuriStreamDistillLarge_100M40PredTeacher_bad) | 2026-01-18T01:18:11Z |  |  | bin,gitattributes,json,md,py,pyc | license_unknown,size_unknown |
+| [TuKoResearch/AuriStreamDistill_100M40PredTeacher_librispeech960](https://huggingface.co/TuKoResearch/AuriStreamDistill_100M40PredTeacher_librispeech960) | 2026-01-18T01:18:05Z |  |  | bin,gitattributes,json,md,py,pyc | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_stdft_rs0_3_2epo_std](https://huggingface.co/Zack-Z/qwen3_4bi07_stdft_rs0_3_2epo_std) | 2026-01-17T20:58:12Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_stdft_rs0_2_2epo_std](https://huggingface.co/Zack-Z/qwen3_4bi07_stdft_rs0_2_2epo_std) | 2026-01-17T20:58:05Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_stdft_rs0_1_2epo_std](https://huggingface.co/Zack-Z/qwen3_4bi07_stdft_rs0_1_2epo_std) | 2026-01-17T20:58:05Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_stdft_rs0_0_2epo_std](https://huggingface.co/Zack-Z/qwen3_4bi07_stdft_rs0_0_2epo_std) | 2026-01-17T20:48:06Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [hrezaei/flan-t5laa-small](https://huggingface.co/hrezaei/flan-t5laa-small) | 2026-01-17T19:24:47Z |  |  | 0,1,bin,csv,gitattributes,json,md,model,py,safetensors | license_unknown,size_unknown |
+| [hrezaei/flan-t5laa2-small](https://huggingface.co/hrezaei/flan-t5laa2-small) | 2026-01-17T19:17:50Z |  |  | 0,1,bin,csv,gitattributes,json,md,model,py,safetensors | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_2_2epo_cot_table_op](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_2_2epo_cot_table_op) | 2026-01-17T17:23:28Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_3_2epo_cot_table_op](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_3_2epo_cot_table_op) | 2026-01-17T17:21:55Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_0_2epo_cot_table_op](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_0_2epo_cot_table_op) | 2026-01-17T17:17:58Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [aadeshmishra2302/my-first-model](https://huggingface.co/aadeshmishra2302/my-first-model) | 2026-01-17T17:14:42Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_3_2epo_cot_llm_op](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_3_2epo_cot_llm_op) | 2026-01-17T17:07:27Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_0_2epo_cot_llm_op](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_0_2epo_cot_llm_op) | 2026-01-17T16:47:43Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_1_2epo_cot_table_op](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_1_2epo_cot_table_op) | 2026-01-17T16:42:44Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_1_2epo_cot_llm_op](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_1_2epo_cot_llm_op) | 2026-01-17T16:26:50Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_2_2epo_cot_llm_op](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_2_2epo_cot_llm_op) | 2026-01-17T15:30:47Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [jamie0315/PoultryCaduceus](https://huggingface.co/jamie0315/PoultryCaduceus) | 2026-01-17T15:16:37Z |  |  | gitattributes,gitignore,gz,h5,json,lock,md,metadata,pt,py,safetensors | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_1_2epo_cot_llm_all](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_1_2epo_cot_llm_all) | 2026-01-17T14:29:04Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [BigCatc/Qwen2.5-0.5B-OCRIE-DAPO](https://huggingface.co/BigCatc/Qwen2.5-0.5B-OCRIE-DAPO) | 2026-01-17T14:22:57Z |  |  | gitattributes,jinja,json,md,safetensors,txt | license_unknown,size_unknown |
+| [BigCatc/Qwen3-1.7B-OCRIE-DAPO_01171405](https://huggingface.co/BigCatc/Qwen3-1.7B-OCRIE-DAPO_01171405) | 2026-01-17T14:18:36Z |  |  | gitattributes,jinja,json,md,safetensors,txt | license_unknown,size_unknown |
+| [BorisTM/natasha_navec_news_v1_1B_250K_300d_100q](https://huggingface.co/BorisTM/natasha_navec_news_v1_1B_250K_300d_100q) | 2026-01-17T13:58:16Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [BorisTM/natasha_navec_hudlit_v1_12B_500K_300d_100q](https://huggingface.co/BorisTM/natasha_navec_hudlit_v1_12B_500K_300d_100q) | 2026-01-17T13:55:36Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_3_2epo_cot_table_all](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_3_2epo_cot_table_all) | 2026-01-17T12:34:07Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_0_2epo_cot_table_all](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_0_2epo_cot_table_all) | 2026-01-17T12:28:06Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [yjoonjang/splade-ko-v1](https://huggingface.co/yjoonjang/splade-ko-v1) | 2026-01-17T09:45:26Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-sweep_N_hg38_hnet_m3t1-M15-m4_N5_D512-512_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_hnet_m3t1-M15-m4_N5_D512-512_lr-0.0005) | 2026-01-17T07:23:46Z |  |  | bin,gitattributes,gitignore,json,md,parquet,py | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-sweep_N_hg38_hnet_m3t1-M15-m4_N3_D512-512_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_hnet_m3t1-M15-m4_N3_D512-512_lr-0.0005) | 2026-01-17T06:48:10Z |  |  | bin,gitattributes,gitignore,json,md,parquet,py | license_unknown,size_unknown |
+| [BigCatc/Qwen3-0.6B-OCRIE-01171400](https://huggingface.co/BigCatc/Qwen3-0.6B-OCRIE-01171400) | 2026-01-17T06:13:20Z |  |  | gitattributes,jinja,json,md,safetensors,txt | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-baseline_hg38_nomask_flip_prob_0.1_cad_C3T1C19_NNone_D512_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-baseline_hg38_nomask_flip_prob_0.1_cad_C3T1C19_NNone_D512_lr-0.0005) | 2026-01-17T00:36:17Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-sweep_N_hg38_hnet_m3t1-M15-m4_N2_D512-512_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_hnet_m3t1-M15-m4_N2_D512-512_lr-0.0005) | 2026-01-16T23:14:32Z |  |  | bin,gitattributes,gitignore,json,md,parquet,py | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-baseline_hg38_hnet_M3T1M19_NNone_D512_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-baseline_hg38_hnet_M3T1M19_NNone_D512_lr-0.0005) | 2026-01-16T20:37:13Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [mlx-community/wespeaker-voxceleb-resnet34-LM](https://huggingface.co/mlx-community/wespeaker-voxceleb-resnet34-LM) | 2026-01-16T19:14:16Z |  |  | gitattributes,json,md,npz,py | license_unknown,size_unknown |
+| [jrc2139/granite-embedding-english-r2-ONNX](https://huggingface.co/jrc2139/granite-embedding-english-r2-ONNX) | 2026-01-16T18:08:40Z |  |  | gitattributes,json,md,onnx | license_unknown,size_unknown |
+| [jrc2139/granite-embedding-small-english-r2-ONNX](https://huggingface.co/jrc2139/granite-embedding-small-english-r2-ONNX) | 2026-01-16T18:07:44Z |  |  | gitattributes,json,md,onnx | license_unknown,size_unknown |
+| [jrc2139/e5-small-v2-ONNX](https://huggingface.co/jrc2139/e5-small-v2-ONNX) | 2026-01-16T18:06:43Z |  |  | gitattributes,json,md,onnx,txt | license_unknown,size_unknown |
+| [jrc2139/e5-large-v2-ONNX](https://huggingface.co/jrc2139/e5-large-v2-ONNX) | 2026-01-16T18:06:01Z |  |  | gitattributes,json,md,onnx,txt | license_unknown,size_unknown |
+| [Lolalb/MILA_U100](https://huggingface.co/Lolalb/MILA_U100) | 2026-01-16T16:27:19Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_1_2epo_cot_table_all](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_1_2epo_cot_table_all) | 2026-01-16T16:23:09Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Lolalb/MILA_U50](https://huggingface.co/Lolalb/MILA_U50) | 2026-01-16T16:19:58Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_2_2epo_cot_table_all](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_2_2epo_cot_table_all) | 2026-01-16T16:07:14Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-baseline_hg38_cad_C3T1C19_NNone_D512_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-baseline_hg38_cad_C3T1C19_NNone_D512_lr-0.0005) | 2026-01-16T14:18:18Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_2_2epo_cot_table_1](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_2_2epo_cot_table_1) | 2026-01-16T10:33:53Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [thomasht86/voyage-4-nano-ONNX](https://huggingface.co/thomasht86/voyage-4-nano-ONNX) | 2026-01-16T10:29:18Z |  |  | gitattributes,jinja,json,md,onnx,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_1_2epo_cot_table_2](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_1_2epo_cot_table_2) | 2026-01-16T10:02:32Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_1_2epo_cot_table_1](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_1_2epo_cot_table_1) | 2026-01-16T09:45:09Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_2_2epo_cot_llm_all](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_2_2epo_cot_llm_all) | 2026-01-16T09:43:47Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_2_2epo_cot_table_2](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_2_2epo_cot_table_2) | 2026-01-16T09:15:45Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-debug_hg38_hf_cnet_c1t1-M5-c2_N3_D512-512_electionmlp_lr-0.0005](https://huggingface.co/emarro/test-hnet-upload-debug_hg38_hf_cnet_c1t1-M5-c2_N3_D512-512_electionmlp_lr-0.0005) | 2026-01-16T08:39:05Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [hrezaei/flan-t5la-small](https://huggingface.co/hrezaei/flan-t5la-small) | 2026-01-16T08:09:02Z |  |  | 0,1,bin,csv,gitattributes,json,md,model,py,safetensors | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-sweep_N_hg38_cnet_c3t1-C15-c4_N2_D512-512_lr-0_0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_cnet_c3t1-C15-c4_N2_D512-512_lr-0_0005) | 2026-01-16T08:00:30Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-sweep_N_hg38_nomask_flip_prob_0_1_cnet_c3t1-C15-c4_N2_D512-512_lr-0_0005](https://huggingface.co/emarro/test-hnet-upload-sweep_N_hg38_nomask_flip_prob_0_1_cnet_c3t1-C15-c4_N2_D512-512_lr-0_0005) | 2026-01-16T07:59:53Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [emarro/test-hnet-upload-baseline_hg38_cad_C3T1C19_NNone_D512_lr-0_0005](https://huggingface.co/emarro/test-hnet-upload-baseline_hg38_cad_C3T1C19_NNone_D512_lr-0_0005) | 2026-01-16T07:42:19Z |  |  | bin,gitattributes,gitignore,json,md,py | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_0_2epo_cot_llm_all](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_0_2epo_cot_llm_all) | 2026-01-16T07:26:21Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_1_2epo_cot_llm_2](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_1_2epo_cot_llm_2) | 2026-01-16T06:50:43Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_0_2epo_cot_table_1](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_0_2epo_cot_table_1) | 2026-01-16T06:39:22Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_1_2epo_cot_llm_1](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_1_2epo_cot_llm_1) | 2026-01-16T06:23:34Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_3_2epo_cot_table_1](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_3_2epo_cot_table_1) | 2026-01-16T06:18:58Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_2_2epo_cot_llm_2](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_2_2epo_cot_llm_2) | 2026-01-16T05:49:20Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_3_2epo_cot_table_2](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_3_2epo_cot_table_2) | 2026-01-16T05:42:26Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Thunderbolt215215/UniPercept](https://huggingface.co/Thunderbolt215215/UniPercept) | 2026-01-16T05:19:18Z |  |  | gitattributes,jpg,json,md,png,py,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_0_2epo_cot_table_2](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_0_2epo_cot_table_2) | 2026-01-16T05:17:54Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_2_2epo_cot_llm_1](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_2_2epo_cot_llm_1) | 2026-01-16T04:38:33Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_3_2epo_cot_llm_all](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_3_2epo_cot_llm_all) | 2026-01-16T04:06:19Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_0_2epo_cot_llm_2](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_0_2epo_cot_llm_2) | 2026-01-16T03:35:16Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_0_2epo_cot_llm_1](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_0_2epo_cot_llm_1) | 2026-01-16T02:32:25Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_3_2epo_cot_llm_2](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_3_2epo_cot_llm_2) | 2026-01-16T00:55:38Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi07_cotft_rs0_3_2epo_cot_llm_1](https://huggingface.co/Zack-Z/qwen3_4bi07_cotft_rs0_3_2epo_cot_llm_1) | 2026-01-16T00:53:05Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [WinderBYZ/MyAwesomeModel-TestRepo](https://huggingface.co/WinderBYZ/MyAwesomeModel-TestRepo) | 2026-01-15T19:36:21Z |  |  | bin,gitattributes,json,md | license_unknown,size_unknown |
+| [saracandu/stlenc-distilled-v2](https://huggingface.co/saracandu/stlenc-distilled-v2) | 2026-01-15T16:02:54Z |  |  | bin,gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [andrecouto40/gpt2-nm](https://huggingface.co/andrecouto40/gpt2-nm) | 2026-01-15T15:10:28Z |  |  | bin,gitattributes,json,md,txt | license_unknown,size_unknown |
+| [rrivera1849/LUAR-MUD](https://huggingface.co/rrivera1849/LUAR-MUD) | 2026-01-15T14:57:50Z |  |  | bin,gitattributes,json,md,py,safetensors,txt | license_unknown,size_unknown |
+| [arjunsah21/embedder-snli](https://huggingface.co/arjunsah21/embedder-snli) | 2026-01-15T14:18:15Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [jiminmun/gpt2-random-init-v2](https://huggingface.co/jiminmun/gpt2-random-init-v2) | 2026-01-15T05:42:20Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Mbanksbey/TEQUMSA-ATEN-OMNISCIENT-AUTONOMY-144-UNIFIED](https://huggingface.co/Mbanksbey/TEQUMSA-ATEN-OMNISCIENT-AUTONOMY-144-UNIFIED) | 2026-01-15T04:57:58Z |  |  | gitattributes,md | license_unknown,size_unknown |
+| [telepix/PIXIE-Glyph-v1.0](https://huggingface.co/telepix/PIXIE-Glyph-v1.0) | 2026-01-15T03:45:25Z |  |  | gitattributes,json,md,png,py,safetensors | license_unknown,size_unknown |
+| [n24q02m/Qwen3-VL-Embedding-2B](https://huggingface.co/n24q02m/Qwen3-VL-Embedding-2B) | 2026-01-15T02:02:48Z |  |  | gitattributes,jinja,json,md,safetensors,txt | license_unknown,size_unknown |
+| [a-reusche92/example_my-awesome-model](https://huggingface.co/a-reusche92/example_my-awesome-model) | 2026-01-15T01:56:44Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [telepix/PIXIE-Splade-v1.0](https://huggingface.co/telepix/PIXIE-Splade-v1.0) | 2026-01-15T01:50:54Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [enpeizhao/internvl2-1b-odd-distilled-merged](https://huggingface.co/enpeizhao/internvl2-1b-odd-distilled-merged) | 2026-01-15T00:30:25Z |  |  | gitattributes,jinja,json,md,py,safetensors,txt | license_unknown,size_unknown |
+| [Linhduongcute/nllf-pubmed-sub4](https://huggingface.co/Linhduongcute/nllf-pubmed-sub4) | 2026-01-14T22:37:48Z |  |  | gitattributes,json,md,safetensors,torch,txt | license_unknown,size_unknown |
+| [onnx-community/bge-small-zh-v1.5-ONNX](https://huggingface.co/onnx-community/bge-small-zh-v1.5-ONNX) | 2026-01-14T22:08:00Z |  |  | gitattributes,json,md,onnx,onnx_data | license_unknown,size_unknown |
+| [zeussuez/intent-extractor](https://huggingface.co/zeussuez/intent-extractor) | 2026-01-14T16:15:49Z |  |  | bin,gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [Linhduongcute/nllf-sub2-sst2](https://huggingface.co/Linhduongcute/nllf-sub2-sst2) | 2026-01-14T16:05:54Z |  |  | gitattributes,json,md,safetensors,torch,txt | license_unknown,size_unknown |
+| [dd101bb/latentRM](https://huggingface.co/dd101bb/latentRM) | 2026-01-14T12:10:06Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [caovanbao68/Llama-3.2-1B-RLHF-2k-vi-alpaca](https://huggingface.co/caovanbao68/Llama-3.2-1B-RLHF-2k-vi-alpaca) | 2026-01-14T09:24:20Z |  |  | gitattributes,jinja,json,md,safetensors | license_unknown,size_unknown |
+| [AvitoTech/SigLIP2-giant-e5small-v2-gating](https://huggingface.co/AvitoTech/SigLIP2-giant-e5small-v2-gating) | 2026-01-14T08:10:38Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [caovanbao68/Llama-3.2-1B-RM-DPO](https://huggingface.co/caovanbao68/Llama-3.2-1B-RM-DPO) | 2026-01-14T07:45:51Z |  |  | gitattributes,jinja,json,md,safetensors | license_unknown,size_unknown |
+| [luzox/deepseekOCR_vBal](https://huggingface.co/luzox/deepseekOCR_vBal) | 2026-01-14T05:24:46Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [baseten-admin/multilingual-e5-large-instruct-cls](https://huggingface.co/baseten-admin/multilingual-e5-large-instruct-cls) | 2026-01-14T05:19:11Z |  |  | gitattributes,json,md,model,onnx,onnx_data,safetensors | license_unknown,size_unknown |
+| [ssyypp111/ESM2-150M-TokenWise](https://huggingface.co/ssyypp111/ESM2-150M-TokenWise) | 2026-01-14T02:24:00Z |  |  | bin,gitattributes,json,md,py | license_unknown,size_unknown |
+| [enactic/japanese-avhubert-large_noise_pt](https://huggingface.co/enactic/japanese-avhubert-large_noise_pt) | 2026-01-14T01:15:07Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [enactic/japanese-avhubert-large](https://huggingface.co/enactic/japanese-avhubert-large) | 2026-01-14T01:14:22Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [enactic/japanese-avhubert-base_noise_pt](https://huggingface.co/enactic/japanese-avhubert-base_noise_pt) | 2026-01-14T01:13:53Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [enactic/japanese-avhubert-base](https://huggingface.co/enactic/japanese-avhubert-base) | 2026-01-14T01:13:28Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [enactic/japanese-avhubert-base-penultimate](https://huggingface.co/enactic/japanese-avhubert-base-penultimate) | 2026-01-14T01:13:00Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [enactic/japanese-avhubert-base-iter3](https://huggingface.co/enactic/japanese-avhubert-base-iter3) | 2026-01-14T01:12:23Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [enactic/japanese-avhubert-base-iter2](https://huggingface.co/enactic/japanese-avhubert-base-iter2) | 2026-01-14T01:11:52Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [enactic/japanese-avhubert-base-iter1](https://huggingface.co/enactic/japanese-avhubert-base-iter1) | 2026-01-14T01:11:26Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [KamilHugsFaces/modernbert-verification-v1](https://huggingface.co/KamilHugsFaces/modernbert-verification-v1) | 2026-01-13T23:23:29Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [ishikaa/Hindi_qwen3b-qe-neg](https://huggingface.co/ishikaa/Hindi_qwen3b-qe-neg) | 2026-01-13T20:08:07Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [ishikaa/Hindi_qwen3b-qe-pos](https://huggingface.co/ishikaa/Hindi_qwen3b-qe-pos) | 2026-01-13T20:07:45Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [ishikaa/Hindi_qwen3b-qe-cons](https://huggingface.co/ishikaa/Hindi_qwen3b-qe-cons) | 2026-01-13T20:05:19Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [ishikaa/Hindi_qwen3b-da](https://huggingface.co/ishikaa/Hindi_qwen3b-da) | 2026-01-13T20:04:50Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [ishikaa/Hindi_llama8b-qe-neg](https://huggingface.co/ishikaa/Hindi_llama8b-qe-neg) | 2026-01-13T20:03:34Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [ishikaa/Hindi_llama8b-qe-pos](https://huggingface.co/ishikaa/Hindi_llama8b-qe-pos) | 2026-01-13T20:00:14Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [ishikaa/Hindi_llama8b-qe-cons](https://huggingface.co/ishikaa/Hindi_llama8b-qe-cons) | 2026-01-13T19:58:24Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [ishikaa/Hindi_llama8b-da](https://huggingface.co/ishikaa/Hindi_llama8b-da) | 2026-01-13T19:57:42Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [ishikaa/Chinese_qwen3b-qe-neg](https://huggingface.co/ishikaa/Chinese_qwen3b-qe-neg) | 2026-01-13T19:56:41Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [ishikaa/Chinese_qwen3b-qe-pos](https://huggingface.co/ishikaa/Chinese_qwen3b-qe-pos) | 2026-01-13T19:56:27Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [ishikaa/Chinese_qwen3b-qe-cons](https://huggingface.co/ishikaa/Chinese_qwen3b-qe-cons) | 2026-01-13T19:56:19Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [ishikaa/Chinese_qwen3b-da](https://huggingface.co/ishikaa/Chinese_qwen3b-da) | 2026-01-13T19:56:11Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [ishikaa/Chinese_llama8b-qe-neg](https://huggingface.co/ishikaa/Chinese_llama8b-qe-neg) | 2026-01-13T19:56:00Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [ishikaa/Chinese_llama8b-qe-pos](https://huggingface.co/ishikaa/Chinese_llama8b-qe-pos) | 2026-01-13T19:55:51Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [ishikaa/Chinese_llama8b-qe-cons](https://huggingface.co/ishikaa/Chinese_llama8b-qe-cons) | 2026-01-13T19:55:31Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [ishikaa/Chinese_llama8b-da](https://huggingface.co/ishikaa/Chinese_llama8b-da) | 2026-01-13T19:55:01Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [ekwek/Soprano-Encoder](https://huggingface.co/ekwek/Soprano-Encoder) | 2026-01-13T16:50:08Z |  |  | gitattributes,json,md,pth | license_unknown,size_unknown |
+| [gsdas/amiya_llama3.1_dpo](https://huggingface.co/gsdas/amiya_llama3.1_dpo) | 2026-01-13T11:41:57Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [gsdas/amiya_qwen2.5_ft_dpo](https://huggingface.co/gsdas/amiya_qwen2.5_ft_dpo) | 2026-01-13T11:19:13Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Ja-ck/splade-ko-yes24-ft](https://huggingface.co/Ja-ck/splade-ko-yes24-ft) | 2026-01-13T03:23:54Z |  |  | gitattributes,json,md,png,safetensors,txt | license_unknown,size_unknown |
+| [tooljay/MyAwesomeModel-TestRepo](https://huggingface.co/tooljay/MyAwesomeModel-TestRepo) | 2026-01-13T01:47:51Z |  |  | bin,gitattributes,json,md,png | license_unknown,size_unknown |
+| [TuKoResearch/WavCochV8192](https://huggingface.co/TuKoResearch/WavCochV8192) | 2026-01-12T22:10:32Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [reeecemac/taxbot](https://huggingface.co/reeecemac/taxbot) | 2026-01-12T18:03:26Z |  |  | gitattributes,jinja,json,md,safetensors,txt | license_unknown,size_unknown |
+| [openbmb/MiniCPM-Embedding-Light](https://huggingface.co/openbmb/MiniCPM-Embedding-Light) | 2026-01-12T13:59:14Z |  |  | gitattributes,json,md,model,py,safetensors | license_unknown,size_unknown |
+| [Stvnap/DOPAMINE](https://huggingface.co/Stvnap/DOPAMINE) | 2026-01-12T13:54:23Z |  |  | gitattributes,md,pt,txt | license_unknown,size_unknown |
+| [creative-graphic-design/MVANet](https://huggingface.co/creative-graphic-design/MVANet) | 2026-01-12T11:41:21Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [JakeOh/LLaDA-8B-Instruct-fixed](https://huggingface.co/JakeOh/LLaDA-8B-Instruct-fixed) | 2026-01-12T11:21:13Z |  |  | gitattributes,jinja,json,md,py,safetensors | license_unknown,size_unknown |
+| [nvidia/llama-embed-nemotron-8b](https://huggingface.co/nvidia/llama-embed-nemotron-8b) | 2026-01-12T08:30:38Z |  |  | gitattributes,json,md,py,safetensors,txt | license_unknown,size_unknown |
+| [Bombek1/xlm-roberta-base-litert](https://huggingface.co/Bombek1/xlm-roberta-base-litert) | 2026-01-12T05:43:44Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/bert-base-multilingual-cased-litert](https://huggingface.co/Bombek1/bert-base-multilingual-cased-litert) | 2026-01-12T05:43:13Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/MiniLM-L12-H384-uncased-litert](https://huggingface.co/Bombek1/MiniLM-L12-H384-uncased-litert) | 2026-01-12T05:42:38Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/electra-base-discriminator-litert](https://huggingface.co/Bombek1/electra-base-discriminator-litert) | 2026-01-12T05:42:12Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/electra-small-discriminator-litert](https://huggingface.co/Bombek1/electra-small-discriminator-litert) | 2026-01-12T05:41:26Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/albert-base-v2-litert](https://huggingface.co/Bombek1/albert-base-v2-litert) | 2026-01-12T05:41:15Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/all_datasets_v4_MiniLM-L6-litert](https://huggingface.co/Bombek1/all_datasets_v4_MiniLM-L6-litert) | 2026-01-12T05:40:53Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/bge-base-en-v1.5-litert](https://huggingface.co/Bombek1/bge-base-en-v1.5-litert) | 2026-01-12T05:40:48Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/multi-qa-mpnet-base-dot-v1-litert](https://huggingface.co/Bombek1/multi-qa-mpnet-base-dot-v1-litert) | 2026-01-12T05:40:23Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/paraphrase-MiniLM-L6-v2-litert](https://huggingface.co/Bombek1/paraphrase-MiniLM-L6-v2-litert) | 2026-01-12T05:39:31Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/msmarco-MiniLM-L-6-v3-litert](https://huggingface.co/Bombek1/msmarco-MiniLM-L-6-v3-litert) | 2026-01-12T05:39:17Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/multi-qa-MiniLM-L6-cos-v1-litert](https://huggingface.co/Bombek1/multi-qa-MiniLM-L6-cos-v1-litert) | 2026-01-12T05:38:53Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/all-MiniLM-L12-v2-litert](https://huggingface.co/Bombek1/all-MiniLM-L12-v2-litert) | 2026-01-12T05:38:25Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/gte-base-litert](https://huggingface.co/Bombek1/gte-base-litert) | 2026-01-12T05:37:56Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/gte-small-litert](https://huggingface.co/Bombek1/gte-small-litert) | 2026-01-12T05:37:20Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/multilingual-e5-small-litert](https://huggingface.co/Bombek1/multilingual-e5-small-litert) | 2026-01-12T05:36:53Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/e5-base-v2-litert](https://huggingface.co/Bombek1/e5-base-v2-litert) | 2026-01-12T05:36:26Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/e5-small-v2-litert](https://huggingface.co/Bombek1/e5-small-v2-litert) | 2026-01-12T05:35:48Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [MHRDYN7/videoprism-base-f16r288](https://huggingface.co/MHRDYN7/videoprism-base-f16r288) | 2026-01-12T04:54:04Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [Bombek1/roberta-base-litert](https://huggingface.co/Bombek1/roberta-base-litert) | 2026-01-12T04:34:42Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/distilbert-base-uncased-litert](https://huggingface.co/Bombek1/distilbert-base-uncased-litert) | 2026-01-12T04:34:27Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/bert-base-uncased-litert](https://huggingface.co/Bombek1/bert-base-uncased-litert) | 2026-01-12T04:34:15Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/bge-small-en-v1.5-litert](https://huggingface.co/Bombek1/bge-small-en-v1.5-litert) | 2026-01-12T04:33:33Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/paraphrase-multilingual-MiniLM-L12-v2-litert](https://huggingface.co/Bombek1/paraphrase-multilingual-MiniLM-L12-v2-litert) | 2026-01-12T04:33:24Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/all-mpnet-base-v2-litert](https://huggingface.co/Bombek1/all-mpnet-base-v2-litert) | 2026-01-12T04:33:08Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [Bombek1/all-MiniLM-L6-v2-litert](https://huggingface.co/Bombek1/all-MiniLM-L6-v2-litert) | 2026-01-12T04:32:39Z |  |  | gitattributes,md,tflite | license_unknown,size_unknown |
+| [AutomateCapture/ARMS](https://huggingface.co/AutomateCapture/ARMS) | 2026-01-11T22:54:13Z |  |  | bib,gitattributes,gitignore,jpg,md,rs,tex,toml | license_unknown,size_unknown |
+| [AutomateCapture/HAT](https://huggingface.co/AutomateCapture/HAT) | 2026-01-11T22:00:28Z |  |  | gitattributes,gitignore,jpg,md,png,py,rs,sh,toml,txt | license_unknown,size_unknown |
+| [Linhduongcute/nllf-ecom-sub4](https://huggingface.co/Linhduongcute/nllf-ecom-sub4) | 2026-01-11T20:20:07Z |  |  | gitattributes,json,md,safetensors,torch,txt | license_unknown,size_unknown |
+| [Linhduongcute/nllf-ecom-sub3](https://huggingface.co/Linhduongcute/nllf-ecom-sub3) | 2026-01-11T20:18:56Z |  |  | gitattributes,json,md,safetensors,torch,txt | license_unknown,size_unknown |
+| [Linhduongcute/nllf-ecom-sub2](https://huggingface.co/Linhduongcute/nllf-ecom-sub2) | 2026-01-11T20:18:18Z |  |  | gitattributes,json,md,safetensors,torch,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_table_op](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_table_op) | 2026-01-11T20:18:06Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Linhduongcute/nllf-ecom-sub1](https://huggingface.co/Linhduongcute/nllf-ecom-sub1) | 2026-01-11T20:15:46Z |  |  | gitattributes,json,md,safetensors,torch,txt | license_unknown,size_unknown |
+| [Linhduongcute/nllf-ecom-sub0](https://huggingface.co/Linhduongcute/nllf-ecom-sub0) | 2026-01-11T20:14:04Z |  |  | gitattributes,json,md,safetensors,torch,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_table_op](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_table_op) | 2026-01-11T20:12:56Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_table_op](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_table_op) | 2026-01-11T20:06:31Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_llm_op](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_llm_op) | 2026-01-11T20:06:16Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_llm_op](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_llm_op) | 2026-01-11T19:54:49Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_llm_op](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_llm_op) | 2026-01-11T19:40:19Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_table_op](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_table_op) | 2026-01-11T19:38:42Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_llm_op](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_llm_op) | 2026-01-11T19:16:20Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [PITICHA/mask-rcnn-coco](https://huggingface.co/PITICHA/mask-rcnn-coco) | 2026-01-11T15:53:58Z |  |  | bin,gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [mazombieme/There-Are-No-Games](https://huggingface.co/mazombieme/There-Are-No-Games) | 2026-01-11T10:46:45Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Linhduongcute/nllf-sst2-xlnet](https://huggingface.co/Linhduongcute/nllf-sst2-xlnet) | 2026-01-10T21:32:41Z |  |  | gitattributes,json,md,safetensors,torch | license_unknown,size_unknown |
+| [geologist387/FRIDA-transformed](https://huggingface.co/geologist387/FRIDA-transformed) | 2026-01-10T15:56:12Z |  |  | data,gitattributes,gitignore,jpg,json,md,onnx,py,toml,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_table_all](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_table_all) | 2026-01-10T10:50:03Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [CofeAI/FLM-2-52B-Instruct-2407](https://huggingface.co/CofeAI/FLM-2-52B-Instruct-2407) | 2026-01-10T10:42:39Z |  |  | bin,gitattributes,json,md,model,py | license_unknown,size_unknown |
+| [CofeAI/Tele-FLM](https://huggingface.co/CofeAI/Tele-FLM) | 2026-01-10T10:36:30Z |  |  | bin,gitattributes,json,md,model,png,py | license_unknown,size_unknown |
+| [Linhduongcute/nllf-sof-xlnet](https://huggingface.co/Linhduongcute/nllf-sof-xlnet) | 2026-01-10T09:54:16Z |  |  | gitattributes,json,md,safetensors,torch | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_table_all](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_table_all) | 2026-01-10T09:10:38Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [wolfnuker/leaf-embed-beir](https://huggingface.co/wolfnuker/leaf-embed-beir) | 2026-01-10T07:26:53Z |  |  | bin,gitattributes,json,md,pt,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_llm_all](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_llm_all) | 2026-01-10T03:12:12Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_table_all](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_table_all) | 2026-01-10T02:11:36Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_table_all](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_table_all) | 2026-01-10T01:57:50Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_llm_all](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_llm_all) | 2026-01-10T00:59:14Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [gabor-hosu/Qwen3-Embedding-8B-bnb-4bit](https://huggingface.co/gabor-hosu/Qwen3-Embedding-8B-bnb-4bit) | 2026-01-09T22:36:07Z |  |  | gitattributes,jinja,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_llm_all](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_llm_all) | 2026-01-09T20:45:30Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [fkuyumcu/OutfitTransformer-labse](https://huggingface.co/fkuyumcu/OutfitTransformer-labse) | 2026-01-09T19:47:34Z |  |  | bin,gitattributes,json,md,py | license_unknown,size_unknown |
+| [gabor-hosu/e5-mistral-7b-instruct-bnb-4bit](https://huggingface.co/gabor-hosu/e5-mistral-7b-instruct-bnb-4bit) | 2026-01-09T18:50:29Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [Linhduongcute/nllf-sof-sub2](https://huggingface.co/Linhduongcute/nllf-sof-sub2) | 2026-01-09T18:38:14Z |  |  | gitattributes,json,md,safetensors,torch,txt | license_unknown,size_unknown |
+| [Linhduongcute/nllf-sst2](https://huggingface.co/Linhduongcute/nllf-sst2) | 2026-01-09T18:35:22Z |  |  | gitattributes,json,md,safetensors,torch,txt | license_unknown,size_unknown |
+| [bumblebee-testing/tiny-random-NomicBertModel](https://huggingface.co/bumblebee-testing/tiny-random-NomicBertModel) | 2026-01-09T17:53:52Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [bioscan-ml/BarcodeBERT](https://huggingface.co/bioscan-ml/BarcodeBERT) | 2026-01-09T16:30:09Z |  |  | bin,gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_table_1](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_table_1) | 2026-01-09T16:18:51Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Linhduongcute/nllf-sst2-sub0-gpt2](https://huggingface.co/Linhduongcute/nllf-sst2-sub0-gpt2) | 2026-01-09T16:14:06Z |  |  | gitattributes,json,md,safetensors,torch,txt | license_unknown,size_unknown |
+| [Linhduongcute/nllf-sst2-gpt2](https://huggingface.co/Linhduongcute/nllf-sst2-gpt2) | 2026-01-09T15:41:00Z |  |  | gitattributes,json,md,safetensors,torch,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_table_1](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_table_1) | 2026-01-09T15:36:33Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_llm_all](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_llm_all) | 2026-01-09T15:22:37Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_table_2](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_table_2) | 2026-01-09T15:13:34Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [ZibinDong/ActionCodec-bridge-RVQft](https://huggingface.co/ZibinDong/ActionCodec-bridge-RVQft) | 2026-01-09T15:07:50Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [ZibinDong/ActionCodec-bridge](https://huggingface.co/ZibinDong/ActionCodec-bridge) | 2026-01-09T15:07:08Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [Linhduongcute/nllf-sst2-bert](https://huggingface.co/Linhduongcute/nllf-sst2-bert) | 2026-01-09T14:33:14Z |  |  | gitattributes,json,md,safetensors,torch,txt | license_unknown,size_unknown |
+| [rizkysulaeman/DeepSeek-OCR-Healthcare](https://huggingface.co/rizkysulaeman/DeepSeek-OCR-Healthcare) | 2026-01-09T12:25:14Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_table_2](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_table_2) | 2026-01-09T12:05:34Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_table_1](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_table_1) | 2026-01-09T11:58:15Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_table_1](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_table_1) | 2026-01-09T11:29:27Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_table_2](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_table_2) | 2026-01-09T10:15:47Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_llm_2](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_llm_2) | 2026-01-09T07:41:10Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_table_2](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_table_2) | 2026-01-09T07:40:06Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [XiaohaiZhu/desklib-ai-detector](https://huggingface.co/XiaohaiZhu/desklib-ai-detector) | 2026-01-09T07:29:55Z |  |  | gitattributes,json,md,model,py,safetensors | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_llm_1](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_llm_1) | 2026-01-09T07:20:18Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_llm_2](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_llm_2) | 2026-01-09T06:20:52Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_llm_1](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_llm_1) | 2026-01-09T06:07:02Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_llm_2](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_llm_2) | 2026-01-09T05:09:06Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_llm_1](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_llm_1) | 2026-01-09T04:55:31Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_llm_2](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_llm_2) | 2026-01-09T03:31:45Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_llm_1](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_llm_1) | 2026-01-09T03:18:37Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [ZibinDong/ActionCodec-Base](https://huggingface.co/ZibinDong/ActionCodec-Base) | 2026-01-09T03:02:43Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [ZibinDong/ActionCodec-5e-RVQft](https://huggingface.co/ZibinDong/ActionCodec-5e-RVQft) | 2026-01-09T02:59:35Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [ZibinDong/ActionCodec-5e](https://huggingface.co/ZibinDong/ActionCodec-5e) | 2026-01-09T02:56:04Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [sewoong/korean-neural-sparse-encoder](https://huggingface.co/sewoong/korean-neural-sparse-encoder) | 2026-01-09T01:02:22Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [sewoong/korean-neural-sparse-encoder-v21.4](https://huggingface.co/sewoong/korean-neural-sparse-encoder-v21.4) | 2026-01-09T00:57:16Z |  |  | gitattributes,json,md,py,safetensors,txt | license_unknown,size_unknown |
+| [melijauregui/cherrypick-best-sigLip](https://huggingface.co/melijauregui/cherrypick-best-sigLip) | 2026-01-08T22:12:48Z |  |  | gitattributes,json,md,model,safetensors | license_unknown,size_unknown |
+| [crab27/llama3-edge](https://huggingface.co/crab27/llama3-edge) | 2026-01-08T21:07:40Z |  |  | gitattributes,json,md,py,safetensors | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_onlyp_0](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_onlyp_0) | 2026-01-08T21:01:33Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_onlyp_0](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_onlyp_0) | 2026-01-08T21:01:32Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_onlyp_0](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_onlyp_0) | 2026-01-08T21:01:27Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_onlyp_1](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_onlyp_1) | 2026-01-08T20:45:04Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_onlyp_0](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_onlyp_0) | 2026-01-08T20:42:20Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_onlyp_1](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_onlyp_1) | 2026-01-08T20:39:55Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_onlyp_all](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_onlyp_all) | 2026-01-08T20:38:33Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_onlyp_1](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_onlyp_1) | 2026-01-08T20:35:56Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_onlyp_1](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_onlyp_1) | 2026-01-08T20:31:15Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_onlyp_all](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_onlyp_all) | 2026-01-08T20:30:03Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_onlyp_all](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_onlyp_all) | 2026-01-08T20:16:36Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_onlyp_5](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_onlyp_5) | 2026-01-08T20:00:59Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [huntlo1015/my-awesome-model](https://huggingface.co/huntlo1015/my-awesome-model) | 2026-01-08T19:56:34Z |  |  | gitattributes,json,md,safetensors | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_onlyp_5](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_onlyp_5) | 2026-01-08T19:41:40Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_onlyp_5](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_onlyp_5) | 2026-01-08T19:37:44Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_onlyp_all](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_onlyp_all) | 2026-01-08T19:37:41Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_onlyp_2](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_onlyp_2) | 2026-01-08T19:23:27Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_onlyp_5](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_onlyp_5) | 2026-01-08T19:19:38Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_onlyp_2](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_onlyp_2) | 2026-01-08T19:15:00Z |  |  | gitattributes,json,md,safetensors,txt | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_onlyp_2](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_onlyp_2) | 2026-01-08T19:07:50Z |  |  |  | license_unknown,size_unknown |
+| [Lolalb/MILA_BFD_no_ambig](https://huggingface.co/Lolalb/MILA_BFD_no_ambig) | 2026-01-08T19:01:45Z |  |  |  | license_unknown,size_unknown |
+| [Lolalb/MILA_MGnify_no_ambig](https://huggingface.co/Lolalb/MILA_MGnify_no_ambig) | 2026-01-08T19:01:18Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_onlyp_2](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_onlyp_2) | 2026-01-08T18:59:58Z |  |  |  | license_unknown,size_unknown |
+| [Lolalb/MILA_U50_low_steps](https://huggingface.co/Lolalb/MILA_U50_low_steps) | 2026-01-08T18:51:15Z |  |  |  | license_unknown,size_unknown |
+| [Lolalb/MILA_U100_low_steps](https://huggingface.co/Lolalb/MILA_U100_low_steps) | 2026-01-08T18:50:49Z |  |  |  | license_unknown,size_unknown |
+| [Lolalb/MILA_UR100_MGnify_no_ambig](https://huggingface.co/Lolalb/MILA_UR100_MGnify_no_ambig) | 2026-01-08T18:07:57Z |  |  |  | license_unknown,size_unknown |
+| [Lolalb/MILA_UR100_BFD_no_ambig](https://huggingface.co/Lolalb/MILA_UR100_BFD_no_ambig) | 2026-01-08T18:07:41Z |  |  |  | license_unknown,size_unknown |
+| [Lolalb/MILA_UR100_BFD_MGnify_no_ambig](https://huggingface.co/Lolalb/MILA_UR100_BFD_MGnify_no_ambig) | 2026-01-08T18:07:24Z |  |  |  | license_unknown,size_unknown |
+| [Respair/per_phon_new](https://huggingface.co/Respair/per_phon_new) | 2026-01-08T16:52:30Z |  |  |  | license_unknown,size_unknown |
+| [rizkysulaeman/Deepseek-OCR-3B](https://huggingface.co/rizkysulaeman/Deepseek-OCR-3B) | 2026-01-08T14:34:46Z |  |  |  | license_unknown,size_unknown |
+| [bazinga5243/MyBert](https://huggingface.co/bazinga5243/MyBert) | 2026-01-08T14:06:49Z |  |  |  | license_unknown,size_unknown |
+| [azapro179/curev-codebert-retriever-py](https://huggingface.co/azapro179/curev-codebert-retriever-py) | 2026-01-08T07:27:30Z |  |  |  | license_unknown,size_unknown |
+| [zzy1123/Diff_LLaMA_336M_sudoku_sft_v2_640](https://huggingface.co/zzy1123/Diff_LLaMA_336M_sudoku_sft_v2_640) | 2026-01-08T05:58:27Z |  |  |  | license_unknown,size_unknown |
+| [zzy1123/Diff_LLaMA_336M_sudoku_simple_sft_320](https://huggingface.co/zzy1123/Diff_LLaMA_336M_sudoku_simple_sft_320) | 2026-01-08T05:57:02Z |  |  |  | license_unknown,size_unknown |
+| [NCSOFT/GME-VARCO-VISION-Embedding](https://huggingface.co/NCSOFT/GME-VARCO-VISION-Embedding) | 2026-01-08T05:12:53Z |  |  |  | license_unknown,size_unknown |
+| [s-ryoma/baseline-model](https://huggingface.co/s-ryoma/baseline-model) | 2026-01-08T01:32:31Z |  |  |  | license_unknown,size_unknown |
+| [stonesstones/wm-widowxai-imgtok256-m-try2-ABC-chunk-action-B-post1-long](https://huggingface.co/stonesstones/wm-widowxai-imgtok256-m-try2-ABC-chunk-action-B-post1-long) | 2026-01-08T00:47:04Z |  |  |  | license_unknown,size_unknown |
+| [stonesstones/wm-widowxai-imgtok256-s-try2-ABC-chunk-action-B-post1-long](https://huggingface.co/stonesstones/wm-widowxai-imgtok256-s-try2-ABC-chunk-action-B-post1-long) | 2026-01-08T00:46:40Z |  |  |  | license_unknown,size_unknown |
+| [stonesstones/wm-widowxai-imgtok256-m-try2-ABC-chunk-action-B-post1-base](https://huggingface.co/stonesstones/wm-widowxai-imgtok256-m-try2-ABC-chunk-action-B-post1-base) | 2026-01-08T00:46:33Z |  |  |  | license_unknown,size_unknown |
+| [stonesstones/wm-widowxai-imgtok256-s-try2-ABC-chunk-action-B-post1-base](https://huggingface.co/stonesstones/wm-widowxai-imgtok256-s-try2-ABC-chunk-action-B-post1-base) | 2026-01-08T00:44:24Z |  |  |  | license_unknown,size_unknown |
+| [nkwbtb/OmniEmbed-v0.1](https://huggingface.co/nkwbtb/OmniEmbed-v0.1) | 2026-01-07T21:28:42Z |  |  |  | license_unknown,size_unknown |
+| [Almexiir/my-awesome-model](https://huggingface.co/Almexiir/my-awesome-model) | 2026-01-07T20:42:45Z |  |  |  | license_unknown,size_unknown |
+| [anonfactpod/llama-2-health-5-facttune-fs](https://huggingface.co/anonfactpod/llama-2-health-5-facttune-fs) | 2026-01-07T18:04:55Z |  |  |  | license_unknown,size_unknown |
+| [anonfactpod/llama-2-health-5-factpod-e](https://huggingface.co/anonfactpod/llama-2-health-5-factpod-e) | 2026-01-07T17:44:04Z |  |  |  | license_unknown,size_unknown |
+| [anonfactpod/llama-2-health-5-factpod-j](https://huggingface.co/anonfactpod/llama-2-health-5-factpod-j) | 2026-01-07T17:42:37Z |  |  |  | license_unknown,size_unknown |
+| [anonfactpod/llama-2-health-5-facttune-mc](https://huggingface.co/anonfactpod/llama-2-health-5-facttune-mc) | 2026-01-07T17:41:30Z |  |  |  | license_unknown,size_unknown |
+| [anonfactpod/llama-2-health-5-sft](https://huggingface.co/anonfactpod/llama-2-health-5-sft) | 2026-01-07T17:39:54Z |  |  |  | license_unknown,size_unknown |
+| [Bochkov/bvv241-2-3](https://huggingface.co/Bochkov/bvv241-2-3) | 2026-01-07T14:44:54Z |  |  |  | license_unknown,size_unknown |
+| [sapadev13/ocean_likert_tinybert_hybrid](https://huggingface.co/sapadev13/ocean_likert_tinybert_hybrid) | 2026-01-07T11:30:10Z |  |  |  | license_unknown,size_unknown |
+| [ELiRF/Longformer-es-mental-large](https://huggingface.co/ELiRF/Longformer-es-mental-large) | 2026-01-07T11:00:05Z |  |  |  | license_unknown,size_unknown |
+| [SamMikaelson/deepseek-ocr-mbq-w4bit](https://huggingface.co/SamMikaelson/deepseek-ocr-mbq-w4bit) | 2026-01-07T07:00:35Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_onlyp_cot](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_onlyp_cot) | 2026-01-07T06:59:53Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_onlyp_cot](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_onlyp_cot) | 2026-01-07T06:35:30Z |  |  |  | license_unknown,size_unknown |
+| [sthui/SimpleSeg](https://huggingface.co/sthui/SimpleSeg) | 2026-01-07T05:47:21Z |  |  |  | license_unknown,size_unknown |
+| [sapadev13/ocean_likert_tinybert](https://huggingface.co/sapadev13/ocean_likert_tinybert) | 2026-01-07T03:38:53Z |  |  |  | license_unknown,size_unknown |
+| [Nomu1Nomu1/my-awesome-model](https://huggingface.co/Nomu1Nomu1/my-awesome-model) | 2026-01-07T02:40:00Z |  |  |  | license_unknown,size_unknown |
+| [melijauregui/cherrypick-best-sigLip-v2](https://huggingface.co/melijauregui/cherrypick-best-sigLip-v2) | 2026-01-07T01:59:15Z |  |  |  | license_unknown,size_unknown |
+| [Time-HD-Anonymous/STReasoner-8B](https://huggingface.co/Time-HD-Anonymous/STReasoner-8B) | 2026-01-07T01:05:19Z |  |  |  | license_unknown,size_unknown |
+| [Time-HD-Anonymous/STReasoner-8B-CoT](https://huggingface.co/Time-HD-Anonymous/STReasoner-8B-CoT) | 2026-01-07T01:03:10Z |  |  |  | license_unknown,size_unknown |
+| [Time-HD-Anonymous/STReasoner-8B-Align](https://huggingface.co/Time-HD-Anonymous/STReasoner-8B-Align) | 2026-01-07T01:02:18Z |  |  |  | license_unknown,size_unknown |
+| [insightful-stays/airbnb-improvement-generator](https://huggingface.co/insightful-stays/airbnb-improvement-generator) | 2026-01-06T23:32:21Z |  |  |  | license_unknown,size_unknown |
+| [mradermacher/llama-embed-nemotron-8b-GGUF](https://huggingface.co/mradermacher/llama-embed-nemotron-8b-GGUF) | 2026-01-06T22:31:33Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_onlyp_cot2](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_onlyp_cot2) | 2026-01-06T20:52:48Z |  |  |  | license_unknown,size_unknown |
+| [twkeed-sa/twkeed-rag](https://huggingface.co/twkeed-sa/twkeed-rag) | 2026-01-06T20:37:58Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_onlyp_cot](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_onlyp_cot) | 2026-01-06T20:14:34Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_onlyp_cot](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_onlyp_cot) | 2026-01-06T20:12:06Z |  |  |  | license_unknown,size_unknown |
+| [guyyanai/CLSS](https://huggingface.co/guyyanai/CLSS) | 2026-01-06T19:09:28Z |  |  |  | license_unknown,size_unknown |
+| [Tarka-AIR/Tarka-Embedding-30M-V1](https://huggingface.co/Tarka-AIR/Tarka-Embedding-30M-V1) | 2026-01-06T18:56:28Z |  |  |  | license_unknown,size_unknown |
+| [IAMJB/RadEvalModernBERT](https://huggingface.co/IAMJB/RadEvalModernBERT) | 2026-01-06T18:24:48Z |  |  |  | license_unknown,size_unknown |
+| [ibm-granite/granite-embedding-english-r2](https://huggingface.co/ibm-granite/granite-embedding-english-r2) | 2026-01-06T17:45:03Z |  |  |  | license_unknown,size_unknown |
+| [sapadev13/sapa_ocean_likert_semantic](https://huggingface.co/sapadev13/sapa_ocean_likert_semantic) | 2026-01-06T16:19:22Z |  |  |  | license_unknown,size_unknown |
+| [s-ryoma/baseline-model-mid](https://huggingface.co/s-ryoma/baseline-model-mid) | 2026-01-06T08:37:06Z |  |  |  | license_unknown,size_unknown |
+| [introvoyz041/ankh3-large-Q4_0-GGUF](https://huggingface.co/introvoyz041/ankh3-large-Q4_0-GGUF) | 2026-01-06T08:02:39Z |  |  |  | license_unknown,size_unknown |
+| [s-ryoma/final-model](https://huggingface.co/s-ryoma/final-model) | 2026-01-06T08:00:37Z |  |  |  | license_unknown,size_unknown |
+| [introvoyz041/ankh3-xl-Q4_0-GGUF](https://huggingface.co/introvoyz041/ankh3-xl-Q4_0-GGUF) | 2026-01-06T07:44:30Z |  |  |  | license_unknown,size_unknown |
+| [phucthaiv02/akkadian-byt5](https://huggingface.co/phucthaiv02/akkadian-byt5) | 2026-01-06T07:39:48Z |  |  |  | license_unknown,size_unknown |
+| [stonesstones/wm-widowxai-imgtok256-s-try2-ABC-chunk-action-dream-fullscratch](https://huggingface.co/stonesstones/wm-widowxai-imgtok256-s-try2-ABC-chunk-action-dream-fullscratch) | 2026-01-06T07:30:33Z |  |  |  | license_unknown,size_unknown |
+| [stonesstones/wm-widowxai-imgtok256-s-try2-ABC-chunk-action-dream-ft](https://huggingface.co/stonesstones/wm-widowxai-imgtok256-s-try2-ABC-chunk-action-dream-ft) | 2026-01-06T07:28:41Z |  |  |  | license_unknown,size_unknown |
+| [phucthaiv02/akkadian-nllb](https://huggingface.co/phucthaiv02/akkadian-nllb) | 2026-01-06T07:20:19Z |  |  |  | license_unknown,size_unknown |
+| [stonesstones/wm-widowxai-imgtok256-m-try2-ABC-chunk-action-step-40x100k-70x100k](https://huggingface.co/stonesstones/wm-widowxai-imgtok256-m-try2-ABC-chunk-action-step-40x100k-70x100k) | 2026-01-06T06:07:43Z |  |  |  | license_unknown,size_unknown |
+| [jackkuo/Orthoformer](https://huggingface.co/jackkuo/Orthoformer) | 2026-01-06T02:16:17Z |  |  |  | license_unknown,size_unknown |
+| [mogam-ai/Ab-RoBERTa](https://huggingface.co/mogam-ai/Ab-RoBERTa) | 2026-01-06T01:38:57Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_onlyp_cot2](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_onlyp_cot2) | 2026-01-05T22:38:02Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_onlyp_cot2](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_onlyp_cot2) | 2026-01-05T22:30:52Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_onlyp_cot2](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_onlyp_cot2) | 2026-01-05T21:09:22Z |  |  |  | license_unknown,size_unknown |
+| [aryan2302/Aethel-Embed-53M](https://huggingface.co/aryan2302/Aethel-Embed-53M) | 2026-01-05T17:34:56Z |  |  |  | license_unknown,size_unknown |
+| [InstaDeepAI/segment_nt](https://huggingface.co/InstaDeepAI/segment_nt) | 2026-01-05T10:56:15Z |  |  |  | license_unknown,size_unknown |
+| [wangwk699/my-awesome-model](https://huggingface.co/wangwk699/my-awesome-model) | 2026-01-05T08:10:38Z |  |  |  | license_unknown,size_unknown |
+| [sapadev13/sapa_model_indoV4](https://huggingface.co/sapadev13/sapa_model_indoV4) | 2026-01-05T06:44:25Z |  |  |  | license_unknown,size_unknown |
+| [kushalc1/sarashina-embedding-v2-1b-Q4_K_M-GGUF](https://huggingface.co/kushalc1/sarashina-embedding-v2-1b-Q4_K_M-GGUF) | 2026-01-05T04:13:53Z |  |  |  | license_unknown,size_unknown |
+| [Remeinium/UgannA_SiyabasaV2](https://huggingface.co/Remeinium/UgannA_SiyabasaV2) | 2026-01-04T21:28:24Z |  |  |  | license_unknown,size_unknown |
+| [henry1477/Qwen3-Embedding-4B-gguf](https://huggingface.co/henry1477/Qwen3-Embedding-4B-gguf) | 2026-01-04T20:28:09Z |  |  |  | license_unknown,size_unknown |
+| [Khubaib01/ECAPA-TDNN-VHE](https://huggingface.co/Khubaib01/ECAPA-TDNN-VHE) | 2026-01-04T17:47:00Z |  |  |  | license_unknown,size_unknown |
+| [n24q02m/Qwen3-Embedding-0.6B](https://huggingface.co/n24q02m/Qwen3-Embedding-0.6B) | 2026-01-04T10:59:49Z |  |  |  | license_unknown,size_unknown |
+| [n24q02m/bge-m3](https://huggingface.co/n24q02m/bge-m3) | 2026-01-04T10:56:21Z |  |  |  | license_unknown,size_unknown |
+| [n24q02m/jina-embeddings-v3](https://huggingface.co/n24q02m/jina-embeddings-v3) | 2026-01-04T10:52:52Z |  |  |  | license_unknown,size_unknown |
+| [raul3820/opensearch-neural-sparse-encoding-doc-v3-distill-onnx](https://huggingface.co/raul3820/opensearch-neural-sparse-encoding-doc-v3-distill-onnx) | 2026-01-04T10:04:03Z |  |  |  | license_unknown,size_unknown |
+| [kim586w/kims-awesome-model](https://huggingface.co/kim586w/kims-awesome-model) | 2026-01-04T08:32:53Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-sof-sub1](https://huggingface.co/Linhduongcute/nllf-sof-sub1) | 2026-01-04T08:03:57Z |  |  |  | license_unknown,size_unknown |
+| [Ivest/Ivest](https://huggingface.co/Ivest/Ivest) | 2026-01-04T05:52:31Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-medical-abstract-sub4](https://huggingface.co/Linhduongcute/nllf-medical-abstract-sub4) | 2026-01-04T04:23:49Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-medical-abstract-sub3](https://huggingface.co/Linhduongcute/nllf-medical-abstract-sub3) | 2026-01-04T04:22:49Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-medical-abstract-sub2](https://huggingface.co/Linhduongcute/nllf-medical-abstract-sub2) | 2026-01-04T04:19:45Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-medical-abstract-sub1](https://huggingface.co/Linhduongcute/nllf-medical-abstract-sub1) | 2026-01-04T04:18:11Z |  |  |  | license_unknown,size_unknown |
+| [raul3820/granite-30m-sparse-onnx](https://huggingface.co/raul3820/granite-30m-sparse-onnx) | 2026-01-03T22:41:24Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_onlyp_new](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_onlyp_new) | 2026-01-03T22:35:31Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_onlyp_new](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_onlyp_new) | 2026-01-03T22:32:10Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_onlyp_new](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_onlyp_new) | 2026-01-03T22:31:48Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_onlyp_new](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_onlyp_new) | 2026-01-03T22:06:06Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-uci-sub2](https://huggingface.co/Linhduongcute/nllf-uci-sub2) | 2026-01-03T21:31:44Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-uci-sub1](https://huggingface.co/Linhduongcute/nllf-uci-sub1) | 2026-01-03T21:30:47Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-sof-sub3](https://huggingface.co/Linhduongcute/nllf-sof-sub3) | 2026-01-03T20:25:45Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-medical-abstract](https://huggingface.co/Linhduongcute/nllf-medical-abstract) | 2026-01-03T08:51:26Z |  |  |  | license_unknown,size_unknown |
+| [subarnoM/query-expansion-and-topic-tagging](https://huggingface.co/subarnoM/query-expansion-and-topic-tagging) | 2026-01-02T20:09:33Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_all2_indep](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_all2_indep) | 2026-01-02T19:47:53Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_all2_indep](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_all2_indep) | 2026-01-02T19:14:28Z |  |  |  | license_unknown,size_unknown |
+| [Qdrant/colmodernvbert](https://huggingface.co/Qdrant/colmodernvbert) | 2026-01-02T15:28:22Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_all_indep](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_all_indep) | 2026-01-02T15:24:48Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_all2_indep](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_all2_indep) | 2026-01-02T14:19:04Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_all2_indep](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_all2_indep) | 2026-01-02T14:01:59Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_all_indep](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_all_indep) | 2026-01-02T12:48:43Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_all_indep](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_all_indep) | 2026-01-02T10:35:24Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_all_indep](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_all_indep) | 2026-01-02T07:15:33Z |  |  |  | license_unknown,size_unknown |
+| [mood157/dialect_translator](https://huggingface.co/mood157/dialect_translator) | 2026-01-02T03:53:11Z |  |  |  | license_unknown,size_unknown |
+| [sewoong/korean-neural-sparse-encoder-v1](https://huggingface.co/sewoong/korean-neural-sparse-encoder-v1) | 2026-01-02T03:52:28Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_onlyp](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_3_2epo_cot_onlyp) | 2026-01-01T22:25:24Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_onlyp](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_1_2epo_cot_onlyp) | 2026-01-01T22:25:07Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_onlyp](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_2_2epo_cot_onlyp) | 2026-01-01T22:24:05Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_onlyp](https://huggingface.co/Zack-Z/qwen3_4bi05_cotft_rs0_0_2epo_cot_onlyp) | 2026-01-01T21:52:45Z |  |  |  | license_unknown,size_unknown |
+| [Habiba29/tiny-random-minicpmo](https://huggingface.co/Habiba29/tiny-random-minicpmo) | 2026-01-01T20:47:14Z |  |  |  | license_unknown,size_unknown |
+| [JanadaSroor/vision-models](https://huggingface.co/JanadaSroor/vision-models) | 2026-01-01T20:03:40Z |  |  |  | license_unknown,size_unknown |
+| [Xavarary/all-MiniLM-L6-v2_sensim_medium_test](https://huggingface.co/Xavarary/all-MiniLM-L6-v2_sensim_medium_test) | 2026-01-01T19:34:49Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_stdft_rs0_1_2epo_std_816](https://huggingface.co/Zack-Z/qwen3_4bi05_stdft_rs0_1_2epo_std_816) | 2026-01-01T16:45:25Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_stdft_rs0_2_2epo_std_816](https://huggingface.co/Zack-Z/qwen3_4bi05_stdft_rs0_2_2epo_std_816) | 2026-01-01T16:45:19Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_stdft_rs0_3_2epo_std_816](https://huggingface.co/Zack-Z/qwen3_4bi05_stdft_rs0_3_2epo_std_816) | 2026-01-01T16:45:13Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_stdft_rs0_1_2epo_std_1616](https://huggingface.co/Zack-Z/qwen3_4bi05_stdft_rs0_1_2epo_std_1616) | 2026-01-01T16:02:28Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_stdft_rs0_2_2epo_std_1632](https://huggingface.co/Zack-Z/qwen3_4bi05_stdft_rs0_2_2epo_std_1632) | 2026-01-01T15:58:33Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_stdft_rs0_3_2epo_std_1632](https://huggingface.co/Zack-Z/qwen3_4bi05_stdft_rs0_3_2epo_std_1632) | 2026-01-01T15:58:33Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_stdft_rs0_0_2epo_std_1632](https://huggingface.co/Zack-Z/qwen3_4bi05_stdft_rs0_0_2epo_std_1632) | 2026-01-01T15:58:32Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_stdft_rs0_1_2epo_std_1632](https://huggingface.co/Zack-Z/qwen3_4bi05_stdft_rs0_1_2epo_std_1632) | 2026-01-01T15:57:25Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_stdft_rs0_0_2epo_std_1616](https://huggingface.co/Zack-Z/qwen3_4bi05_stdft_rs0_0_2epo_std_1616) | 2026-01-01T15:43:35Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_stdft_rs0_2_2epo_std_1616](https://huggingface.co/Zack-Z/qwen3_4bi05_stdft_rs0_2_2epo_std_1616) | 2026-01-01T15:43:35Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi05_stdft_rs0_3_2epo_std_1616](https://huggingface.co/Zack-Z/qwen3_4bi05_stdft_rs0_3_2epo_std_1616) | 2026-01-01T15:43:34Z |  |  |  | license_unknown,size_unknown |
+| [lingyun1/MyAwesomeModel-TestRepo](https://huggingface.co/lingyun1/MyAwesomeModel-TestRepo) | 2026-01-01T04:29:19Z |  |  |  | license_unknown,size_unknown |
+| [fixie-ai/ultraVAD](https://huggingface.co/fixie-ai/ultraVAD) | 2026-01-01T00:40:03Z |  |  |  | license_unknown,size_unknown |
+| [KentStone/Holographic_Neural_Mesh](https://huggingface.co/KentStone/Holographic_Neural_Mesh) | 2025-12-31T23:03:53Z |  |  |  | license_unknown,size_unknown |
+| [cstr/awesome-align-onnx-int8](https://huggingface.co/cstr/awesome-align-onnx-int8) | 2025-12-31T19:55:04Z |  |  |  | license_unknown,size_unknown |
+| [cstr/awesome-align-onnx](https://huggingface.co/cstr/awesome-align-onnx) | 2025-12-31T19:52:34Z |  |  |  | license_unknown,size_unknown |
+| [bumblebee-testing/tiny-random-Gemma3TextModel](https://huggingface.co/bumblebee-testing/tiny-random-Gemma3TextModel) | 2025-12-31T19:35:09Z |  |  |  | license_unknown,size_unknown |
+| [tool-bench-x/MyAwesomeModel-TestRepo](https://huggingface.co/tool-bench-x/MyAwesomeModel-TestRepo) | 2025-12-31T17:48:41Z |  |  |  | license_unknown,size_unknown |
+| [Mardiyyah/biomedbert_model_extended_untrained](https://huggingface.co/Mardiyyah/biomedbert_model_extended_untrained) | 2025-12-31T13:43:33Z |  |  |  | license_unknown,size_unknown |
+| [zhangyong1980/my-test-awesome-model](https://huggingface.co/zhangyong1980/my-test-awesome-model) | 2025-12-31T07:45:55Z |  |  |  | license_unknown,size_unknown |
+| [smokingwomby/my-awesome-model](https://huggingface.co/smokingwomby/my-awesome-model) | 2025-12-31T06:57:30Z |  |  |  | license_unknown,size_unknown |
+| [Daemontatox/Tiny-OR1-Rust-bnb-4bit](https://huggingface.co/Daemontatox/Tiny-OR1-Rust-bnb-4bit) | 2025-12-31T06:27:17Z |  |  |  | license_unknown,size_unknown |
+| [monsterbeast/Perum](https://huggingface.co/monsterbeast/Perum) | 2025-12-30T17:37:59Z |  |  |  | license_unknown,size_unknown |
+| [mahirlabibdihan/WebShepherd_3B](https://huggingface.co/mahirlabibdihan/WebShepherd_3B) | 2025-12-30T16:46:06Z |  |  |  | license_unknown,size_unknown |
+| [wikilangs/de](https://huggingface.co/wikilangs/de) | 2025-12-30T08:20:27Z |  |  |  | license_unknown,size_unknown |
+| [lukeingawesome/llm2vec4cxr](https://huggingface.co/lukeingawesome/llm2vec4cxr) | 2025-12-30T06:20:11Z |  |  |  | license_unknown,size_unknown |
+| [MindscapeRAG/MiA-Emb-8B](https://huggingface.co/MindscapeRAG/MiA-Emb-8B) | 2025-12-30T03:08:58Z |  |  |  | license_unknown,size_unknown |
+| [MindscapeRAG/MiA-Emb-0.6B](https://huggingface.co/MindscapeRAG/MiA-Emb-0.6B) | 2025-12-30T03:08:41Z |  |  |  | license_unknown,size_unknown |
+| [MindscapeRAG/MiA-Emb-4B](https://huggingface.co/MindscapeRAG/MiA-Emb-4B) | 2025-12-30T03:08:19Z |  |  |  | license_unknown,size_unknown |
+| [wp-airik/Qwen3-Embedding-0.6B-Q8_0-GGUF](https://huggingface.co/wp-airik/Qwen3-Embedding-0.6B-Q8_0-GGUF) | 2025-12-30T01:53:25Z |  |  |  | license_unknown,size_unknown |
+| [yreaction/El_primerito](https://huggingface.co/yreaction/El_primerito) | 2025-12-29T21:23:13Z |  |  |  | license_unknown,size_unknown |
+| [Gwriiuuu/Qwen3-Embedding-0.6B-Q8_0-GGUF](https://huggingface.co/Gwriiuuu/Qwen3-Embedding-0.6B-Q8_0-GGUF) | 2025-12-29T12:35:10Z |  |  |  | license_unknown,size_unknown |
+| [stonesstones/video_tok_widowxai_m_res256_pn256_2stage_3try](https://huggingface.co/stonesstones/video_tok_widowxai_m_res256_pn256_2stage_3try) | 2025-12-29T11:28:25Z |  |  |  | license_unknown,size_unknown |
+| [vng08/DeepSeek-OCR-line-final](https://huggingface.co/vng08/DeepSeek-OCR-line-final) | 2025-12-29T06:06:11Z |  |  |  | license_unknown,size_unknown |
+| [pszemraj/flan-ul2-text-encoder](https://huggingface.co/pszemraj/flan-ul2-text-encoder) | 2025-12-29T03:45:54Z |  |  |  | license_unknown,size_unknown |
+| [vng08/DeepSeek-OCR-word-final](https://huggingface.co/vng08/DeepSeek-OCR-word-final) | 2025-12-29T01:56:00Z |  |  |  | license_unknown,size_unknown |
+| [JuyeopDang/KoMiniLLaDA-0.3B-Base](https://huggingface.co/JuyeopDang/KoMiniLLaDA-0.3B-Base) | 2025-12-29T01:20:40Z |  |  |  | license_unknown,size_unknown |
+| [EphAsad/EphBactAID](https://huggingface.co/EphAsad/EphBactAID) | 2025-12-28T22:27:59Z |  |  |  | license_unknown,size_unknown |
+| [Amirmahdiii/ISRM](https://huggingface.co/Amirmahdiii/ISRM) | 2025-12-28T21:33:02Z |  |  |  | license_unknown,size_unknown |
+| [mradermacher/granite-embedding-small-english-r2-GGUF](https://huggingface.co/mradermacher/granite-embedding-small-english-r2-GGUF) | 2025-12-28T18:32:39Z |  |  |  | license_unknown,size_unknown |
+| [nguyenlethienlyy/unsloth_finetune](https://huggingface.co/nguyenlethienlyy/unsloth_finetune) | 2025-12-28T07:13:54Z |  |  |  | license_unknown,size_unknown |
+| [mazesmazes/tiny-audio-transformer](https://huggingface.co/mazesmazes/tiny-audio-transformer) | 2025-12-28T04:00:02Z |  |  |  | license_unknown,size_unknown |
+| [mazesmazes/tiny-audio-mosa-stage2](https://huggingface.co/mazesmazes/tiny-audio-mosa-stage2) | 2025-12-27T15:25:25Z |  |  |  | license_unknown,size_unknown |
+| [sapadev13/sapa_model_english](https://huggingface.co/sapadev13/sapa_model_english) | 2025-12-27T14:38:32Z |  |  |  | license_unknown,size_unknown |
+| [mazesmazes/tiny-audio-mlp-stage2](https://huggingface.co/mazesmazes/tiny-audio-mlp-stage2) | 2025-12-27T14:34:06Z |  |  |  | license_unknown,size_unknown |
+| [sapadev13/SAPA_model_indoV3](https://huggingface.co/sapadev13/SAPA_model_indoV3) | 2025-12-27T13:36:48Z |  |  |  | license_unknown,size_unknown |
+| [fox244243904/edina](https://huggingface.co/fox244243904/edina) | 2025-12-27T11:36:59Z |  |  |  | license_unknown,size_unknown |
+| [xmanii/deepseek_ocr_persian_finetune](https://huggingface.co/xmanii/deepseek_ocr_persian_finetune) | 2025-12-27T10:45:20Z |  |  |  | license_unknown,size_unknown |
+| [Mathangowri05/distilbert-base-uncased-copy](https://huggingface.co/Mathangowri05/distilbert-base-uncased-copy) | 2025-12-27T08:44:32Z |  |  |  | license_unknown,size_unknown |
+| [mazesmazes/tiny-audio-mosa](https://huggingface.co/mazesmazes/tiny-audio-mosa) | 2025-12-27T03:47:17Z |  |  |  | license_unknown,size_unknown |
+| [TSG/all-minilm-l12-v2-civic](https://huggingface.co/TSG/all-minilm-l12-v2-civic) | 2025-12-26T18:47:09Z |  |  |  | license_unknown,size_unknown |
+| [TSG/all-minilm-l6-v2-civic](https://huggingface.co/TSG/all-minilm-l6-v2-civic) | 2025-12-26T18:46:50Z |  |  |  | license_unknown,size_unknown |
+| [aadog602/my-awesome-model](https://huggingface.co/aadog602/my-awesome-model) | 2025-12-26T18:34:00Z |  |  |  | license_unknown,size_unknown |
+| [imbee510/unsloth_finetune](https://huggingface.co/imbee510/unsloth_finetune) | 2025-12-26T17:19:14Z |  |  |  | license_unknown,size_unknown |
+| [thierrydamiba/splade-ecommerce-multidomain](https://huggingface.co/thierrydamiba/splade-ecommerce-multidomain) | 2025-12-26T16:43:01Z |  |  |  | license_unknown,size_unknown |
+| [thierrydamiba/splade-ecommerce-esci](https://huggingface.co/thierrydamiba/splade-ecommerce-esci) | 2025-12-26T16:42:33Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_1_2epo_std_1616_nothink](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_1_2epo_std_1616_nothink) | 2025-12-26T15:44:27Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_2_2epo_std_1616_nothink](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_2_2epo_std_1616_nothink) | 2025-12-26T15:35:41Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_3_2epo_std_1616_nothink](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_3_2epo_std_1616_nothink) | 2025-12-26T15:30:22Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_0_2epo_std_1616_nothink](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_0_2epo_std_1616_nothink) | 2025-12-26T15:16:41Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_3_2epo_std_1616_think](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_3_2epo_std_1616_think) | 2025-12-26T15:13:45Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_1_2epo_std_1616_think](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_1_2epo_std_1616_think) | 2025-12-26T14:58:39Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_2_2epo_std_1616_think](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_2_2epo_std_1616_think) | 2025-12-26T14:52:37Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_0_2epo_std_1616_think](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_0_2epo_std_1616_think) | 2025-12-26T14:25:37Z |  |  |  | license_unknown,size_unknown |
+| [YoungLin1337/my-awesome-model](https://huggingface.co/YoungLin1337/my-awesome-model) | 2025-12-26T10:34:14Z |  |  |  | license_unknown,size_unknown |
+| [TuKoResearch/AuriStream100M_80Pred_BigAudioDataset_500k](https://huggingface.co/TuKoResearch/AuriStream100M_80Pred_BigAudioDataset_500k) | 2025-12-26T02:01:42Z |  |  |  | license_unknown,size_unknown |
+| [TuKoResearch/AuriStream100M_60Pred_BigAudioDataset_500k](https://huggingface.co/TuKoResearch/AuriStream100M_60Pred_BigAudioDataset_500k) | 2025-12-26T01:59:35Z |  |  |  | license_unknown,size_unknown |
+| [mradermacher/CT-XLMR-SE-GGUF](https://huggingface.co/mradermacher/CT-XLMR-SE-GGUF) | 2025-12-26T00:55:10Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_1_2epo_std_816](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_1_2epo_std_816) | 2025-12-25T21:34:58Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_3_2epo_std_816](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_3_2epo_std_816) | 2025-12-25T21:30:23Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_2_2epo_std_816](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_2_2epo_std_816) | 2025-12-25T21:30:15Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_0_2epo_std_816](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_0_2epo_std_816) | 2025-12-25T21:23:05Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_2_2epo_std_1616](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_2_2epo_std_1616) | 2025-12-25T21:02:26Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_3_2epo_std_1616](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_3_2epo_std_1616) | 2025-12-25T21:02:20Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_1_2epo_std_1616](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_1_2epo_std_1616) | 2025-12-25T20:56:01Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_3_2epo_std_1632](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_3_2epo_std_1632) | 2025-12-25T20:44:48Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_1_2epo_std_1632](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_1_2epo_std_1632) | 2025-12-25T20:44:46Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_0_2epo_std_1632](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_0_2epo_std_1632) | 2025-12-25T20:44:40Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_2_2epo_std_1632](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_2_2epo_std_1632) | 2025-12-25T20:43:03Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_0_2epo_std_1616](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_0_2epo_std_1616) | 2025-12-25T20:37:34Z |  |  |  | license_unknown,size_unknown |
+| [mazesmazes/tiny-audio-qformer](https://huggingface.co/mazesmazes/tiny-audio-qformer) | 2025-12-25T06:41:21Z |  |  |  | license_unknown,size_unknown |
+| [mazesmazes/tiny-audio-moe](https://huggingface.co/mazesmazes/tiny-audio-moe) | 2025-12-24T23:10:51Z |  |  |  | license_unknown,size_unknown |
+| [saracandu/stlenc](https://huggingface.co/saracandu/stlenc) | 2025-12-24T21:29:19Z |  |  |  | license_unknown,size_unknown |
+| [nvidia/llama-nemotron-embed-vl-1b-v2](https://huggingface.co/nvidia/llama-nemotron-embed-vl-1b-v2) | 2025-12-24T19:44:28Z |  |  |  | license_unknown,size_unknown |
+| [michel-ducartier/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224](https://huggingface.co/michel-ducartier/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224) | 2025-12-24T17:36:05Z |  |  |  | license_unknown,size_unknown |
+| [prde-hf/my-awesome-model](https://huggingface.co/prde-hf/my-awesome-model) | 2025-12-24T12:59:19Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_3_2epo_onlyp_1_1616](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_3_2epo_onlyp_1_1616) | 2025-12-24T09:07:21Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_1_2epo_onlyp_1_1616](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_1_2epo_onlyp_1_1616) | 2025-12-24T09:05:56Z |  |  |  | license_unknown,size_unknown |
+| [nguyenvuhuy/my-awesome-model](https://huggingface.co/nguyenvuhuy/my-awesome-model) | 2025-12-24T09:02:33Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_2_2epo_onlyp_1_1616](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_2_2epo_onlyp_1_1616) | 2025-12-24T08:55:20Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_1_2epo_onlyp_1_816](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_1_2epo_onlyp_1_816) | 2025-12-24T08:50:03Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_3_2epo_onlyp_1_816](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_3_2epo_onlyp_1_816) | 2025-12-24T08:50:00Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_2_2epo_onlyp_1_816](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_2_2epo_onlyp_1_816) | 2025-12-24T08:48:58Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_0_2epo_onlyp_1_1616](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_0_2epo_onlyp_1_1616) | 2025-12-24T08:27:13Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_0_2epo_onlyp_1_816](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_0_2epo_onlyp_1_816) | 2025-12-24T07:48:16Z |  |  |  | license_unknown,size_unknown |
+| [majiabo/GPFM](https://huggingface.co/majiabo/GPFM) | 2025-12-24T05:24:12Z |  |  |  | license_unknown,size_unknown |
+| [siddharth-magesh/clip-flickr30k](https://huggingface.co/siddharth-magesh/clip-flickr30k) | 2025-12-24T01:36:29Z |  |  |  | license_unknown,size_unknown |
+| [SaeedLab/SpeCollate](https://huggingface.co/SaeedLab/SpeCollate) | 2025-12-23T22:47:31Z |  |  |  | license_unknown,size_unknown |
+| [SaeedLab/ProteoRift](https://huggingface.co/SaeedLab/ProteoRift) | 2025-12-23T22:47:24Z |  |  |  | license_unknown,size_unknown |
+| [assasin24/my-awesome-model](https://huggingface.co/assasin24/my-awesome-model) | 2025-12-23T19:13:11Z |  |  |  | license_unknown,size_unknown |
+| [Pieces/embeddinggemma-300m-distilled-width10pct-128dim-best](https://huggingface.co/Pieces/embeddinggemma-300m-distilled-width10pct-128dim-best) | 2025-12-23T16:44:54Z |  |  |  | license_unknown,size_unknown |
+| [mazesmazes/tiny-audio-moe-shared](https://huggingface.co/mazesmazes/tiny-audio-moe-shared) | 2025-12-23T14:16:28Z |  |  |  | license_unknown,size_unknown |
+| [MCP-Tester/MyAwesomeModel-TestRepo](https://huggingface.co/MCP-Tester/MyAwesomeModel-TestRepo) | 2025-12-23T12:17:46Z |  |  |  | license_unknown,size_unknown |
+| [stonesstones/wm-widowxai-imgtok256-s-try2-ABC-chunk-action-gripper](https://huggingface.co/stonesstones/wm-widowxai-imgtok256-s-try2-ABC-chunk-action-gripper) | 2025-12-23T10:24:38Z |  |  |  | license_unknown,size_unknown |
+| [sigalr/Qwen3-Embedding-8B-ONNX-ST](https://huggingface.co/sigalr/Qwen3-Embedding-8B-ONNX-ST) | 2025-12-23T08:24:28Z |  |  |  | license_unknown,size_unknown |
+| [sigalr/Qwen3-Embedding-4B-ONNX-ST](https://huggingface.co/sigalr/Qwen3-Embedding-4B-ONNX-ST) | 2025-12-23T07:58:43Z |  |  |  | license_unknown,size_unknown |
+| [mradermacher/OASIS-code-1.3B-i1-GGUF](https://huggingface.co/mradermacher/OASIS-code-1.3B-i1-GGUF) | 2025-12-23T04:51:09Z |  |  |  | license_unknown,size_unknown |
+| [harpreetsahota/sam3_ris_lad](https://huggingface.co/harpreetsahota/sam3_ris_lad) | 2025-12-23T03:56:23Z |  |  |  | license_unknown,size_unknown |
+| [Pieces/embeddinggemma-300m-distilled-width10pct-768dim-best](https://huggingface.co/Pieces/embeddinggemma-300m-distilled-width10pct-768dim-best) | 2025-12-22T17:47:15Z |  |  |  | license_unknown,size_unknown |
+| [Pieces/embeddinggemma-300m-distilled-depth10pct-10-768dim-best](https://huggingface.co/Pieces/embeddinggemma-300m-distilled-depth10pct-10-768dim-best) | 2025-12-22T17:47:13Z |  |  |  | license_unknown,size_unknown |
+| [luliuzee/metermind-ernie-merged](https://huggingface.co/luliuzee/metermind-ernie-merged) | 2025-12-22T15:52:44Z |  |  |  | license_unknown,size_unknown |
+| [mideind/IceBERT-PoS](https://huggingface.co/mideind/IceBERT-PoS) | 2025-12-22T15:38:15Z |  |  |  | license_unknown,size_unknown |
+| [turkish-nlp-suite/bert-2K-minimal-cola](https://huggingface.co/turkish-nlp-suite/bert-2K-minimal-cola) | 2025-12-22T15:18:44Z |  |  |  | license_unknown,size_unknown |
+| [BiliSakura/DGTRS-CLIP-ViT-B-16](https://huggingface.co/BiliSakura/DGTRS-CLIP-ViT-B-16) | 2025-12-22T14:17:29Z |  |  |  | license_unknown,size_unknown |
+| [BiliSakura/DGTRS-CLIP-ViT-L-14](https://huggingface.co/BiliSakura/DGTRS-CLIP-ViT-L-14) | 2025-12-22T14:17:06Z |  |  |  | license_unknown,size_unknown |
+| [DAMI-Lab/DEED-Llama-3.2-1B-teacher-4_of_4](https://huggingface.co/DAMI-Lab/DEED-Llama-3.2-1B-teacher-4_of_4) | 2025-12-22T13:21:20Z |  |  |  | license_unknown,size_unknown |
+| [DAMI-Lab/DEED-Llama-3.2-1B-teacher-3_of_4](https://huggingface.co/DAMI-Lab/DEED-Llama-3.2-1B-teacher-3_of_4) | 2025-12-22T13:19:42Z |  |  |  | license_unknown,size_unknown |
+| [DAMI-Lab/DEED-Llama-3.2-1B-teacher-2_of_4](https://huggingface.co/DAMI-Lab/DEED-Llama-3.2-1B-teacher-2_of_4) | 2025-12-22T13:17:09Z |  |  |  | license_unknown,size_unknown |
+| [DAMI-Lab/DEED-Llama-3.2-1B-teacher-1_of_4](https://huggingface.co/DAMI-Lab/DEED-Llama-3.2-1B-teacher-1_of_4) | 2025-12-22T13:14:26Z |  |  |  | license_unknown,size_unknown |
+| [DAMI-Lab/DEED-Qwen3-1.7B-teacher-4_of_4](https://huggingface.co/DAMI-Lab/DEED-Qwen3-1.7B-teacher-4_of_4) | 2025-12-22T13:07:05Z |  |  |  | license_unknown,size_unknown |
+| [DAMI-Lab/DEED-Qwen3-1.7B-teacher-3_of_4](https://huggingface.co/DAMI-Lab/DEED-Qwen3-1.7B-teacher-3_of_4) | 2025-12-22T13:01:04Z |  |  |  | license_unknown,size_unknown |
+| [DAMI-Lab/DEED-Qwen3-1.7B-teacher-2_of_4](https://huggingface.co/DAMI-Lab/DEED-Qwen3-1.7B-teacher-2_of_4) | 2025-12-22T12:58:32Z |  |  |  | license_unknown,size_unknown |
+| [DAMI-Lab/DEED-Qwen3-1.7B-teacher-1_of_4](https://huggingface.co/DAMI-Lab/DEED-Qwen3-1.7B-teacher-1_of_4) | 2025-12-22T12:56:36Z |  |  |  | license_unknown,size_unknown |
+| [wnkh/deepseek_ocr_unsloth_finetune_latin_mix](https://huggingface.co/wnkh/deepseek_ocr_unsloth_finetune_latin_mix) | 2025-12-21T19:19:15Z |  |  |  | license_unknown,size_unknown |
+| [museltabares/my-awesome-model](https://huggingface.co/museltabares/my-awesome-model) | 2025-12-21T16:19:18Z |  |  |  | license_unknown,size_unknown |
+| [mradermacher/text2vec-bge-large-chinese-i1-GGUF](https://huggingface.co/mradermacher/text2vec-bge-large-chinese-i1-GGUF) | 2025-12-21T15:02:21Z |  |  |  | license_unknown,size_unknown |
+| [Closen/my-bert-model](https://huggingface.co/Closen/my-bert-model) | 2025-12-21T14:01:38Z |  |  |  | license_unknown,size_unknown |
+| [codefuse-ai/F2LLM-4B](https://huggingface.co/codefuse-ai/F2LLM-4B) | 2025-12-21T06:05:29Z |  |  |  | license_unknown,size_unknown |
+| [codefuse-ai/F2LLM-1.7B](https://huggingface.co/codefuse-ai/F2LLM-1.7B) | 2025-12-21T06:05:01Z |  |  |  | license_unknown,size_unknown |
+| [codefuse-ai/F2LLM-0.6B](https://huggingface.co/codefuse-ai/F2LLM-0.6B) | 2025-12-21T05:59:13Z |  |  |  | license_unknown,size_unknown |
+| [nguyenminh4099/alexnet](https://huggingface.co/nguyenminh4099/alexnet) | 2025-12-21T03:35:30Z |  |  |  | license_unknown,size_unknown |
+| [amirrezamaghfouri/my-awesome-model](https://huggingface.co/amirrezamaghfouri/my-awesome-model) | 2025-12-20T22:36:06Z |  |  |  | license_unknown,size_unknown |
+| [ianpan/mri-brain-sequence-bert](https://huggingface.co/ianpan/mri-brain-sequence-bert) | 2025-12-20T18:27:47Z |  |  |  | license_unknown,size_unknown |
+| [nguyenminh4099/custom-resnet-forimageclassification](https://huggingface.co/nguyenminh4099/custom-resnet-forimageclassification) | 2025-12-20T17:52:29Z |  |  |  | license_unknown,size_unknown |
+| [cnmoro/LexicalEmbed-Base](https://huggingface.co/cnmoro/LexicalEmbed-Base) | 2025-12-20T17:16:46Z |  |  |  | license_unknown,size_unknown |
+| [Yuto2007/tx-model-standalone](https://huggingface.co/Yuto2007/tx-model-standalone) | 2025-12-20T12:08:44Z |  |  |  | license_unknown,size_unknown |
+| [jjzzc/bert-base-multilingual-uncased-b02-modified-ONNX](https://huggingface.co/jjzzc/bert-base-multilingual-uncased-b02-modified-ONNX) | 2025-12-20T04:18:11Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_2_3epo_cot2all_indep](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_2_3epo_cot2all_indep) | 2025-12-20T03:08:56Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_1_3epo_cot2all_indep](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_1_3epo_cot2all_indep) | 2025-12-20T02:49:19Z |  |  |  | license_unknown,size_unknown |
+| [fanstudioapps/multilingual-e5-small-coreml-embedder-256-512](https://huggingface.co/fanstudioapps/multilingual-e5-small-coreml-embedder-256-512) | 2025-12-20T02:46:30Z |  |  |  | license_unknown,size_unknown |
+| [OUGeebar/bert-base-multilingual-uncased-b08](https://huggingface.co/OUGeebar/bert-base-multilingual-uncased-b08) | 2025-12-20T02:26:36Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_0_3epo_gem3all_indep](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_0_3epo_gem3all_indep) | 2025-12-20T01:55:57Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_1_3epo_gem3all_indep](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_1_3epo_gem3all_indep) | 2025-12-19T23:58:55Z |  |  |  | license_unknown,size_unknown |
+| [rajlab/condensatenet](https://huggingface.co/rajlab/condensatenet) | 2025-12-19T22:54:03Z |  |  |  | license_unknown,size_unknown |
+| [mazesmazes/tiny-router](https://huggingface.co/mazesmazes/tiny-router) | 2025-12-19T22:14:16Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_3_3epo_gem3all_indep](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_3_3epo_gem3all_indep) | 2025-12-19T21:03:45Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_2_3epo_gem3all_indep](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_2_3epo_gem3all_indep) | 2025-12-19T19:51:36Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_3_3epo_cot2all_indep](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_3_3epo_cot2all_indep) | 2025-12-19T19:36:09Z |  |  |  | license_unknown,size_unknown |
+| [trl-internal-testing/tiny-BartModel](https://huggingface.co/trl-internal-testing/tiny-BartModel) | 2025-12-19T19:12:23Z |  |  |  | license_unknown,size_unknown |
+| [toolhack59if/deepseek-ocr-vietnamese-final](https://huggingface.co/toolhack59if/deepseek-ocr-vietnamese-final) | 2025-12-19T18:59:33Z |  |  |  | license_unknown,size_unknown |
+| [Zack-Z/qwen3_4bi_cotsft_rs0_0_3epo_cot2all_indep](https://huggingface.co/Zack-Z/qwen3_4bi_cotsft_rs0_0_3epo_cot2all_indep) | 2025-12-19T18:48:27Z |  |  |  | license_unknown,size_unknown |
+| [dleemiller/SwipeALot-base](https://huggingface.co/dleemiller/SwipeALot-base) | 2025-12-19T17:03:12Z |  |  |  | license_unknown,size_unknown |
+| [Elvis-t9/CGE-test](https://huggingface.co/Elvis-t9/CGE-test) | 2025-12-19T07:46:44Z |  |  |  | license_unknown,size_unknown |
+| [DrifterCheese/off_principal_rank128](https://huggingface.co/DrifterCheese/off_principal_rank128) | 2025-12-19T05:36:30Z |  |  |  | license_unknown,size_unknown |
+| [harika13/test-model](https://huggingface.co/harika13/test-model) | 2025-12-19T04:34:10Z |  |  |  | license_unknown,size_unknown |
+| [iioos/devops-embedding](https://huggingface.co/iioos/devops-embedding) | 2025-12-19T01:57:12Z |  |  |  | license_unknown,size_unknown |
+| [Jinghao-Guo/llavaov1.5-sft](https://huggingface.co/Jinghao-Guo/llavaov1.5-sft) | 2025-12-18T10:49:07Z |  |  |  | license_unknown,size_unknown |
+| [OscarShenJiaXing/my-awesome-model](https://huggingface.co/OscarShenJiaXing/my-awesome-model) | 2025-12-18T08:37:44Z |  |  |  | license_unknown,size_unknown |
+| [culturalheritagenus/unsloth_finetune](https://huggingface.co/culturalheritagenus/unsloth_finetune) | 2025-12-18T02:46:05Z |  |  |  | license_unknown,size_unknown |
+| [mradermacher/KaLM-embedding-multilingual-mini-v1-i1-GGUF](https://huggingface.co/mradermacher/KaLM-embedding-multilingual-mini-v1-i1-GGUF) | 2025-12-18T02:00:23Z |  |  |  | license_unknown,size_unknown |
+| [stonesstones/video_tok_widowxai_m_res256_pn256_2stage_2try](https://huggingface.co/stonesstones/video_tok_widowxai_m_res256_pn256_2stage_2try) | 2025-12-18T00:09:45Z |  |  |  | license_unknown,size_unknown |
+| [bheshaj/deberta-v3-base-pairwise-sequence-classifier](https://huggingface.co/bheshaj/deberta-v3-base-pairwise-sequence-classifier) | 2025-12-17T22:23:17Z |  |  |  | license_unknown,size_unknown |
+| [Tarka-AIR/Tarka-Embedding-10M-V1-Preview](https://huggingface.co/Tarka-AIR/Tarka-Embedding-10M-V1-Preview) | 2025-12-17T20:52:52Z |  |  |  | license_unknown,size_unknown |
+| [taranis-ai/gliner_de_en_news](https://huggingface.co/taranis-ai/gliner_de_en_news) | 2025-12-17T14:31:33Z |  |  |  | license_unknown,size_unknown |
+| [pabloarozarenad/Vir2vec](https://huggingface.co/pabloarozarenad/Vir2vec) | 2025-12-17T10:34:10Z |  |  |  | license_unknown,size_unknown |
+| [line-corporation/clip-japanese-base-v2](https://huggingface.co/line-corporation/clip-japanese-base-v2) | 2025-12-17T07:42:14Z |  |  |  | license_unknown,size_unknown |
+| [vida-nyu/magneto-schema-retriever-gdc](https://huggingface.co/vida-nyu/magneto-schema-retriever-gdc) | 2025-12-17T06:29:50Z |  |  |  | license_unknown,size_unknown |
+| [permutans/Tarka-Embedding-150M-V1-ONNX-Q](https://huggingface.co/permutans/Tarka-Embedding-150M-V1-ONNX-Q) | 2025-12-17T02:23:18Z |  |  |  | license_unknown,size_unknown |
+| [iioos/web3-usecase-embedding-model](https://huggingface.co/iioos/web3-usecase-embedding-model) | 2025-12-17T02:19:07Z |  |  |  | license_unknown,size_unknown |
+| [permutans/Tarka-Embedding-150M-V1-ONNX](https://huggingface.co/permutans/Tarka-Embedding-150M-V1-ONNX) | 2025-12-17T01:01:08Z |  |  |  | license_unknown,size_unknown |
+| [Xenova/UAE-Large-V1](https://huggingface.co/Xenova/UAE-Large-V1) | 2025-12-16T18:44:09Z |  |  |  | license_unknown,size_unknown |
+| [olateju/PolarPairs-v1.3.6.3](https://huggingface.co/olateju/PolarPairs-v1.3.6.3) | 2025-12-16T10:50:06Z |  |  |  | license_unknown,size_unknown |
+| [olateju/PolarPairs-v1.3.6.6](https://huggingface.co/olateju/PolarPairs-v1.3.6.6) | 2025-12-16T10:30:23Z |  |  |  | license_unknown,size_unknown |
+| [Japan-AI-Consulting/AKT-caption-v0.1-lfm2-350m-gguf](https://huggingface.co/Japan-AI-Consulting/AKT-caption-v0.1-lfm2-350m-gguf) | 2025-12-16T07:32:55Z |  |  |  | license_unknown,size_unknown |
+| [iioos/crypto-embedding-model-v2](https://huggingface.co/iioos/crypto-embedding-model-v2) | 2025-12-16T00:42:22Z |  |  |  | license_unknown,size_unknown |
+| [arcee-ai/AFM-4.5B-Base-KDA-NoPE](https://huggingface.co/arcee-ai/AFM-4.5B-Base-KDA-NoPE) | 2025-12-15T23:21:45Z |  |  |  | license_unknown,size_unknown |
+| [arcee-ai/AFM-4.5B-Base-KDA-Only](https://huggingface.co/arcee-ai/AFM-4.5B-Base-KDA-Only) | 2025-12-15T23:20:33Z |  |  |  | license_unknown,size_unknown |
+| [markzeits/fll-deepseek-ocr-cuneiform](https://huggingface.co/markzeits/fll-deepseek-ocr-cuneiform) | 2025-12-15T18:32:09Z |  |  |  | license_unknown,size_unknown |
+| [Klimxo/bert_copy_model](https://huggingface.co/Klimxo/bert_copy_model) | 2025-12-15T15:50:34Z |  |  |  | license_unknown,size_unknown |
+| [mjaliz/siglip-text-encoder](https://huggingface.co/mjaliz/siglip-text-encoder) | 2025-12-15T12:21:28Z |  |  |  | license_unknown,size_unknown |
+| [yky-h/japanese-hubert-large](https://huggingface.co/yky-h/japanese-hubert-large) | 2025-12-15T02:52:35Z |  |  |  | license_unknown,size_unknown |
+| [yky-h/japanese-data2vec-audio-base](https://huggingface.co/yky-h/japanese-data2vec-audio-base) | 2025-12-15T02:47:30Z |  |  |  | license_unknown,size_unknown |
+| [yky-h/japanese-wav2vec2-base](https://huggingface.co/yky-h/japanese-wav2vec2-base) | 2025-12-15T02:45:00Z |  |  |  | license_unknown,size_unknown |
+| [yky-h/japanese-hubert-base](https://huggingface.co/yky-h/japanese-hubert-base) | 2025-12-15T02:43:39Z |  |  |  | license_unknown,size_unknown |
+| [iioos/crypto-embedding-model](https://huggingface.co/iioos/crypto-embedding-model) | 2025-12-15T02:39:38Z |  |  |  | license_unknown,size_unknown |
+| [Hancovirus/Deepseek-OCR-Myanmar-augmented](https://huggingface.co/Hancovirus/Deepseek-OCR-Myanmar-augmented) | 2025-12-15T01:43:27Z |  |  |  | license_unknown,size_unknown |
+| [kirdarkagan/asap-aes-roberta-finetuned](https://huggingface.co/kirdarkagan/asap-aes-roberta-finetuned) | 2025-12-14T20:49:52Z |  |  |  | license_unknown,size_unknown |
+| [JuyeopDang/KoMiniLLaDA-0.3B-QA](https://huggingface.co/JuyeopDang/KoMiniLLaDA-0.3B-QA) | 2025-12-14T19:38:06Z |  |  |  | license_unknown,size_unknown |
+| [Myuxiisoya/lemesi](https://huggingface.co/Myuxiisoya/lemesi) | 2025-12-14T13:48:42Z |  |  |  | license_unknown,size_unknown |
+| [IlyesAb/my-awsome-model](https://huggingface.co/IlyesAb/my-awsome-model) | 2025-12-14T13:31:04Z |  |  |  | license_unknown,size_unknown |
+| [stonesstones/wm-widowxai-imgtok256-s-try2-ABC-chunk-action-step-40x100k-100x100k](https://huggingface.co/stonesstones/wm-widowxai-imgtok256-s-try2-ABC-chunk-action-step-40x100k-100x100k) | 2025-12-14T11:12:53Z |  |  |  | license_unknown,size_unknown |
+| [ahmed191/DummyModel](https://huggingface.co/ahmed191/DummyModel) | 2025-12-14T09:15:19Z |  |  |  | license_unknown,size_unknown |
+| [lvjiameng/FAMA-Astro](https://huggingface.co/lvjiameng/FAMA-Astro) | 2025-12-14T07:59:54Z |  |  |  | license_unknown,size_unknown |
+| [nijaru/jina-code-int8](https://huggingface.co/nijaru/jina-code-int8) | 2025-12-13T14:23:25Z |  |  |  | license_unknown,size_unknown |
+| [stonesstones/wm-widowxai-imgtok256-s-try2-ABC-chunk-action](https://huggingface.co/stonesstones/wm-widowxai-imgtok256-s-try2-ABC-chunk-action) | 2025-12-13T07:27:18Z |  |  |  | license_unknown,size_unknown |
+| [guilhermelmello/qwen-pt-unigram-10k-sample](https://huggingface.co/guilhermelmello/qwen-pt-unigram-10k-sample) | 2025-12-12T23:00:06Z |  |  |  | license_unknown,size_unknown |
+| [DatologyAI/luxical-one](https://huggingface.co/DatologyAI/luxical-one) | 2025-12-12T21:08:05Z |  |  |  | license_unknown,size_unknown |
+| [terry-keith-iitm/test-model1](https://huggingface.co/terry-keith-iitm/test-model1) | 2025-12-12T20:16:04Z |  |  |  | license_unknown,size_unknown |
+| [zerostratos/unsloth_finetune_deepseek-ocr-1000](https://huggingface.co/zerostratos/unsloth_finetune_deepseek-ocr-1000) | 2025-12-12T16:33:13Z |  |  |  | license_unknown,size_unknown |
+| [ManiKumarAdapala/Qwen3-Embedding-0.6B-Q8_0-Safetensors](https://huggingface.co/ManiKumarAdapala/Qwen3-Embedding-0.6B-Q8_0-Safetensors) | 2025-12-12T13:43:29Z |  |  |  | license_unknown,size_unknown |
+| [isbondarev/Phi-3-small-8k-instruct-adv](https://huggingface.co/isbondarev/Phi-3-small-8k-instruct-adv) | 2025-12-12T12:20:43Z |  |  |  | license_unknown,size_unknown |
+| [isbondarev/TeleChat2-7B-32K-adv](https://huggingface.co/isbondarev/TeleChat2-7B-32K-adv) | 2025-12-12T09:02:19Z |  |  |  | license_unknown,size_unknown |
+| [isbondarev/Baichuan2-7B-Chat-adv](https://huggingface.co/isbondarev/Baichuan2-7B-Chat-adv) | 2025-12-12T08:44:51Z |  |  |  | license_unknown,size_unknown |
+| [weirek/Affine-new-3](https://huggingface.co/weirek/Affine-new-3) | 2025-12-12T05:09:06Z |  |  |  | license_unknown,size_unknown |
+| [stonesstones/video_tok_widowxai_m_res256_pn1024_2stage_2try](https://huggingface.co/stonesstones/video_tok_widowxai_m_res256_pn1024_2stage_2try) | 2025-12-12T04:57:53Z |  |  |  | license_unknown,size_unknown |
+| [pelagos-ai/granite-embedding-107m-multilingual-ONNX](https://huggingface.co/pelagos-ai/granite-embedding-107m-multilingual-ONNX) | 2025-12-11T22:31:40Z |  |  |  | license_unknown,size_unknown |
+| [reche97/my-awesome-model](https://huggingface.co/reche97/my-awesome-model) | 2025-12-11T18:59:29Z |  |  |  | license_unknown,size_unknown |
+| [OmarAbdelhedi/bert_test](https://huggingface.co/OmarAbdelhedi/bert_test) | 2025-12-11T10:57:54Z |  |  |  | license_unknown,size_unknown |
+| [Yooghrn/Cincau2](https://huggingface.co/Yooghrn/Cincau2) | 2025-12-11T09:31:51Z |  |  |  | license_unknown,size_unknown |
+| [Schrieffer/Llama-SARM-4B-PostSAEPretrain](https://huggingface.co/Schrieffer/Llama-SARM-4B-PostSAEPretrain) | 2025-12-11T09:00:13Z |  |  |  | license_unknown,size_unknown |
+| [LLLeo612/MyAwesomeModel-TestRepo](https://huggingface.co/LLLeo612/MyAwesomeModel-TestRepo) | 2025-12-11T08:55:23Z |  |  |  | license_unknown,size_unknown |
+| [FreakingPotato/NucEL](https://huggingface.co/FreakingPotato/NucEL) | 2025-12-11T05:05:02Z |  |  |  | license_unknown,size_unknown |
+| [Hancovirus/Deepseek-OCR-Myanmar](https://huggingface.co/Hancovirus/Deepseek-OCR-Myanmar) | 2025-12-11T01:01:02Z |  |  |  | license_unknown,size_unknown |
+| [Myuxiisoya/yola](https://huggingface.co/Myuxiisoya/yola) | 2025-12-10T20:04:04Z |  |  |  | license_unknown,size_unknown |
+| [nntoan209/Affine_zaraclAsolraC](https://huggingface.co/nntoan209/Affine_zaraclAsolraC) | 2025-12-10T15:07:24Z |  |  |  | license_unknown,size_unknown |
+| [akazk/my-awesome-model](https://huggingface.co/akazk/my-awesome-model) | 2025-12-10T14:22:25Z |  |  |  | license_unknown,size_unknown |
+| [wpp02/mlp](https://huggingface.co/wpp02/mlp) | 2025-12-10T13:34:09Z |  |  |  | license_unknown,size_unknown |
+| [zakir0101/ftv6-ocr_b16](https://huggingface.co/zakir0101/ftv6-ocr_b16) | 2025-12-10T12:13:49Z |  |  |  | license_unknown,size_unknown |
+| [zerostratos/unsloth_finetune_deepseek-ocr-500](https://huggingface.co/zerostratos/unsloth_finetune_deepseek-ocr-500) | 2025-12-10T10:15:23Z |  |  |  | license_unknown,size_unknown |
+| [zhou-xl/grpo_qwen2.5_32b_base](https://huggingface.co/zhou-xl/grpo_qwen2.5_32b_base) | 2025-12-10T10:14:37Z |  |  |  | license_unknown,size_unknown |
+| [zhou-xl/erpo_qwen2.5_32b_base](https://huggingface.co/zhou-xl/erpo_qwen2.5_32b_base) | 2025-12-10T09:45:13Z |  |  |  | license_unknown,size_unknown |
+| [zhou-xl/grpo_qwen2.5_7b_math_base](https://huggingface.co/zhou-xl/grpo_qwen2.5_7b_math_base) | 2025-12-10T08:45:26Z |  |  |  | license_unknown,size_unknown |
+| [mradermacher/jina-embeddings-v4-vllm-retrieval-i1-GGUF](https://huggingface.co/mradermacher/jina-embeddings-v4-vllm-retrieval-i1-GGUF) | 2025-12-10T08:01:22Z |  |  |  | license_unknown,size_unknown |
+| [zhou-xl/erpo_qwen2.5_7b_math_base](https://huggingface.co/zhou-xl/erpo_qwen2.5_7b_math_base) | 2025-12-10T07:20:25Z |  |  |  | license_unknown,size_unknown |
+| [Whisler/camembert_finetuned_progressive](https://huggingface.co/Whisler/camembert_finetuned_progressive) | 2025-12-10T05:26:02Z |  |  |  | license_unknown,size_unknown |
+| [hantaoyu/test_model](https://huggingface.co/hantaoyu/test_model) | 2025-12-10T04:21:55Z |  |  |  | license_unknown,size_unknown |
+| [TuKoResearch/AuriStream7BDeep_40Pred_BigAudioDataset_500k](https://huggingface.co/TuKoResearch/AuriStream7BDeep_40Pred_BigAudioDataset_500k) | 2025-12-10T00:00:22Z |  |  |  | license_unknown,size_unknown |
+| [virtual-human-chc/prot_t5_xl_uniref50](https://huggingface.co/virtual-human-chc/prot_t5_xl_uniref50) | 2025-12-09T21:21:24Z |  |  |  | license_unknown,size_unknown |
+| [TuKoResearch/AuriStream100M_1Pred_BigAudioDataset_500k](https://huggingface.co/TuKoResearch/AuriStream100M_1Pred_BigAudioDataset_500k) | 2025-12-09T20:53:02Z |  |  |  | license_unknown,size_unknown |
+| [TuKoResearch/AuriStream100M_10Pred_BigAudioDataset_500k](https://huggingface.co/TuKoResearch/AuriStream100M_10Pred_BigAudioDataset_500k) | 2025-12-09T20:51:33Z |  |  |  | license_unknown,size_unknown |
+| [TuKoResearch/AuriStream100M_20Pred_BigAudioDataset_500k](https://huggingface.co/TuKoResearch/AuriStream100M_20Pred_BigAudioDataset_500k) | 2025-12-09T20:49:30Z |  |  |  | license_unknown,size_unknown |
+| [TuKoResearch/AuriStream100M_40Pred_BigAudioDataset_500k](https://huggingface.co/TuKoResearch/AuriStream100M_40Pred_BigAudioDataset_500k) | 2025-12-09T20:46:14Z |  |  |  | license_unknown,size_unknown |
+| [ola2nde/tutorial-model-1](https://huggingface.co/ola2nde/tutorial-model-1) | 2025-12-09T19:00:27Z |  |  |  | license_unknown,size_unknown |
+| [DBbun/EEG-Encoder-250Hz_v1.0](https://huggingface.co/DBbun/EEG-Encoder-250Hz_v1.0) | 2025-12-09T17:27:09Z |  |  |  | license_unknown,size_unknown |
+| [zerostratos/unsloth_finetune_deepseek-ocr-200](https://huggingface.co/zerostratos/unsloth_finetune_deepseek-ocr-200) | 2025-12-09T16:06:10Z |  |  |  | license_unknown,size_unknown |
+| [zerostratos/unsloth_finetune_deepseek-ocr](https://huggingface.co/zerostratos/unsloth_finetune_deepseek-ocr) | 2025-12-09T15:25:32Z |  |  |  | license_unknown,size_unknown |
+| [danieldritter/deepcoder-offline-beta2-0.001-beta1-1.0-global-step-836](https://huggingface.co/danieldritter/deepcoder-offline-beta2-0.001-beta1-1.0-global-step-836) | 2025-12-09T14:41:17Z |  |  |  | license_unknown,size_unknown |
+| [Casual-Autopsy/Qwen3-Embedding-0.6B-GGUFs](https://huggingface.co/Casual-Autopsy/Qwen3-Embedding-0.6B-GGUFs) | 2025-12-09T13:19:57Z |  |  |  | license_unknown,size_unknown |
+| [yusufblbl/Qwen3-Embedding-0.6B-Q4_K_M-GGUF](https://huggingface.co/yusufblbl/Qwen3-Embedding-0.6B-Q4_K_M-GGUF) | 2025-12-09T12:57:38Z |  |  |  | license_unknown,size_unknown |
+| [JakeOh/LLaDA-Tiny](https://huggingface.co/JakeOh/LLaDA-Tiny) | 2025-12-09T11:53:20Z |  |  |  | license_unknown,size_unknown |
+| [stonesstones/wm-widowxai-imgtok256-s-try1-G-post2](https://huggingface.co/stonesstones/wm-widowxai-imgtok256-s-try1-G-post2) | 2025-12-09T08:47:47Z |  |  |  | license_unknown,size_unknown |
+| [stonesstones/wm-widowxai-imgtok256-s-try1-E-post2](https://huggingface.co/stonesstones/wm-widowxai-imgtok256-s-try1-E-post2) | 2025-12-09T08:45:15Z |  |  |  | license_unknown,size_unknown |
+| [stonesstones/wm-widowxai-imgtok256-s-try1-B-post2](https://huggingface.co/stonesstones/wm-widowxai-imgtok256-s-try1-B-post2) | 2025-12-09T08:42:34Z |  |  |  | license_unknown,size_unknown |
+| [arunscbe/my-distilbert-model](https://huggingface.co/arunscbe/my-distilbert-model) | 2025-12-09T07:58:28Z |  |  |  | license_unknown,size_unknown |
+| [Hyukkyu/nv-embed-v2](https://huggingface.co/Hyukkyu/nv-embed-v2) | 2025-12-09T04:56:40Z |  |  |  | license_unknown,size_unknown |
+| [AXERA-TECH/bge-small-en-v1.5](https://huggingface.co/AXERA-TECH/bge-small-en-v1.5) | 2025-12-09T02:38:52Z |  |  |  | license_unknown,size_unknown |
+| [JakeOh/LLaDA-1.5-fixed](https://huggingface.co/JakeOh/LLaDA-1.5-fixed) | 2025-12-09T02:24:25Z |  |  |  | license_unknown,size_unknown |
+| [EdgePro001/test1024-ckpt12011816](https://huggingface.co/EdgePro001/test1024-ckpt12011816) | 2025-12-09T01:34:16Z |  |  |  | license_unknown,size_unknown |
+| [Aveldcq/my-awesome-model](https://huggingface.co/Aveldcq/my-awesome-model) | 2025-12-08T20:08:44Z |  |  |  | license_unknown,size_unknown |
+| [wnkh/deepseek_ocr_unsloth_finetune_latin_extra](https://huggingface.co/wnkh/deepseek_ocr_unsloth_finetune_latin_extra) | 2025-12-08T19:39:58Z |  |  |  | license_unknown,size_unknown |
+| [nahomghilay2025/qa-bert-finetuned](https://huggingface.co/nahomghilay2025/qa-bert-finetuned) | 2025-12-08T18:29:28Z |  |  |  | license_unknown,size_unknown |
+| [zyc-zju/Qwen3-Embedding-0.6B-PPO](https://huggingface.co/zyc-zju/Qwen3-Embedding-0.6B-PPO) | 2025-12-08T18:06:53Z |  |  |  | license_unknown,size_unknown |
+| [brain-bzh/reve-positions](https://huggingface.co/brain-bzh/reve-positions) | 2025-12-08T17:01:18Z |  |  |  | license_unknown,size_unknown |
+| [harshpatel080503/Test_Bert_Model](https://huggingface.co/harshpatel080503/Test_Bert_Model) | 2025-12-08T16:14:15Z |  |  |  | license_unknown,size_unknown |
+| [vectorranger/embeddinggemma-300m-medical-300k-ONNX](https://huggingface.co/vectorranger/embeddinggemma-300m-medical-300k-ONNX) | 2025-12-08T15:47:24Z |  |  |  | license_unknown,size_unknown |
+| [rrivera1849/LUAR-CRUD](https://huggingface.co/rrivera1849/LUAR-CRUD) | 2025-12-08T15:27:44Z |  |  |  | license_unknown,size_unknown |
+| [seungyoonee/tsm-dpr-question](https://huggingface.co/seungyoonee/tsm-dpr-question) | 2025-12-08T09:56:36Z |  |  |  | license_unknown,size_unknown |
+| [athulnair983/my-awesome-model](https://huggingface.co/athulnair983/my-awesome-model) | 2025-12-08T09:06:10Z |  |  |  | license_unknown,size_unknown |
+| [wnkh/deepseek_ocr_unsloth_finetune_latin](https://huggingface.co/wnkh/deepseek_ocr_unsloth_finetune_latin) | 2025-12-08T08:41:12Z |  |  |  | license_unknown,size_unknown |
+| [melsiddieg/deepseek_ocr_arabic_v6](https://huggingface.co/melsiddieg/deepseek_ocr_arabic_v6) | 2025-12-07T18:50:57Z |  |  |  | license_unknown,size_unknown |
+| [sailesh27/unixcoder-base-onnx](https://huggingface.co/sailesh27/unixcoder-base-onnx) | 2025-12-07T10:44:54Z |  |  |  | license_unknown,size_unknown |
+| [mradermacher/Heart-RAG-Embedder-GGUF](https://huggingface.co/mradermacher/Heart-RAG-Embedder-GGUF) | 2025-12-06T20:28:40Z |  |  |  | license_unknown,size_unknown |
+| [Atotti/AFClap](https://huggingface.co/Atotti/AFClap) | 2025-12-06T14:43:01Z |  |  |  | license_unknown,size_unknown |
+| [Atotti/AFWhisper](https://huggingface.co/Atotti/AFWhisper) | 2025-12-06T14:42:25Z |  |  |  | license_unknown,size_unknown |
+| [Atotti/Kimi-Audio-Whisper-Encoder](https://huggingface.co/Atotti/Kimi-Audio-Whisper-Encoder) | 2025-12-06T14:38:25Z |  |  |  | license_unknown,size_unknown |
+| [falloficarus22/my_model](https://huggingface.co/falloficarus22/my_model) | 2025-12-06T04:58:45Z |  |  |  | license_unknown,size_unknown |
+| [paulbontempo/bert-tagalog-dependency-cl](https://huggingface.co/paulbontempo/bert-tagalog-dependency-cl) | 2025-12-05T23:11:50Z |  |  |  | license_unknown,size_unknown |
+| [Codcordance/Mistral-Small-3.2-24B-Instruct-2506-SAE](https://huggingface.co/Codcordance/Mistral-Small-3.2-24B-Instruct-2506-SAE) | 2025-12-05T16:49:34Z |  |  |  | license_unknown,size_unknown |
+| [Ninjatabbycat/audiomae](https://huggingface.co/Ninjatabbycat/audiomae) | 2025-12-05T15:54:38Z |  |  |  | license_unknown,size_unknown |
+| [andrewstone/bce-embedding-base_v1](https://huggingface.co/andrewstone/bce-embedding-base_v1) | 2025-12-05T11:47:46Z |  |  |  | license_unknown,size_unknown |
+| [rukiye-nz/my-first-model](https://huggingface.co/rukiye-nz/my-first-model) | 2025-12-05T11:39:43Z |  |  |  | license_unknown,size_unknown |
+| [bagpipejerry/clara-qwen3-4b](https://huggingface.co/bagpipejerry/clara-qwen3-4b) | 2025-12-05T10:48:23Z |  |  |  | license_unknown,size_unknown |
+| [stonesstones/video_tok_widowxai_s_res256_pn256_2stage_1try](https://huggingface.co/stonesstones/video_tok_widowxai_s_res256_pn256_2stage_1try) | 2025-12-05T04:18:54Z |  |  |  | license_unknown,size_unknown |
+| [tss-deposium/qwen25-deposium-1024d](https://huggingface.co/tss-deposium/qwen25-deposium-1024d) | 2025-12-05T00:26:40Z |  |  |  | license_unknown,size_unknown |
+| [brain-bzh/reve-large](https://huggingface.co/brain-bzh/reve-large) | 2025-12-04T23:40:18Z |  |  |  | license_unknown,size_unknown |
+| [brain-bzh/reve-base](https://huggingface.co/brain-bzh/reve-base) | 2025-12-04T23:39:34Z |  |  |  | license_unknown,size_unknown |
+| [KennethEnevoldsen/dfm-sentence-encoder-large](https://huggingface.co/KennethEnevoldsen/dfm-sentence-encoder-large) | 2025-12-04T22:32:20Z |  |  |  | license_unknown,size_unknown |
+| [zakir0101/ftv5-ocr_b16](https://huggingface.co/zakir0101/ftv5-ocr_b16) | 2025-12-04T20:53:03Z |  |  |  | license_unknown,size_unknown |
+| [lotushin/Affine-restart127](https://huggingface.co/lotushin/Affine-restart127) | 2025-12-04T18:23:49Z |  |  |  | license_unknown,size_unknown |
+| [Loctran123/DeepSeek_OCR_V1](https://huggingface.co/Loctran123/DeepSeek_OCR_V1) | 2025-12-04T17:02:06Z |  |  |  | license_unknown,size_unknown |
+| [nntoan209/Affine_namdooGluaS](https://huggingface.co/nntoan209/Affine_namdooGluaS) | 2025-12-04T16:35:27Z |  |  |  | license_unknown,size_unknown |
+| [Pujitha30/zai-org_chatglm2-6b_8bitqunatize](https://huggingface.co/Pujitha30/zai-org_chatglm2-6b_8bitqunatize) | 2025-12-04T12:48:16Z |  |  |  | license_unknown,size_unknown |
+| [pramodlohra/unsloth_finetune2](https://huggingface.co/pramodlohra/unsloth_finetune2) | 2025-12-04T09:58:13Z |  |  |  | license_unknown,size_unknown |
+| [akahana/qwen3-4b-text-embedding-4bit](https://huggingface.co/akahana/qwen3-4b-text-embedding-4bit) | 2025-12-04T09:49:40Z |  |  |  | license_unknown,size_unknown |
+| [TinyPixel/my-awesome-model](https://huggingface.co/TinyPixel/my-awesome-model) | 2025-12-04T09:49:22Z |  |  |  | license_unknown,size_unknown |
+| [WuJiang5/clip-roberta-finetuned](https://huggingface.co/WuJiang5/clip-roberta-finetuned) | 2025-12-04T07:52:22Z |  |  |  | license_unknown,size_unknown |
+| [mradermacher/carros-br-raphael-v2-GGUF](https://huggingface.co/mradermacher/carros-br-raphael-v2-GGUF) | 2025-12-04T04:06:55Z |  |  |  | license_unknown,size_unknown |
+| [mradermacher/MiniLM-v33-SemanticEngine-GGUF](https://huggingface.co/mradermacher/MiniLM-v33-SemanticEngine-GGUF) | 2025-12-04T02:40:46Z |  |  |  | license_unknown,size_unknown |
+| [mradermacher/MiniLM-v35-SemanticEngine-GGUF](https://huggingface.co/mradermacher/MiniLM-v35-SemanticEngine-GGUF) | 2025-12-04T02:27:55Z |  |  |  | license_unknown,size_unknown |
+| [mradermacher/MiniLM-v34-SemanticEngine-GGUF](https://huggingface.co/mradermacher/MiniLM-v34-SemanticEngine-GGUF) | 2025-12-04T02:00:12Z |  |  |  | license_unknown,size_unknown |
+| [mradermacher/MiniLM-v2-v32-SemanticEngine-GGUF](https://huggingface.co/mradermacher/MiniLM-v2-v32-SemanticEngine-GGUF) | 2025-12-04T01:54:36Z |  |  |  | license_unknown,size_unknown |
+| [melsiddieg/deepseek_ocr_arabic_v5](https://huggingface.co/melsiddieg/deepseek_ocr_arabic_v5) | 2025-12-03T21:58:37Z |  |  |  | license_unknown,size_unknown |
+| [donl121/unsloth_finetune](https://huggingface.co/donl121/unsloth_finetune) | 2025-12-03T15:37:23Z |  |  |  | license_unknown,size_unknown |
+| [mradermacher/text2vec-bge-large-chinese-GGUF](https://huggingface.co/mradermacher/text2vec-bge-large-chinese-GGUF) | 2025-12-03T15:09:39Z |  |  |  | license_unknown,size_unknown |
+| [ammonbro/clip650r-epoch4](https://huggingface.co/ammonbro/clip650r-epoch4) | 2025-12-03T13:32:52Z |  |  |  | license_unknown,size_unknown |
+| [p1atdev/Qwen3-VL-2B-Instruct-Text-Only](https://huggingface.co/p1atdev/Qwen3-VL-2B-Instruct-Text-Only) | 2025-12-03T12:14:34Z |  |  |  | license_unknown,size_unknown |
+| [bezzam/VibeVoice-SemanticTokenizer](https://huggingface.co/bezzam/VibeVoice-SemanticTokenizer) | 2025-12-03T11:29:01Z |  |  |  | license_unknown,size_unknown |
+| [pramodlohra/unsloth_finetune](https://huggingface.co/pramodlohra/unsloth_finetune) | 2025-12-03T09:22:41Z |  |  |  | license_unknown,size_unknown |
+| [WenjieSHI/my-awesome-model](https://huggingface.co/WenjieSHI/my-awesome-model) | 2025-12-03T09:17:42Z |  |  |  | license_unknown,size_unknown |
+| [hanburgereer/unsloth_finetune_05](https://huggingface.co/hanburgereer/unsloth_finetune_05) | 2025-12-03T06:49:58Z |  |  |  | license_unknown,size_unknown |
+| [ZanderM98/Qwen3-Embedding-8B-bnb-4bit](https://huggingface.co/ZanderM98/Qwen3-Embedding-8B-bnb-4bit) | 2025-12-02T13:00:32Z |  |  |  | license_unknown,size_unknown |
+| [ontocord/1.7b-MixtureVitae-300BT-v1-16k](https://huggingface.co/ontocord/1.7b-MixtureVitae-300BT-v1-16k) | 2025-12-02T10:12:02Z |  |  |  | license_unknown,size_unknown |
+| [zakir0101/ftv4-ocr_b16](https://huggingface.co/zakir0101/ftv4-ocr_b16) | 2025-12-02T07:37:32Z |  |  |  | license_unknown,size_unknown |
+| [Qsevent77/jina-embeddings-v3](https://huggingface.co/Qsevent77/jina-embeddings-v3) | 2025-12-02T06:52:23Z |  |  |  | license_unknown,size_unknown |
+| [Qsevent77/jina-clip-v2](https://huggingface.co/Qsevent77/jina-clip-v2) | 2025-12-02T06:39:02Z |  |  |  | license_unknown,size_unknown |
+| [wmere/falcon_moe_0.5Base_E8T4](https://huggingface.co/wmere/falcon_moe_0.5Base_E8T4) | 2025-12-02T02:08:41Z |  |  |  | license_unknown,size_unknown |
+| [mlsa-iai-msu-lab/sci-rus-tiny3.5-zh](https://huggingface.co/mlsa-iai-msu-lab/sci-rus-tiny3.5-zh) | 2025-12-01T23:02:44Z |  |  |  | license_unknown,size_unknown |
+| [bluelightai/clt-qwen3-1.7b-base-20k](https://huggingface.co/bluelightai/clt-qwen3-1.7b-base-20k) | 2025-12-01T19:40:47Z |  |  |  | license_unknown,size_unknown |
+| [bluelightai/clt-qwen3-0.6b-base-20k](https://huggingface.co/bluelightai/clt-qwen3-0.6b-base-20k) | 2025-12-01T19:38:29Z |  |  |  | license_unknown,size_unknown |
+| [Tarka-AIR/Tarka-Embedding-250M-V1](https://huggingface.co/Tarka-AIR/Tarka-Embedding-250M-V1) | 2025-12-01T11:37:54Z |  |  |  | license_unknown,size_unknown |
+| [CATIE-AQ/FAT5-xl-flan-en](https://huggingface.co/CATIE-AQ/FAT5-xl-flan-en) | 2025-12-01T09:54:02Z |  |  |  | license_unknown,size_unknown |
+| [hanburgereer/unsloth_finetune_04](https://huggingface.co/hanburgereer/unsloth_finetune_04) | 2025-12-01T09:29:04Z |  |  |  | license_unknown,size_unknown |
+| [ytu-ce-cosmos/turkish-e5-large](https://huggingface.co/ytu-ce-cosmos/turkish-e5-large) | 2025-12-01T05:43:03Z |  |  |  | license_unknown,size_unknown |
+| [mradermacher/MiniLM-v2-v28-SemanticEngine-GGUF](https://huggingface.co/mradermacher/MiniLM-v2-v28-SemanticEngine-GGUF) | 2025-12-01T04:07:48Z |  |  |  | license_unknown,size_unknown |
+| [mradermacher/Desu-snowflake-arctic-embed-l-v2.0-finetuned-amharic-final-GGUF](https://huggingface.co/mradermacher/Desu-snowflake-arctic-embed-l-v2.0-finetuned-amharic-final-GGUF) | 2025-12-01T01:54:28Z |  |  |  | license_unknown,size_unknown |
+| [mradermacher/MiniLM-v27-SemanticEngine-GGUF](https://huggingface.co/mradermacher/MiniLM-v27-SemanticEngine-GGUF) | 2025-12-01T01:50:03Z |  |  |  | license_unknown,size_unknown |
+| [mhmsadegh/cause-effect-ModernBERT-base-e3-just-contrastive-version-azar1404](https://huggingface.co/mhmsadegh/cause-effect-ModernBERT-base-e3-just-contrastive-version-azar1404) | 2025-11-30T16:53:32Z |  |  |  | license_unknown,size_unknown |
+| [mhmsadegh/cause-effect-ModernBERT-base-e3-contrastive-lambda03-version-azar1404](https://huggingface.co/mhmsadegh/cause-effect-ModernBERT-base-e3-contrastive-lambda03-version-azar1404) | 2025-11-30T15:20:53Z |  |  |  | license_unknown,size_unknown |
+| [techAInewb/Qwen3-Embedding-0.6B-INT8](https://huggingface.co/techAInewb/Qwen3-Embedding-0.6B-INT8) | 2025-11-30T03:13:20Z |  |  |  | license_unknown,size_unknown |
+| [Jiang-01-dexiang/sk-01](https://huggingface.co/Jiang-01-dexiang/sk-01) | 2025-11-30T01:52:56Z |  |  |  | license_unknown,size_unknown |
+| [Omartificial-Intelligence-Space/SA-STS-Embeddings-0.2B](https://huggingface.co/Omartificial-Intelligence-Space/SA-STS-Embeddings-0.2B) | 2025-11-29T19:04:34Z |  |  |  | license_unknown,size_unknown |
+| [jkralev/mic21_model](https://huggingface.co/jkralev/mic21_model) | 2025-11-29T17:10:19Z |  |  |  | license_unknown,size_unknown |
+| [obay123/ocr-deepseek](https://huggingface.co/obay123/ocr-deepseek) | 2025-11-29T11:38:49Z |  |  |  | license_unknown,size_unknown |
+| [mradermacher/snowflake-arctic-embed-l-v2.0-academic-GGUF](https://huggingface.co/mradermacher/snowflake-arctic-embed-l-v2.0-academic-GGUF) | 2025-11-29T04:55:55Z |  |  |  | license_unknown,size_unknown |
+| [Svenni551/Qwen3-Embedding-0.6B-ONNX](https://huggingface.co/Svenni551/Qwen3-Embedding-0.6B-ONNX) | 2025-11-29T03:26:43Z |  |  |  | license_unknown,size_unknown |
+| [Svenni551/Qwen3-Embedding-0.6B-ONNX-INT8](https://huggingface.co/Svenni551/Qwen3-Embedding-0.6B-ONNX-INT8) | 2025-11-29T03:26:19Z |  |  |  | license_unknown,size_unknown |
+| [sunweiwei/AirRep-Flan-Small](https://huggingface.co/sunweiwei/AirRep-Flan-Small) | 2025-11-28T18:45:21Z |  |  |  | license_unknown,size_unknown |
+| [yjoonjang/inference-free-splade-ko-v1](https://huggingface.co/yjoonjang/inference-free-splade-ko-v1) | 2025-11-28T14:36:52Z |  |  |  | license_unknown,size_unknown |
+| [hathappend/indobertweet-base-embeddings-logistic-regression-baseline](https://huggingface.co/hathappend/indobertweet-base-embeddings-logistic-regression-baseline) | 2025-11-28T13:24:36Z |  |  |  | license_unknown,size_unknown |
+| [Yash911/e5-finetuned-job-framework-28-18-05](https://huggingface.co/Yash911/e5-finetuned-job-framework-28-18-05) | 2025-11-28T12:36:32Z |  |  |  | license_unknown,size_unknown |
+| [hanburgereer/unsloth_finetune_03](https://huggingface.co/hanburgereer/unsloth_finetune_03) | 2025-11-28T12:10:33Z |  |  |  | license_unknown,size_unknown |
+| [ultraxiaozi/deepseek-ocr-table](https://huggingface.co/ultraxiaozi/deepseek-ocr-table) | 2025-11-28T09:13:03Z |  |  |  | license_unknown,size_unknown |
+| [ultraxiaozi/deepseek-ocr-cn-fine-tune](https://huggingface.co/ultraxiaozi/deepseek-ocr-cn-fine-tune) | 2025-11-28T09:09:57Z |  |  |  | license_unknown,size_unknown |
+| [Orange/SSA-HuBERT-base-5k](https://huggingface.co/Orange/SSA-HuBERT-base-5k) | 2025-11-28T08:24:33Z |  |  |  | license_unknown,size_unknown |
+| [Orange/SSA-HuBERT-base-60k](https://huggingface.co/Orange/SSA-HuBERT-base-60k) | 2025-11-28T08:23:56Z |  |  |  | license_unknown,size_unknown |
+| [akera/sunflower32b-whisperv3-ultravox-ft-llm-salt-instruct-ckpt-2k](https://huggingface.co/akera/sunflower32b-whisperv3-ultravox-ft-llm-salt-instruct-ckpt-2k) | 2025-11-28T03:21:21Z |  |  |  | license_unknown,size_unknown |
+| [suthanhcong/DeepseekOCR_3B_invoice_json_4bit](https://huggingface.co/suthanhcong/DeepseekOCR_3B_invoice_json_4bit) | 2025-11-28T02:35:41Z |  |  |  | license_unknown,size_unknown |
+| [humantics/cxr-dino-v1](https://huggingface.co/humantics/cxr-dino-v1) | 2025-11-28T02:22:56Z |  |  |  | license_unknown,size_unknown |
+| [binarypetal/Qwen3-Embedding-4B-Q4_K_M-GGUF](https://huggingface.co/binarypetal/Qwen3-Embedding-4B-Q4_K_M-GGUF) | 2025-11-28T01:44:27Z |  |  |  | license_unknown,size_unknown |
+| [hanburgereer/unsloth_finetune_02](https://huggingface.co/hanburgereer/unsloth_finetune_02) | 2025-11-27T13:15:22Z |  |  |  | license_unknown,size_unknown |
+| [Datartisan/KastorAirport](https://huggingface.co/Datartisan/KastorAirport) | 2025-11-27T13:00:10Z |  |  |  | license_unknown,size_unknown |
+| [Yash911/e5-finetuned-job-framework-27-18-16](https://huggingface.co/Yash911/e5-finetuned-job-framework-27-18-16) | 2025-11-27T12:47:49Z |  |  |  | license_unknown,size_unknown |
+| [AXONVERTEX-AI-RESEARCH/Qwen3-Embedding-0.6B-Q8_0-GGUF](https://huggingface.co/AXONVERTEX-AI-RESEARCH/Qwen3-Embedding-0.6B-Q8_0-GGUF) | 2025-11-27T12:01:42Z |  |  |  | license_unknown,size_unknown |
+| [kontextdev/embeddinggemma-300m-litertlm](https://huggingface.co/kontextdev/embeddinggemma-300m-litertlm) | 2025-11-27T10:42:32Z |  |  |  | license_unknown,size_unknown |
+| [MERaLiON/MERaLiON-SER-v1](https://huggingface.co/MERaLiON/MERaLiON-SER-v1) | 2025-11-27T08:32:54Z |  |  |  | license_unknown,size_unknown |
+| [Yash911/e5-finetuned-job-framework-27-11-05](https://huggingface.co/Yash911/e5-finetuned-job-framework-27-11-05) | 2025-11-27T05:37:39Z |  |  |  | license_unknown,size_unknown |
+| [JianLiao/siglip2-spectrum-icons-naflex](https://huggingface.co/JianLiao/siglip2-spectrum-icons-naflex) | 2025-11-26T19:50:09Z |  |  |  | license_unknown,size_unknown |
+| [duttaprat/HViLM-base](https://huggingface.co/duttaprat/HViLM-base) | 2025-11-26T19:14:41Z |  |  |  | license_unknown,size_unknown |
+| [nvidia/llama-nemotron-embed-1b-v2](https://huggingface.co/nvidia/llama-nemotron-embed-1b-v2) | 2025-11-26T17:20:45Z |  |  |  | license_unknown,size_unknown |
+| [Jgriosanz/Qwen3-Embedding-0.6B-Q8_0-GGUF](https://huggingface.co/Jgriosanz/Qwen3-Embedding-0.6B-Q8_0-GGUF) | 2025-11-26T13:38:31Z |  |  |  | license_unknown,size_unknown |
+| [lumees/lumees-matryoshka-vision-embedding-v1](https://huggingface.co/lumees/lumees-matryoshka-vision-embedding-v1) | 2025-11-26T11:57:05Z |  |  |  | license_unknown,size_unknown |
+| [hanburgereer/unsloth_finetune](https://huggingface.co/hanburgereer/unsloth_finetune) | 2025-11-26T10:58:08Z |  |  |  | license_unknown,size_unknown |
+| [Jgriosanz/Qwen3-Embedding-4B-Q4_K_M-GGUF](https://huggingface.co/Jgriosanz/Qwen3-Embedding-4B-Q4_K_M-GGUF) | 2025-11-26T10:25:24Z |  |  |  | license_unknown,size_unknown |
+| [nguyencongtuyenlp/my-first-awesome-model](https://huggingface.co/nguyencongtuyenlp/my-first-awesome-model) | 2025-11-26T10:22:33Z |  |  |  | license_unknown,size_unknown |
+| [Jgriosanz/Qwen3-Embedding-0.6B-Q4_K_M-GGUF](https://huggingface.co/Jgriosanz/Qwen3-Embedding-0.6B-Q4_K_M-GGUF) | 2025-11-26T10:19:28Z |  |  |  | license_unknown,size_unknown |
+| [hrezaei/flan-t5laa-large](https://huggingface.co/hrezaei/flan-t5laa-large) | 2025-11-26T02:34:50Z |  |  |  | license_unknown,size_unknown |
+| [richardyoung/CardioEmbed-Qwen3-8B](https://huggingface.co/richardyoung/CardioEmbed-Qwen3-8B) | 2025-11-26T00:42:19Z |  |  |  | license_unknown,size_unknown |
+| [javiimts/PL-BERT](https://huggingface.co/javiimts/PL-BERT) | 2025-11-25T17:14:34Z |  |  |  | license_unknown,size_unknown |
+| [meetween/Llama-speechlmm-1.0-xl](https://huggingface.co/meetween/Llama-speechlmm-1.0-xl) | 2025-11-25T16:39:39Z |  |  |  | license_unknown,size_unknown |
+| [meetween/Llama-speechlmm-1.0-l](https://huggingface.co/meetween/Llama-speechlmm-1.0-l) | 2025-11-25T16:38:53Z |  |  |  | license_unknown,size_unknown |
+| [meetween/Llama-speechlmm-1.0-m](https://huggingface.co/meetween/Llama-speechlmm-1.0-m) | 2025-11-25T16:38:11Z |  |  |  | license_unknown,size_unknown |
+| [meetween/Llama-speechlmm-1.0-s](https://huggingface.co/meetween/Llama-speechlmm-1.0-s) | 2025-11-25T16:37:37Z |  |  |  | license_unknown,size_unknown |
+| [suthanhcong/DeepseekOCR_3B_invoice_json](https://huggingface.co/suthanhcong/DeepseekOCR_3B_invoice_json) | 2025-11-25T15:44:21Z |  |  |  | license_unknown,size_unknown |
+| [doncxy/deepseekocrchinese](https://huggingface.co/doncxy/deepseekocrchinese) | 2025-11-25T13:55:43Z |  |  |  | license_unknown,size_unknown |
+| [Aleksandruz/skillmatch-mpnet-curriculum-retriever](https://huggingface.co/Aleksandruz/skillmatch-mpnet-curriculum-retriever) | 2025-11-25T13:23:38Z |  |  |  | license_unknown,size_unknown |
+| [jq/sunflower32b-ultravox-251114-3](https://huggingface.co/jq/sunflower32b-ultravox-251114-3) | 2025-11-25T09:46:11Z |  |  |  | license_unknown,size_unknown |
+| [suthanhcong/DeepseekOCR_3B_synthdog_jp](https://huggingface.co/suthanhcong/DeepseekOCR_3B_synthdog_jp) | 2025-11-25T08:19:13Z |  |  |  | license_unknown,size_unknown |
+| [Tarka-AIR/Tarka-Embedding-300M-V1-Preview](https://huggingface.co/Tarka-AIR/Tarka-Embedding-300M-V1-Preview) | 2025-11-25T05:42:43Z |  |  |  | license_unknown,size_unknown |
+| [jjunyuongv/insightface-endpoint](https://huggingface.co/jjunyuongv/insightface-endpoint) | 2025-11-25T01:53:48Z |  |  |  | license_unknown,size_unknown |
+| [bkhugger11/my-bert](https://huggingface.co/bkhugger11/my-bert) | 2025-11-24T22:57:00Z |  |  |  | license_unknown,size_unknown |
+| [ryandono/osgrep-coderank-q8](https://huggingface.co/ryandono/osgrep-coderank-q8) | 2025-11-24T19:50:11Z |  |  |  | license_unknown,size_unknown |
+| [ryandono/osgrep-colbert-q8](https://huggingface.co/ryandono/osgrep-colbert-q8) | 2025-11-24T19:48:45Z |  |  |  | license_unknown,size_unknown |
+| [ryandono/osgrep-coderank-q4](https://huggingface.co/ryandono/osgrep-coderank-q4) | 2025-11-24T19:44:32Z |  |  |  | license_unknown,size_unknown |
+| [Ketemaw/my-first-model](https://huggingface.co/Ketemaw/my-first-model) | 2025-11-24T19:23:24Z |  |  |  | license_unknown,size_unknown |
+| [CLAUSE-Bielefeld/InvOntDef-DeBERTa](https://huggingface.co/CLAUSE-Bielefeld/InvOntDef-DeBERTa) | 2025-11-24T16:57:19Z |  |  |  | license_unknown,size_unknown |
+| [CLAUSE-Bielefeld/InvDef-DeBERTa](https://huggingface.co/CLAUSE-Bielefeld/InvDef-DeBERTa) | 2025-11-24T16:52:59Z |  |  |  | license_unknown,size_unknown |
+| [rntc/qwen-reformulation-sft](https://huggingface.co/rntc/qwen-reformulation-sft) | 2025-11-24T13:15:24Z |  |  |  | license_unknown,size_unknown |
+| [krittykitty/kritty_v2_fixed](https://huggingface.co/krittykitty/kritty_v2_fixed) | 2025-11-24T07:00:27Z |  |  |  | license_unknown,size_unknown |
+| [SlipStream33/phi3-binary-query-classifier](https://huggingface.co/SlipStream33/phi3-binary-query-classifier) | 2025-11-24T06:35:55Z |  |  |  | license_unknown,size_unknown |
+| [krittykitty/Distilbert_v3_fixed](https://huggingface.co/krittykitty/Distilbert_v3_fixed) | 2025-11-24T06:18:40Z |  |  |  | license_unknown,size_unknown |
+| [melsiddieg/deepseek_ocr_arabic_v4](https://huggingface.co/melsiddieg/deepseek_ocr_arabic_v4) | 2025-11-24T03:09:04Z |  |  |  | license_unknown,size_unknown |
+| [melsiddieg/deepseek_ocr_arabic_v3](https://huggingface.co/melsiddieg/deepseek_ocr_arabic_v3) | 2025-11-24T00:41:11Z |  |  |  | license_unknown,size_unknown |
+| [SlipStream33/phi3-query-classifier_hs_final](https://huggingface.co/SlipStream33/phi3-query-classifier_hs_final) | 2025-11-23T22:19:59Z |  |  |  | license_unknown,size_unknown |
+| [OliBomby/CM3P](https://huggingface.co/OliBomby/CM3P) | 2025-11-23T21:49:36Z |  |  |  | license_unknown,size_unknown |
+| [ryansen/Mistral-7B-v0.1-8bit](https://huggingface.co/ryansen/Mistral-7B-v0.1-8bit) | 2025-11-23T17:32:15Z |  |  |  | license_unknown,size_unknown |
+| [emadahmed97/arabic_ocr_finetune](https://huggingface.co/emadahmed97/arabic_ocr_finetune) | 2025-11-23T08:53:06Z |  |  |  | license_unknown,size_unknown |
+| [twanghcmut/s2moe-mole-internvl2-finetuned-20251123-050501](https://huggingface.co/twanghcmut/s2moe-mole-internvl2-finetuned-20251123-050501) | 2025-11-23T05:10:40Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-uci-xlnet](https://huggingface.co/Linhduongcute/nllf-uci-xlnet) | 2025-11-23T05:02:21Z |  |  |  | license_unknown,size_unknown |
+| [twanghcmut/s2moe-mole-internvl2-finetuned-20251123-044714](https://huggingface.co/twanghcmut/s2moe-mole-internvl2-finetuned-20251123-044714) | 2025-11-23T04:50:31Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-sof-bert](https://huggingface.co/Linhduongcute/nllf-sof-bert) | 2025-11-23T04:43:43Z |  |  |  | license_unknown,size_unknown |
+| [twanghcmut/s2moe-mole-internvl2-finetuned-20251123-043928](https://huggingface.co/twanghcmut/s2moe-mole-internvl2-finetuned-20251123-043928) | 2025-11-23T04:42:44Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-legal-bert](https://huggingface.co/Linhduongcute/nllf-legal-bert) | 2025-11-23T04:34:52Z |  |  |  | license_unknown,size_unknown |
+| [twanghcmut/s2moe-mole-internvl2-finetuned-20251123-041517](https://huggingface.co/twanghcmut/s2moe-mole-internvl2-finetuned-20251123-041517) | 2025-11-23T04:18:23Z |  |  |  | license_unknown,size_unknown |
+| [twanghcmut/s2moe-mole-internvl2-finetuned-20251123-040929](https://huggingface.co/twanghcmut/s2moe-mole-internvl2-finetuned-20251123-040929) | 2025-11-23T04:12:29Z |  |  |  | license_unknown,size_unknown |
+| [twanghcmut/s2moe-mole-internvl2-finetuned-20251123-033658](https://huggingface.co/twanghcmut/s2moe-mole-internvl2-finetuned-20251123-033658) | 2025-11-23T03:38:25Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-uci-roberta](https://huggingface.co/Linhduongcute/nllf-uci-roberta) | 2025-11-23T01:06:55Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-uci-gpt2](https://huggingface.co/Linhduongcute/nllf-uci-gpt2) | 2025-11-23T00:29:31Z |  |  |  | license_unknown,size_unknown |
+| [SlipStream33/phi3-mini-hidden](https://huggingface.co/SlipStream33/phi3-mini-hidden) | 2025-11-22T20:08:51Z |  |  |  | license_unknown,size_unknown |
+| [zakir0101/ftv3-ocr_500_b16](https://huggingface.co/zakir0101/ftv3-ocr_500_b16) | 2025-11-22T19:57:07Z |  |  |  | license_unknown,size_unknown |
+| [zakir0101/ftv3-ocr_b16](https://huggingface.co/zakir0101/ftv3-ocr_b16) | 2025-11-22T19:55:41Z |  |  |  | license_unknown,size_unknown |
+| [zakir0101/ftv3-ocr_1000_b16](https://huggingface.co/zakir0101/ftv3-ocr_1000_b16) | 2025-11-22T19:52:19Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-pubmed-xlnet](https://huggingface.co/Linhduongcute/nllf-pubmed-xlnet) | 2025-11-22T18:51:01Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-pubmed-bert](https://huggingface.co/Linhduongcute/nllf-pubmed-bert) | 2025-11-22T18:13:31Z |  |  |  | license_unknown,size_unknown |
+| [MikeVerba/my-first-model](https://huggingface.co/MikeVerba/my-first-model) | 2025-11-22T18:09:13Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-pubmed-roberta](https://huggingface.co/Linhduongcute/nllf-pubmed-roberta) | 2025-11-22T17:55:58Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-ecom-bert](https://huggingface.co/Linhduongcute/nllf-ecom-bert) | 2025-11-22T17:26:35Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-pubmed-gpt2](https://huggingface.co/Linhduongcute/nllf-pubmed-gpt2) | 2025-11-22T16:47:37Z |  |  |  | license_unknown,size_unknown |
+| [sofom/Style-Embedding-m4_semeval](https://huggingface.co/sofom/Style-Embedding-m4_semeval) | 2025-11-22T15:51:59Z |  |  |  | license_unknown,size_unknown |
+| [sofom/roberta-base-m4_semeval](https://huggingface.co/sofom/roberta-base-m4_semeval) | 2025-11-22T14:48:36Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-sof-roberta](https://huggingface.co/Linhduongcute/nllf-sof-roberta) | 2025-11-22T11:25:18Z |  |  |  | license_unknown,size_unknown |
+| [huwenjie333/sunflower32b-ultravox-251114-3](https://huggingface.co/huwenjie333/sunflower32b-ultravox-251114-3) | 2025-11-22T11:24:13Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-ecom-roberta](https://huggingface.co/Linhduongcute/nllf-ecom-roberta) | 2025-11-22T11:21:22Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-sof-gpt2](https://huggingface.co/Linhduongcute/nllf-sof-gpt2) | 2025-11-22T10:39:24Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-ecom-gpt2](https://huggingface.co/Linhduongcute/nllf-ecom-gpt2) | 2025-11-22T10:29:50Z |  |  |  | license_unknown,size_unknown |
+| [fleonce/ModernBERT-random](https://huggingface.co/fleonce/ModernBERT-random) | 2025-11-22T09:54:34Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-ecom-xlnet](https://huggingface.co/Linhduongcute/nllf-ecom-xlnet) | 2025-11-22T08:47:26Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-legal-roberta](https://huggingface.co/Linhduongcute/nllf-legal-roberta) | 2025-11-22T05:19:49Z |  |  |  | license_unknown,size_unknown |
+| [kamillkate/unsloth_finetune_TW](https://huggingface.co/kamillkate/unsloth_finetune_TW) | 2025-11-22T03:59:49Z |  |  |  | license_unknown,size_unknown |
+| [hayago/my_initial_model](https://huggingface.co/hayago/my_initial_model) | 2025-11-22T00:29:48Z |  |  |  | license_unknown,size_unknown |
+| [Sleem247/bge-m3-legal_retrieval-Q8_0-GGUF](https://huggingface.co/Sleem247/bge-m3-legal_retrieval-Q8_0-GGUF) | 2025-11-21T22:51:50Z |  |  |  | license_unknown,size_unknown |
+| [onnx-community/codebert-base-ONNX](https://huggingface.co/onnx-community/codebert-base-ONNX) | 2025-11-21T19:29:22Z |  |  |  | license_unknown,size_unknown |
+| [kyoto-kaira/clap-finetune](https://huggingface.co/kyoto-kaira/clap-finetune) | 2025-11-21T18:21:05Z |  |  |  | license_unknown,size_unknown |
+| [hrezaei/flan-t5laa2-large](https://huggingface.co/hrezaei/flan-t5laa2-large) | 2025-11-21T18:08:20Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-legal-xlnet](https://huggingface.co/Linhduongcute/nllf-legal-xlnet) | 2025-11-21T16:45:01Z |  |  |  | license_unknown,size_unknown |
+| [Linhduongcute/nllf-legal-gpt2](https://huggingface.co/Linhduongcute/nllf-legal-gpt2) | 2025-11-21T15:50:02Z |  |  |  | license_unknown,size_unknown |
+| [rasyosef/SPLADE-RoBERTa-Amharic-Base](https://huggingface.co/rasyosef/SPLADE-RoBERTa-Amharic-Base) | 2025-11-21T14:17:58Z |  |  |  | license_unknown,size_unknown |
+| [lamm-mit/LLaDA-8B-Bioinspired-dLLM-Instruct-11-21-2025](https://huggingface.co/lamm-mit/LLaDA-8B-Bioinspired-dLLM-Instruct-11-21-2025) | 2025-11-21T11:52:46Z |  |  |  | license_unknown,size_unknown |
+| [tartuNLP/EstRoBERTa](https://huggingface.co/tartuNLP/EstRoBERTa) | 2025-11-20T19:26:32Z |  |  |  | license_unknown,size_unknown |
+| [s8frbroy/talk2ref_ref_key_cited_paper_encoder](https://huggingface.co/s8frbroy/talk2ref_ref_key_cited_paper_encoder) | 2025-11-20T14:16:19Z |  |  |  | license_unknown,size_unknown |
+| [jeanq1/IDP-ESM2-8M](https://huggingface.co/jeanq1/IDP-ESM2-8M) | 2025-11-20T14:08:27Z |  |  |  | license_unknown,size_unknown |
+| [jeanq1/IDP-ESM2-150M](https://huggingface.co/jeanq1/IDP-ESM2-150M) | 2025-11-20T14:07:57Z |  |  |  | license_unknown,size_unknown |
+| [tangyuan0106/unsloth_finetune-deepseek](https://huggingface.co/tangyuan0106/unsloth_finetune-deepseek) | 2025-11-20T03:38:14Z |  |  |  | license_unknown,size_unknown |
+| [OpenSearch-AI/Ops-MM-embedding-v1-7B](https://huggingface.co/OpenSearch-AI/Ops-MM-embedding-v1-7B) | 2025-11-20T02:06:19Z |  |  |  | license_unknown,size_unknown |
+| [OpenSearch-AI/Ops-MM-embedding-v1-2B](https://huggingface.co/OpenSearch-AI/Ops-MM-embedding-v1-2B) | 2025-11-20T02:06:06Z |  |  |  | license_unknown,size_unknown |
+| [khaangnguyeen/ruri-v3-310m-onnx](https://huggingface.co/khaangnguyeen/ruri-v3-310m-onnx) | 2025-11-19T21:43:10Z |  |  |  | license_unknown,size_unknown |
+| [woodman231/minilm-l6-monster-sanctuary-GGUF](https://huggingface.co/woodman231/minilm-l6-monster-sanctuary-GGUF) | 2025-11-19T20:59:01Z |  |  |  | license_unknown,size_unknown |
+| [ahmed-masry/vjepa2-vith-fpc64-256-video](https://huggingface.co/ahmed-masry/vjepa2-vith-fpc64-256-video) | 2025-11-19T19:53:36Z |  |  |  | license_unknown,size_unknown |
+| [ahmed-masry/vjepa2-vitl-fpc64-256-video](https://huggingface.co/ahmed-masry/vjepa2-vitl-fpc64-256-video) | 2025-11-19T19:01:06Z |  |  |  | license_unknown,size_unknown |
+| [SujalBajra/alibaba-gte-newari-contrastive-encoder](https://huggingface.co/SujalBajra/alibaba-gte-newari-contrastive-encoder) | 2025-11-19T10:37:39Z |  |  |  | license_unknown,size_unknown |
+| [SujalBajra/google-multilingual-bert-newari-contrastive-encoder](https://huggingface.co/SujalBajra/google-multilingual-bert-newari-contrastive-encoder) | 2025-11-19T09:40:02Z |  |  |  | license_unknown,size_unknown |
+| [Tarka-AIR/Tarka-Embedding-350M-V1](https://huggingface.co/Tarka-AIR/Tarka-Embedding-350M-V1) | 2025-11-19T08:31:20Z |  |  |  | license_unknown,size_unknown |
+| [tkhangg0910/viconbert-base](https://huggingface.co/tkhangg0910/viconbert-base) | 2025-11-19T02:41:49Z |  |  |  | license_unknown,size_unknown |
+| [tkhangg0910/viconbert-large](https://huggingface.co/tkhangg0910/viconbert-large) | 2025-11-19T02:41:26Z |  |  |  | license_unknown,size_unknown |
+| [malaysia-ai/xcodec2-25TPS-24k](https://huggingface.co/malaysia-ai/xcodec2-25TPS-24k) | 2025-11-19T01:57:16Z |  |  |  | license_unknown,size_unknown |
+| [yuxuezhang/my-bert-base-model](https://huggingface.co/yuxuezhang/my-bert-base-model) | 2025-11-18T13:17:44Z |  |  |  | license_unknown,size_unknown |
+| [aidan1337/bert-base-cased-from-local](https://huggingface.co/aidan1337/bert-base-cased-from-local) | 2025-11-18T11:44:35Z |  |  |  | license_unknown,size_unknown |
+| [Shubhlabhx3/latex_ocr_deepseek](https://huggingface.co/Shubhlabhx3/latex_ocr_deepseek) | 2025-11-18T11:06:08Z |  |  |  | license_unknown,size_unknown |
+| [Tarka-AIR/Tarka-Embedding-150M-V1](https://huggingface.co/Tarka-AIR/Tarka-Embedding-150M-V1) | 2025-11-18T09:30:16Z |  |  |  | license_unknown,size_unknown |
+| [brownyeyez/InternVL3_5-Rerank](https://huggingface.co/brownyeyez/InternVL3_5-Rerank) | 2025-11-18T08:35:30Z |  |  |  | license_unknown,size_unknown |
+| [AlekseyCalvin/Lyrical_dLLM_8b](https://huggingface.co/AlekseyCalvin/Lyrical_dLLM_8b) | 2025-11-18T08:16:59Z |  |  |  | license_unknown,size_unknown |
+| [tangyuan0106/unsloth_finetune](https://huggingface.co/tangyuan0106/unsloth_finetune) | 2025-11-18T08:05:18Z |  |  |  | license_unknown,size_unknown |
+| [huwenjie333/sunflower32b-ultravox-251114-2](https://huggingface.co/huwenjie333/sunflower32b-ultravox-251114-2) | 2025-11-18T07:10:33Z |  |  |  | license_unknown,size_unknown |
+| [Arsenbly/my-model](https://huggingface.co/Arsenbly/my-model) | 2025-11-18T06:28:52Z |  |  |  | license_unknown,size_unknown |
+| [ondame/room-name-similarity](https://huggingface.co/ondame/room-name-similarity) | 2025-11-18T03:49:36Z |  |  |  | license_unknown,size_unknown |
+| [neuralabs/deepseek_ocr_de](https://huggingface.co/neuralabs/deepseek_ocr_de) | 2025-11-18T01:54:14Z |  |  |  | license_unknown,size_unknown |
+| [whelanska/bert-base-cased-matt-version](https://huggingface.co/whelanska/bert-base-cased-matt-version) | 2025-11-17T23:54:08Z |  |  |  | license_unknown,size_unknown |
+| [zakir0101/ftv2-ocr_b16](https://huggingface.co/zakir0101/ftv2-ocr_b16) | 2025-11-17T21:34:52Z |  |  |  | license_unknown,size_unknown |
+| [Zeolit/lettuce-emb-512d-v1](https://huggingface.co/Zeolit/lettuce-emb-512d-v1) | 2025-11-17T20:39:38Z |  |  |  | license_unknown,size_unknown |
+| [alvawalt/CancerTranscriptome-Mini-48M](https://huggingface.co/alvawalt/CancerTranscriptome-Mini-48M) | 2025-11-17T20:36:11Z |  |  |  | license_unknown,size_unknown |
+| [bangadu/unsloth_deepseek_ocr_finetune](https://huggingface.co/bangadu/unsloth_deepseek_ocr_finetune) | 2025-11-17T19:55:53Z |  |  |  | license_unknown,size_unknown |
+| [Zeolit/lettuce-minilm-bge-m3-v1-onnx-int8](https://huggingface.co/Zeolit/lettuce-minilm-bge-m3-v1-onnx-int8) | 2025-11-17T17:50:17Z |  |  |  | license_unknown,size_unknown |
+| [yoavmiron/my-awesome-model](https://huggingface.co/yoavmiron/my-awesome-model) | 2025-11-17T15:36:03Z |  |  |  | license_unknown,size_unknown |
+| [peft-internal-testing/tiny-random-DebertaV2Model](https://huggingface.co/peft-internal-testing/tiny-random-DebertaV2Model) | 2025-11-17T12:16:19Z |  |  |  | license_unknown,size_unknown |
+| [peft-internal-testing/tiny-random-DebertaModel](https://huggingface.co/peft-internal-testing/tiny-random-DebertaModel) | 2025-11-17T12:15:40Z |  |  |  | license_unknown,size_unknown |
+| [peft-internal-testing/tiny-random-RobertaModel](https://huggingface.co/peft-internal-testing/tiny-random-RobertaModel) | 2025-11-17T12:14:58Z |  |  |  | license_unknown,size_unknown |
+| [peft-internal-testing/tiny-random-BertModel](https://huggingface.co/peft-internal-testing/tiny-random-BertModel) | 2025-11-17T12:14:34Z |  |  |  | license_unknown,size_unknown |
+| [melsiddieg/deepseek_ocr_arabic_v2](https://huggingface.co/melsiddieg/deepseek_ocr_arabic_v2) | 2025-11-17T06:19:40Z |  |  |  | license_unknown,size_unknown |
+| [bilalsm/dom-formula-assignment-using-knn](https://huggingface.co/bilalsm/dom-formula-assignment-using-knn) | 2025-11-17T05:49:15Z |  |  |  | license_unknown,size_unknown |
+| [dschulmeist/TiME-de-m](https://huggingface.co/dschulmeist/TiME-de-m) | 2025-11-16T20:34:06Z |  |  |  | license_unknown,size_unknown |
+| [mradermacher/MiniLM-V6Data-SemanticEngine-GGUF](https://huggingface.co/mradermacher/MiniLM-V6Data-SemanticEngine-GGUF) | 2025-11-16T18:22:13Z |  |  |  | license_unknown,size_unknown |
+| [Maxlegrec/ChessLC0](https://huggingface.co/Maxlegrec/ChessLC0) | 2025-11-16T13:29:43Z |  |  |  | license_unknown,size_unknown |
+| [xuanan2001/splade-cocondenser-ensembledistil-onnx](https://huggingface.co/xuanan2001/splade-cocondenser-ensembledistil-onnx) | 2025-11-16T05:10:25Z |  |  |  | license_unknown,size_unknown |
+| [seangogo/summary_from_human_feedback_grpo_100](https://huggingface.co/seangogo/summary_from_human_feedback_grpo_100) | 2025-11-16T03:03:57Z |  |  |  | license_unknown,size_unknown |
+| [mradermacher/V2MiniLM-SemanticEngine-GGUF](https://huggingface.co/mradermacher/V2MiniLM-SemanticEngine-GGUF) | 2025-11-15T20:10:43Z |  |  |  | license_unknown,size_unknown |
+| [FritzStack/mpnet_MH_embedding](https://huggingface.co/FritzStack/mpnet_MH_embedding) | 2025-11-15T11:26:13Z |  |  |  | license_unknown,size_unknown |
+| [diffusion-reasoning/LLaDA-8B-Instruct-wd1-acecode-iter180](https://huggingface.co/diffusion-reasoning/LLaDA-8B-Instruct-wd1-acecode-iter180) | 2025-11-15T10:17:58Z |  |  |  | license_unknown,size_unknown |
+| [CrazyDentisit/DeepSeek-OCR-Chinese-image-unsloth_finetune](https://huggingface.co/CrazyDentisit/DeepSeek-OCR-Chinese-image-unsloth_finetune) | 2025-11-15T09:53:18Z |  |  |  | license_unknown,size_unknown |
+| [melsiddieg/deepseek_ocr_arabic](https://huggingface.co/melsiddieg/deepseek_ocr_arabic) | 2025-11-15T08:51:25Z |  |  |  | license_unknown,size_unknown |
+| [diffusion-reasoning/LLaDA-8B-Instruct-wd1-acecode-iter100](https://huggingface.co/diffusion-reasoning/LLaDA-8B-Instruct-wd1-acecode-iter100) | 2025-11-14T23:53:33Z |  |  |  | license_unknown,size_unknown |
+| [Maxlegrec/ChessBot](https://huggingface.co/Maxlegrec/ChessBot) | 2025-11-14T23:29:52Z |  |  |  | license_unknown,size_unknown |
+| [diffusion-reasoning/LLaDA-8B-Instruct-wd1-acecode-iter60](https://huggingface.co/diffusion-reasoning/LLaDA-8B-Instruct-wd1-acecode-iter60) | 2025-11-14T22:53:26Z |  |  |  | license_unknown,size_unknown |
+| [alakxender/deepseek-ocr-3b-vrd-dhivehi-20k-ml](https://huggingface.co/alakxender/deepseek-ocr-3b-vrd-dhivehi-20k-ml) | 2025-11-14T16:05:12Z |  |  |  | license_unknown,size_unknown |
+| [XiaomiMiMo/MiMo-7B-MTPs](https://huggingface.co/XiaomiMiMo/MiMo-7B-MTPs) | 2025-11-14T12:50:02Z |  |  |  | license_unknown,size_unknown |
+| [Manel/YuE-XCodec](https://huggingface.co/Manel/YuE-XCodec) | 2025-11-14T12:47:41Z |  |  |  | license_unknown,size_unknown |
+| [SujalBajra/facebook-xlmroberta-large-newari-ir-contrastive-encoder](https://huggingface.co/SujalBajra/facebook-xlmroberta-large-newari-ir-contrastive-encoder) | 2025-11-14T11:19:46Z |  |  |  | license_unknown,size_unknown |
+| [mjbommar/binary-tokenizer-001-64k](https://huggingface.co/mjbommar/binary-tokenizer-001-64k) | 2025-11-14T10:16:47Z |  |  |  | license_unknown,size_unknown |
+| [Rishi-28/indic-bert-cased-safetensors](https://huggingface.co/Rishi-28/indic-bert-cased-safetensors) | 2025-11-14T10:08:17Z |  |  |  | license_unknown,size_unknown |
+| [ekacare/parrotlet-e](https://huggingface.co/ekacare/parrotlet-e) | 2025-11-14T06:21:19Z |  |  |  | license_unknown,size_unknown |
+| [tkdrnjs0621/Qwen2.5-3B-Acreason-7000step](https://huggingface.co/tkdrnjs0621/Qwen2.5-3B-Acreason-7000step) | 2025-11-14T04:46:48Z |  |  |  | license_unknown,size_unknown |
+| [tkdrnjs0621/Qwen2.5-3B-Acreason-4500step](https://huggingface.co/tkdrnjs0621/Qwen2.5-3B-Acreason-4500step) | 2025-11-14T04:46:14Z |  |  |  | license_unknown,size_unknown |
+| [tkdrnjs0621/Qwen2.5-3B-Acreason-2000step](https://huggingface.co/tkdrnjs0621/Qwen2.5-3B-Acreason-2000step) | 2025-11-14T04:45:45Z |  |  |  | license_unknown,size_unknown |
+| [BASF-AI/ChEmbed-prog](https://huggingface.co/BASF-AI/ChEmbed-prog) | 2025-11-14T04:36:24Z |  |  |  | license_unknown,size_unknown |
+| [BASF-AI/ChEmbed-vanilla](https://huggingface.co/BASF-AI/ChEmbed-vanilla) | 2025-11-14T04:36:15Z |  |  |  | license_unknown,size_unknown |
+| [BASF-AI/ChEmbed-plug](https://huggingface.co/BASF-AI/ChEmbed-plug) | 2025-11-14T04:35:59Z |  |  |  | license_unknown,size_unknown |
+| [BASF-AI/ChEmbed-full](https://huggingface.co/BASF-AI/ChEmbed-full) | 2025-11-14T04:35:15Z |  |  |  | license_unknown,size_unknown |
+| [Yousefmd/arabic_ocr_model](https://huggingface.co/Yousefmd/arabic_ocr_model) | 2025-11-13T21:34:46Z |  |  |  | license_unknown,size_unknown |
+| [mjbommar/binary-tokenizer-001-32k](https://huggingface.co/mjbommar/binary-tokenizer-001-32k) | 2025-11-13T16:36:43Z |  |  |  | license_unknown,size_unknown |
+| [alakxender/deepseek-ocr-3b-vrd-dhivehi-50k-sl](https://huggingface.co/alakxender/deepseek-ocr-3b-vrd-dhivehi-50k-sl) | 2025-11-13T15:26:40Z |  |  |  | license_unknown,size_unknown |
+| [alakxender/deepseek-ocr-3b-dhivehi-100k-sl](https://huggingface.co/alakxender/deepseek-ocr-3b-dhivehi-100k-sl) | 2025-11-13T15:26:20Z |  |  |  | license_unknown,size_unknown |
+| [v-stone/affine-vic-5](https://huggingface.co/v-stone/affine-vic-5) | 2025-11-13T15:12:29Z |  |  |  | license_unknown,size_unknown |
+| [v-stone/affine-vic-4](https://huggingface.co/v-stone/affine-vic-4) | 2025-11-13T15:07:20Z |  |  |  | license_unknown,size_unknown |
+| [v-stone/affine-vic-3](https://huggingface.co/v-stone/affine-vic-3) | 2025-11-13T15:00:54Z |  |  |  | license_unknown,size_unknown |
+| [v-stone/affine-vic-2](https://huggingface.co/v-stone/affine-vic-2) | 2025-11-13T14:49:59Z |  |  |  | license_unknown,size_unknown |
+| [Aashraf995/KaLM-embedding-multilingual-mini-instruct-v2.5-Q8_0-GGUF](https://huggingface.co/Aashraf995/KaLM-embedding-multilingual-mini-instruct-v2.5-Q8_0-GGUF) | 2025-11-13T13:59:47Z |  |  |  | license_unknown,size_unknown |
+| [mjbommar/glaurung-binary-tokenizer-002](https://huggingface.co/mjbommar/glaurung-binary-tokenizer-002) | 2025-11-13T11:54:43Z |  |  |  | license_unknown,size_unknown |
+| [mjbommar/binary-tokenizer-001-16k](https://huggingface.co/mjbommar/binary-tokenizer-001-16k) | 2025-11-13T11:41:07Z |  |  |  | license_unknown,size_unknown |
+| [mjbommar/binary-tokenizer-001-8k](https://huggingface.co/mjbommar/binary-tokenizer-001-8k) | 2025-11-13T11:40:56Z |  |  |  | license_unknown,size_unknown |
+| [mjbommar/binary-tokenizer-001-4k](https://huggingface.co/mjbommar/binary-tokenizer-001-4k) | 2025-11-13T11:40:44Z |  |  |  | license_unknown,size_unknown |
+| [martinboydron/my-awesome-model](https://huggingface.co/martinboydron/my-awesome-model) | 2025-11-13T10:44:50Z |  |  |  | license_unknown,size_unknown |
+| [omicsNLP/microbELP_NEN](https://huggingface.co/omicsNLP/microbELP_NEN) | 2025-11-13T09:32:00Z |  |  |  | license_unknown,size_unknown |
+| [Casual-Autopsy/Qwen3-Embedding-4B-GGUFs](https://huggingface.co/Casual-Autopsy/Qwen3-Embedding-4B-GGUFs) | 2025-11-13T00:48:53Z |  |  |  | license_unknown,size_unknown |
+| [itskoma/biggityO](https://huggingface.co/itskoma/biggityO) | 2025-11-12T19:17:35Z |  |  |  | license_unknown,size_unknown |
+| [wi-lab/lwm-competition-2025](https://huggingface.co/wi-lab/lwm-competition-2025) | 2025-11-12T17:15:16Z |  |  |  | license_unknown,size_unknown |
+| [PolydorosG/Tyche-8b](https://huggingface.co/PolydorosG/Tyche-8b) | 2025-11-12T16:43:34Z |  |  |  | license_unknown,size_unknown |
+| [Wannabtl/modeltest](https://huggingface.co/Wannabtl/modeltest) | 2025-11-12T16:35:50Z |  |  |  | license_unknown,size_unknown |
+| [HSR-HF/sts-rf-rc-App](https://huggingface.co/HSR-HF/sts-rf-rc-App) | 2025-11-12T15:13:34Z |  |  |  | license_unknown,size_unknown |
+| [OdysseusJamesStirling/my-model-name](https://huggingface.co/OdysseusJamesStirling/my-model-name) | 2025-11-12T15:08:29Z |  |  |  | license_unknown,size_unknown |
+| [DAMO-NLP-SG/SigLIP-NaViT](https://huggingface.co/DAMO-NLP-SG/SigLIP-NaViT) | 2025-11-12T14:55:47Z |  |  |  | license_unknown,size_unknown |
+| [namhqus/my-bert-model](https://huggingface.co/namhqus/my-bert-model) | 2025-11-12T12:39:22Z |  |  |  | license_unknown,size_unknown |
+| [zerostratos/qwen_prm](https://huggingface.co/zerostratos/qwen_prm) | 2025-11-12T12:29:23Z |  |  |  | license_unknown,size_unknown |
+| [Chieko521/my-awesome-model](https://huggingface.co/Chieko521/my-awesome-model) | 2025-11-12T12:00:41Z |  |  |  | license_unknown,size_unknown |
+| [vasyz/Giga-Embeddings-instruct](https://huggingface.co/vasyz/Giga-Embeddings-instruct) | 2025-11-12T10:34:05Z |  |  |  | license_unknown,size_unknown |
+| [wenwu0256/unsloth_finetune](https://huggingface.co/wenwu0256/unsloth_finetune) | 2025-11-12T09:35:22Z |  |  |  | license_unknown,size_unknown |
+| [shawon/deepseek_ocr_f16](https://huggingface.co/shawon/deepseek_ocr_f16) | 2025-11-12T09:14:21Z |  |  |  | license_unknown,size_unknown |
+| [SujalBajra/google-muril-newari-ir-contrastive-encoder](https://huggingface.co/SujalBajra/google-muril-newari-ir-contrastive-encoder) | 2025-11-12T05:30:02Z |  |  |  | license_unknown,size_unknown |
+| [SujalBajra/mlm-pretrained-muril-newari-ir-contrastive-encoder](https://huggingface.co/SujalBajra/mlm-pretrained-muril-newari-ir-contrastive-encoder) | 2025-11-12T04:02:59Z |  |  |  | license_unknown,size_unknown |
+| [touchtop/unsloth_finetune](https://huggingface.co/touchtop/unsloth_finetune) | 2025-11-12T03:20:44Z |  |  |  | license_unknown,size_unknown |
+| [wmere/falcon_moe_1.5Base_E4T2](https://huggingface.co/wmere/falcon_moe_1.5Base_E4T2) | 2025-11-12T02:52:36Z |  |  |  | license_unknown,size_unknown |
+| [wmere/falcon_moe_0.5Base_E8T2](https://huggingface.co/wmere/falcon_moe_0.5Base_E8T2) | 2025-11-12T02:46:27Z |  |  |  | license_unknown,size_unknown |
+| [wmere/falcon_moe_0.5Base_E4T2](https://huggingface.co/wmere/falcon_moe_0.5Base_E4T2) | 2025-11-12T02:32:44Z |  |  |  | license_unknown,size_unknown |
+| [stonesstones/wm_nusc_m_imgtok1024_mask_video_tok_nusc_s_2stage_256_v2](https://huggingface.co/stonesstones/wm_nusc_m_imgtok1024_mask_video_tok_nusc_s_2stage_256_v2) | 2025-11-12T01:55:22Z |  |  |  | license_unknown,size_unknown |
+| [hrezaei/flan-t5la-large](https://huggingface.co/hrezaei/flan-t5la-large) | 2025-11-11T23:17:58Z |  |  |  | license_unknown,size_unknown |
+| [Yousefmd/arabic_ocr](https://huggingface.co/Yousefmd/arabic_ocr) | 2025-11-11T22:50:27Z |  |  |  | license_unknown,size_unknown |
+| [OHNLP/MedSDoH](https://huggingface.co/OHNLP/MedSDoH) | 2025-11-11T21:01:06Z |  |  |  | license_unknown,size_unknown |
+| [parthvpatil18/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab](https://huggingface.co/parthvpatil18/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab) | 2025-11-11T18:30:47Z |  |  |  | license_unknown,size_unknown |
+| [Korla/whisper-large-v3-turbo-hsb-0](https://huggingface.co/Korla/whisper-large-v3-turbo-hsb-0) | 2025-11-11T16:25:18Z |  |  |  | license_unknown,size_unknown |
+| [jq/sunflower-ultravox-251111](https://huggingface.co/jq/sunflower-ultravox-251111) | 2025-11-11T15:20:56Z |  |  |  | license_unknown,size_unknown |
+| [Yagna1/deepseek-ocr-telugu-chitralekha](https://huggingface.co/Yagna1/deepseek-ocr-telugu-chitralekha) | 2025-11-11T13:50:36Z |  |  |  | license_unknown,size_unknown |
+| [Rishi-28/muril-base-cased-safetensors](https://huggingface.co/Rishi-28/muril-base-cased-safetensors) | 2025-11-11T13:17:55Z |  |  |  | license_unknown,size_unknown |
+| [Elpmis/Qwen3-0.6B-soft-thinking-last-token-naive-top-all](https://huggingface.co/Elpmis/Qwen3-0.6B-soft-thinking-last-token-naive-top-all) | 2025-11-11T11:16:58Z |  |  |  | license_unknown,size_unknown |
+| [Elpmis/Qwen3-0.6B-soft-thinking-last-token-naive-topk30](https://huggingface.co/Elpmis/Qwen3-0.6B-soft-thinking-last-token-naive-topk30) | 2025-11-11T11:07:06Z |  |  |  | license_unknown,size_unknown |
+| [DoNotChoke/zaloai-track2-vintern_1B_3.5](https://huggingface.co/DoNotChoke/zaloai-track2-vintern_1B_3.5) | 2025-11-11T10:48:48Z |  |  |  | license_unknown,size_unknown |
+| [Elpmis/Qwen3-0.6B-direct-embedding-last-token-naive](https://huggingface.co/Elpmis/Qwen3-0.6B-direct-embedding-last-token-naive) | 2025-11-11T09:28:53Z |  |  |  | license_unknown,size_unknown |
+| [Elpmis/Qwen3-0.6B-soft-thinking-last-token-PRL](https://huggingface.co/Elpmis/Qwen3-0.6B-soft-thinking-last-token-PRL) | 2025-11-11T08:39:35Z |  |  |  | license_unknown,size_unknown |
+| [Elpmis/Qwen3-0.6B-soft-thinking-concept-mean-naive](https://huggingface.co/Elpmis/Qwen3-0.6B-soft-thinking-concept-mean-naive) | 2025-11-11T05:52:02Z |  |  |  | license_unknown,size_unknown |
+| [Elpmis/Qwen3-0.6B-soft-thinking-concept-mean-ICR](https://huggingface.co/Elpmis/Qwen3-0.6B-soft-thinking-concept-mean-ICR) | 2025-11-11T05:43:31Z |  |  |  | license_unknown,size_unknown |
+| [Elpmis/Qwen3-0.6B-soft-thinking-concept-mean-ERL](https://huggingface.co/Elpmis/Qwen3-0.6B-soft-thinking-concept-mean-ERL) | 2025-11-11T04:58:20Z |  |  |  | license_unknown,size_unknown |
+| [Elpmis/Qwen3-0.6B-vanilla](https://huggingface.co/Elpmis/Qwen3-0.6B-vanilla) | 2025-11-11T04:49:10Z |  |  |  | license_unknown,size_unknown |
+| [cgpadwick2020/a-test-model](https://huggingface.co/cgpadwick2020/a-test-model) | 2025-11-11T03:27:41Z |  |  |  | license_unknown,size_unknown |
+| [seangogo/dpo_summary_from_human_feedback](https://huggingface.co/seangogo/dpo_summary_from_human_feedback) | 2025-11-11T02:40:26Z |  |  |  | license_unknown,size_unknown |
+| [ahmed-masry/vjepa2-vitl-fpc64-256](https://huggingface.co/ahmed-masry/vjepa2-vitl-fpc64-256) | 2025-11-10T23:26:06Z |  |  |  | license_unknown,size_unknown |
+| [ashzadkamal/my-awesome-model](https://huggingface.co/ashzadkamal/my-awesome-model) | 2025-11-10T20:45:20Z |  |  |  | license_unknown,size_unknown |
+| [InstaDeepAI/MOJO](https://huggingface.co/InstaDeepAI/MOJO) | 2025-11-10T15:23:12Z |  |  |  | license_unknown,size_unknown |
+| [InstaDeepAI/BulkRNABert](https://huggingface.co/InstaDeepAI/BulkRNABert) | 2025-11-10T15:18:24Z |  |  |  | license_unknown,size_unknown |
+| [EMBO/negative_sampling_pmb](https://huggingface.co/EMBO/negative_sampling_pmb) | 2025-11-10T13:55:22Z |  |  |  | license_unknown,size_unknown |
+| [EMBO/vicreg_our](https://huggingface.co/EMBO/vicreg_our) | 2025-11-10T13:34:53Z |  |  |  | license_unknown,size_unknown |
+| [EMBO/vicreg_our_contrast](https://huggingface.co/EMBO/vicreg_our_contrast) | 2025-11-10T13:23:30Z |  |  |  | license_unknown,size_unknown |
+| [EMBO/vicreg_exact](https://huggingface.co/EMBO/vicreg_exact) | 2025-11-10T13:15:45Z |  |  |  | license_unknown,size_unknown |
+| [EMBO/dot_only](https://huggingface.co/EMBO/dot_only) | 2025-11-10T13:12:27Z |  |  |  | license_unknown,size_unknown |
+| [laurapayancepe/my_emotion_model](https://huggingface.co/laurapayancepe/my_emotion_model) | 2025-11-10T08:59:51Z |  |  |  | license_unknown,size_unknown |
+| [jingjietan/essays_all-mpnet-base-v2_fine_tuned](https://huggingface.co/jingjietan/essays_all-mpnet-base-v2_fine_tuned) | 2025-11-10T03:11:23Z |  |  |  | license_unknown,size_unknown |
+| [DanielDo98/ocr_finetune](https://huggingface.co/DanielDo98/ocr_finetune) | 2025-11-09T22:21:40Z |  |  |  | license_unknown,size_unknown |
+| [intexcp/gigactc](https://huggingface.co/intexcp/gigactc) | 2025-11-09T20:10:17Z |  |  |  | license_unknown,size_unknown |
+| [Aashraf995/Qwen3-Embedding-0.6B-Q8_0-GGUF](https://huggingface.co/Aashraf995/Qwen3-Embedding-0.6B-Q8_0-GGUF) | 2025-11-09T19:34:39Z |  |  |  | license_unknown,size_unknown |
+| [zakir0101/ocr_model_b16](https://huggingface.co/zakir0101/ocr_model_b16) | 2025-11-09T19:26:42Z |  |  |  | license_unknown,size_unknown |
+| [DIvest1ng/meme_clip](https://huggingface.co/DIvest1ng/meme_clip) | 2025-11-09T18:17:23Z |  |  |  | license_unknown,size_unknown |
+| [s8frbroy/talk2ref_query_talk_encoder](https://huggingface.co/s8frbroy/talk2ref_query_talk_encoder) | 2025-11-09T15:59:15Z |  |  |  | license_unknown,size_unknown |
+| [virajkgajjar/my_first_model_push](https://huggingface.co/virajkgajjar/my_first_model_push) | 2025-11-08T21:02:51Z |  |  |  | license_unknown,size_unknown |
+| [jaytonde05/qat_model-torchao](https://huggingface.co/jaytonde05/qat_model-torchao) | 2025-11-08T14:16:57Z |  |  |  | license_unknown,size_unknown |
+| [virtual-human-chc/prot_xlnet](https://huggingface.co/virtual-human-chc/prot_xlnet) | 2025-11-08T12:56:40Z |  |  |  | license_unknown,size_unknown |
+| [aloeme/chuvash_gpt_54_12_768_5epoch](https://huggingface.co/aloeme/chuvash_gpt_54_12_768_5epoch) | 2025-11-08T08:15:25Z |  |  |  | license_unknown,size_unknown |
+| [seangogo/Qwen2.5-1.5B_reward_model_v2_normalized](https://huggingface.co/seangogo/Qwen2.5-1.5B_reward_model_v2_normalized) | 2025-11-08T07:10:37Z |  |  |  | license_unknown,size_unknown |
+| [mathguyjimbo/test](https://huggingface.co/mathguyjimbo/test) | 2025-11-08T06:20:31Z |  |  |  | license_unknown,size_unknown |
+| [vinhnx90/deepseek-orc-3b-persian-detection-f16-vllm](https://huggingface.co/vinhnx90/deepseek-orc-3b-persian-detection-f16-vllm) | 2025-11-08T04:02:41Z |  |  |  | license_unknown,size_unknown |
+| [kuleshov-group/PlantCaduceus_l20](https://huggingface.co/kuleshov-group/PlantCaduceus_l20) | 2025-11-08T02:57:02Z |  |  |  | license_unknown,size_unknown |
+| [kuleshov-group/PlantCaduceus_l24](https://huggingface.co/kuleshov-group/PlantCaduceus_l24) | 2025-11-08T02:56:08Z |  |  |  | license_unknown,size_unknown |
+| [kuleshov-group/PlantCaduceus_l28](https://huggingface.co/kuleshov-group/PlantCaduceus_l28) | 2025-11-08T02:54:42Z |  |  |  | license_unknown,size_unknown |
+| [kuleshov-group/PlantCaduceus_l32](https://huggingface.co/kuleshov-group/PlantCaduceus_l32) | 2025-11-08T02:47:56Z |  |  |  | license_unknown,size_unknown |
+| [Etherll/granite-4.0-h-tiny-base-bnb-4bit](https://huggingface.co/Etherll/granite-4.0-h-tiny-base-bnb-4bit) | 2025-11-07T23:43:41Z |  |  |  | license_unknown,size_unknown |
+| [nhhsag12/deepseek-ocr-viettel-ai-race-60-steps](https://huggingface.co/nhhsag12/deepseek-ocr-viettel-ai-race-60-steps) | 2025-11-07T23:25:09Z |  |  |  | license_unknown,size_unknown |
+| [aloeme/chuvash_gpt_54_12_768_1epoch](https://huggingface.co/aloeme/chuvash_gpt_54_12_768_1epoch) | 2025-11-07T21:17:40Z |  |  |  | license_unknown,size_unknown |
+| [yosefw/SPLADE-BERT-Tiny-BS256-domain-adapted](https://huggingface.co/yosefw/SPLADE-BERT-Tiny-BS256-domain-adapted) | 2025-11-07T19:56:04Z |  |  |  | license_unknown,size_unknown |
+| [seangogo/Qwen2.5-1.5B_reward_model_v2](https://huggingface.co/seangogo/Qwen2.5-1.5B_reward_model_v2) | 2025-11-07T18:12:27Z |  |  |  | license_unknown,size_unknown |
+| [emedranoGW/my-awesome-model](https://huggingface.co/emedranoGW/my-awesome-model) | 2025-11-07T16:02:41Z |  |  |  | license_unknown,size_unknown |
+| [adilliadil/bert-base-cased-v07.11.2025](https://huggingface.co/adilliadil/bert-base-cased-v07.11.2025) | 2025-11-07T13:17:22Z |  |  |  | license_unknown,size_unknown |
+| [baconnier/deepseek_OCR_finetune_fr](https://huggingface.co/baconnier/deepseek_OCR_finetune_fr) | 2025-11-07T11:20:31Z |  |  |  | license_unknown,size_unknown |
+| [Qwen/Qwen3Guard-Stream-0.6B](https://huggingface.co/Qwen/Qwen3Guard-Stream-0.6B) | 2025-11-07T07:36:26Z |  |  |  | license_unknown,size_unknown |
+| [Qwen/Qwen3Guard-Stream-8B](https://huggingface.co/Qwen/Qwen3Guard-Stream-8B) | 2025-11-07T07:35:13Z |  |  |  | license_unknown,size_unknown |
+| [Qwen/Qwen3Guard-Stream-4B](https://huggingface.co/Qwen/Qwen3Guard-Stream-4B) | 2025-11-07T07:34:37Z |  |  |  | license_unknown,size_unknown |
+| [labhamlet/gramt-ambisonics](https://huggingface.co/labhamlet/gramt-ambisonics) | 2025-11-07T07:32:32Z |  |  |  | license_unknown,size_unknown |
+| [omrisap/Qwen2.5-Math-PRM-1.5B_bf16](https://huggingface.co/omrisap/Qwen2.5-Math-PRM-1.5B_bf16) | 2025-11-07T06:49:40Z |  |  |  | license_unknown,size_unknown |
+| [midwestern-simulation/essence-3b-v2](https://huggingface.co/midwestern-simulation/essence-3b-v2) | 2025-11-07T03:18:09Z |  |  |  | license_unknown,size_unknown |
+| [midwestern-simulation-active/essence-3b-v2.1](https://huggingface.co/midwestern-simulation-active/essence-3b-v2.1) | 2025-11-07T03:17:16Z |  |  |  | license_unknown,size_unknown |
+| [NexaAI/embeddinggemma-300m-npu](https://huggingface.co/NexaAI/embeddinggemma-300m-npu) | 2025-11-07T01:41:08Z |  |  |  | license_unknown,size_unknown |
+| [axrml/vlm1_ads_merged_intern](https://huggingface.co/axrml/vlm1_ads_merged_intern) | 2025-11-06T17:22:40Z |  |  |  | license_unknown,size_unknown |
+| [rosavs/my-awesome-model](https://huggingface.co/rosavs/my-awesome-model) | 2025-11-06T16:49:08Z |  |  |  | license_unknown,size_unknown |
+| [labhamlet/wavjepa-base](https://huggingface.co/labhamlet/wavjepa-base) | 2025-11-06T15:49:45Z |  |  |  | license_unknown,size_unknown |
+| [labhamlet/wavjepa-nat-base](https://huggingface.co/labhamlet/wavjepa-nat-base) | 2025-11-06T15:46:21Z |  |  |  | license_unknown,size_unknown |
+| [Hhsjsnns/my-awesome-model](https://huggingface.co/Hhsjsnns/my-awesome-model) | 2025-11-06T15:37:24Z |  |  |  | license_unknown,size_unknown |
+| [selfconstruct3d/AttackGroup-MPNET](https://huggingface.co/selfconstruct3d/AttackGroup-MPNET) | 2025-11-06T09:28:06Z |  |  |  | license_unknown,size_unknown |
+| [selfconstruct3d/AITGroupEMB](https://huggingface.co/selfconstruct3d/AITGroupEMB) | 2025-11-06T09:27:36Z |  |  |  | license_unknown,size_unknown |
+| [selfconstruct3d/mpnet-classification-finetuned-cyber-groups](https://huggingface.co/selfconstruct3d/mpnet-classification-finetuned-cyber-groups) | 2025-11-06T09:25:04Z |  |  |  | license_unknown,size_unknown |
+| [louisun/DeepSeek-OCR-FT](https://huggingface.co/louisun/DeepSeek-OCR-FT) | 2025-11-06T06:10:12Z |  |  |  | license_unknown,size_unknown |
+| [bizreach-inc/light-splade-japanese-56M](https://huggingface.co/bizreach-inc/light-splade-japanese-56M) | 2025-11-06T01:45:59Z |  |  |  | license_unknown,size_unknown |
+| [bizreach-inc/light-splade-japanese-14M](https://huggingface.co/bizreach-inc/light-splade-japanese-14M) | 2025-11-06T01:44:56Z |  |  |  | license_unknown,size_unknown |
+| [line-corporation/clip-japanese-base](https://huggingface.co/line-corporation/clip-japanese-base) | 2025-11-06T00:30:57Z |  |  |  | license_unknown,size_unknown |
+| [akera/sunflower32b-whisperv3-uvx-salt-all-lora-30s](https://huggingface.co/akera/sunflower32b-whisperv3-uvx-salt-all-lora-30s) | 2025-11-05T21:47:51Z |  |  |  | license_unknown,size_unknown |
+| [ahmedfarazsyk/my-awesome-bert](https://huggingface.co/ahmedfarazsyk/my-awesome-bert) | 2025-11-05T20:01:11Z |  |  |  | license_unknown,size_unknown |
+| [bumblebee-testing/tiny-random-Qwen3Model](https://huggingface.co/bumblebee-testing/tiny-random-Qwen3Model) | 2025-11-05T15:53:27Z |  |  |  | license_unknown,size_unknown |
+| [labhamlet/gramt-binaural-frame](https://huggingface.co/labhamlet/gramt-binaural-frame) | 2025-11-05T11:17:01Z |  |  |  | license_unknown,size_unknown |
+| [labhamlet/gramt-binaural-time](https://huggingface.co/labhamlet/gramt-binaural-time) | 2025-11-05T11:17:00Z |  |  |  | license_unknown,size_unknown |
+| [labhamlet/gramt-mono](https://huggingface.co/labhamlet/gramt-mono) | 2025-11-05T11:14:24Z |  |  |  | license_unknown,size_unknown |
+| [kyutai/ARC8_Encoder_multi](https://huggingface.co/kyutai/ARC8_Encoder_multi) | 2025-11-05T10:37:05Z |  |  |  | license_unknown,size_unknown |
+| [stonesstones/wm_nusc_m_imgtok256_video_tok_nusc_s_res256_pn256_2stage](https://huggingface.co/stonesstones/wm_nusc_m_imgtok256_video_tok_nusc_s_res256_pn256_2stage) | 2025-11-05T10:31:35Z |  |  |  | license_unknown,size_unknown |
+| [kyutai/ARC8_Encoder_Mistral](https://huggingface.co/kyutai/ARC8_Encoder_Mistral) | 2025-11-05T10:00:59Z |  |  |  | license_unknown,size_unknown |
+| [kyutai/ARC8_Encoder_Llama](https://huggingface.co/kyutai/ARC8_Encoder_Llama) | 2025-11-05T10:00:27Z |  |  |  | license_unknown,size_unknown |
+| [arad1367/Deepseek_OCR_FL_1000Samples_3B](https://huggingface.co/arad1367/Deepseek_OCR_FL_1000Samples_3B) | 2025-11-05T09:55:40Z |  |  |  | license_unknown,size_unknown |
+| [GumJump/qwen_7b_vl_instruct_vggt_1b_raw](https://huggingface.co/GumJump/qwen_7b_vl_instruct_vggt_1b_raw) | 2025-11-05T09:55:18Z |  |  |  | license_unknown,size_unknown |
+| [HuangRT/SmolVLM-500M-Instruct-bl-15](https://huggingface.co/HuangRT/SmolVLM-500M-Instruct-bl-15) | 2025-11-05T08:04:34Z |  |  |  | license_unknown,size_unknown |
+| [HuangRT/SmolVLM-500M-Instruct-bl-15-stage2-new](https://huggingface.co/HuangRT/SmolVLM-500M-Instruct-bl-15-stage2-new) | 2025-11-05T01:28:16Z |  |  |  | license_unknown,size_unknown |
+| [wekW/my-finetuned-bert](https://huggingface.co/wekW/my-finetuned-bert) | 2025-11-04T21:10:00Z |  |  |  | license_unknown,size_unknown |
+| [3145tttt/arm_gpt_GPT2_88_12_768](https://huggingface.co/3145tttt/arm_gpt_GPT2_88_12_768) | 2025-11-04T19:36:10Z |  |  |  | license_unknown,size_unknown |
+| [akera/sunflower32b-whisperv3-ultravox-en](https://huggingface.co/akera/sunflower32b-whisperv3-ultravox-en) | 2025-11-04T19:06:37Z |  |  |  | license_unknown,size_unknown |
+| [axrml/vlm2_ads_merged_intern](https://huggingface.co/axrml/vlm2_ads_merged_intern) | 2025-11-04T17:33:52Z |  |  |  | license_unknown,size_unknown |
+| [medialab-sciencespo/Qwen3-Embedding-0.6B-ONNX](https://huggingface.co/medialab-sciencespo/Qwen3-Embedding-0.6B-ONNX) | 2025-11-04T17:29:00Z |  |  |  | license_unknown,size_unknown |
+| [marinakjt/my-awesome-model](https://huggingface.co/marinakjt/my-awesome-model) | 2025-11-04T14:19:12Z |  |  |  | license_unknown,size_unknown |
+| [annamos/CamemBERTv2-Wikt-base-allpos](https://huggingface.co/annamos/CamemBERTv2-Wikt-base-allpos) | 2025-11-04T12:56:21Z |  |  |  | license_unknown,size_unknown |
+| [dqubit/FRIDA-F16](https://huggingface.co/dqubit/FRIDA-F16) | 2025-11-04T11:33:22Z |  |  |  | license_unknown,size_unknown |
+| [DibenduBera/bert-hfc2t2](https://huggingface.co/DibenduBera/bert-hfc2t2) | 2025-11-04T10:33:07Z |  |  |  | license_unknown,size_unknown |
+| [KaLM-Embedding/KaLM-embedding-multilingual-mini-instruct-v2.5](https://huggingface.co/KaLM-Embedding/KaLM-embedding-multilingual-mini-instruct-v2.5) | 2025-11-04T10:29:34Z |  |  |  | license_unknown,size_unknown |
+| [eunbie/patent-model-success](https://huggingface.co/eunbie/patent-model-success) | 2025-11-04T10:14:42Z |  |  |  | license_unknown,size_unknown |
+| [OHNLP/ENACT-Delirium](https://huggingface.co/OHNLP/ENACT-Delirium) | 2025-11-04T04:55:00Z |  |  |  | license_unknown,size_unknown |
+| [SharpAI/dinov3-vitb16-pretrain-lvd1689m-coreml-INT8-448x448](https://huggingface.co/SharpAI/dinov3-vitb16-pretrain-lvd1689m-coreml-INT8-448x448) | 2025-11-04T03:37:25Z |  |  |  | license_unknown,size_unknown |
+| [SharpAI/dinov3-vitb16-pretrain-lvd1689m-coreml-FP16-448x448](https://huggingface.co/SharpAI/dinov3-vitb16-pretrain-lvd1689m-coreml-FP16-448x448) | 2025-11-04T03:36:46Z |  |  |  | license_unknown,size_unknown |
+| [SharpAI/dinov3-vitb16-pretrain-lvd1689m-coreml-FP32-448x448](https://huggingface.co/SharpAI/dinov3-vitb16-pretrain-lvd1689m-coreml-FP32-448x448) | 2025-11-04T03:36:36Z |  |  |  | license_unknown,size_unknown |
+| [366degrees/snp-universal-embedding](https://huggingface.co/366degrees/snp-universal-embedding) | 2025-11-04T03:08:15Z |  |  |  | license_unknown,size_unknown |
+| [SharpAI/dinov3-vitb16-pretrain-lvd1689m-coreml-INT8-560x560](https://huggingface.co/SharpAI/dinov3-vitb16-pretrain-lvd1689m-coreml-INT8-560x560) | 2025-11-04T00:58:38Z |  |  |  | license_unknown,size_unknown |
+| [SharpAI/dinov3-vitb16-pretrain-lvd1689m-coreml-FP16-560x560](https://huggingface.co/SharpAI/dinov3-vitb16-pretrain-lvd1689m-coreml-FP16-560x560) | 2025-11-04T00:58:29Z |  |  |  | license_unknown,size_unknown |
+| [SharpAI/dinov3-vitb16-pretrain-lvd1689m-coreml-FP32-560x560](https://huggingface.co/SharpAI/dinov3-vitb16-pretrain-lvd1689m-coreml-FP32-560x560) | 2025-11-04T00:58:22Z |  |  |  | license_unknown,size_unknown |
+| [SharpAI/dinov3-vits16-pretrain-lvd1689m-coreml-FP32-224x224](https://huggingface.co/SharpAI/dinov3-vits16-pretrain-lvd1689m-coreml-FP32-224x224) | 2025-11-04T00:31:15Z |  |  |  | license_unknown,size_unknown |
+| [SharpAI/dinov3-vits16-pretrain-lvd1689m-coreml-INT8-224x224](https://huggingface.co/SharpAI/dinov3-vits16-pretrain-lvd1689m-coreml-INT8-224x224) | 2025-11-04T00:29:07Z |  |  |  | license_unknown,size_unknown |
+| [SharpAI/dinov3-vits16-pretrain-lvd1689m-coreml-INT8-336x336](https://huggingface.co/SharpAI/dinov3-vits16-pretrain-lvd1689m-coreml-INT8-336x336) | 2025-11-04T00:20:03Z |  |  |  | license_unknown,size_unknown |
+| [SharpAI/dinov3-vits16-pretrain-lvd1689m-coreml-FP16-336x336](https://huggingface.co/SharpAI/dinov3-vits16-pretrain-lvd1689m-coreml-FP16-336x336) | 2025-11-04T00:19:58Z |  |  |  | license_unknown,size_unknown |
+| [SharpAI/dinov3-vits16-pretrain-lvd1689m-coreml-FP32-336x336](https://huggingface.co/SharpAI/dinov3-vits16-pretrain-lvd1689m-coreml-FP32-336x336) | 2025-11-04T00:19:53Z |  |  |  | license_unknown,size_unknown |
+| [optimum/bge-base-en-v1.5-neuronx](https://huggingface.co/optimum/bge-base-en-v1.5-neuronx) | 2025-11-03T10:58:29Z |  |  |  | license_unknown,size_unknown |
+| [Knehm/nemo-nano-codec-22khz-1.89kbps-21.5fps-ONNX](https://huggingface.co/Knehm/nemo-nano-codec-22khz-1.89kbps-21.5fps-ONNX) | 2025-11-03T02:29:50Z |  |  |  | license_unknown,size_unknown |
+| [Knehm/nemo-nano-codec-22khz-1.78kbps-12.5fps-ONNX](https://huggingface.co/Knehm/nemo-nano-codec-22khz-1.78kbps-12.5fps-ONNX) | 2025-11-03T02:29:36Z |  |  |  | license_unknown,size_unknown |
+| [Knehm/nemo-nano-codec-22khz-0.6kbps-12.5fps-ONNX](https://huggingface.co/Knehm/nemo-nano-codec-22khz-0.6kbps-12.5fps-ONNX) | 2025-11-03T02:28:53Z |  |  |  | license_unknown,size_unknown |
+| [Nayana-cognitivelab/Llama_Nemotron_SectionOCR_SFT_En_Kn_250](https://huggingface.co/Nayana-cognitivelab/Llama_Nemotron_SectionOCR_SFT_En_Kn_250) | 2025-11-02T18:35:57Z |  |  |  | license_unknown,size_unknown |
+| [v1v1d/nemotron-layout-detection-lora](https://huggingface.co/v1v1d/nemotron-layout-detection-lora) | 2025-11-02T15:46:10Z |  |  |  | license_unknown,size_unknown |
+| [canersahin/SmolVLM2-500M-Video-Instruct-video-feedback](https://huggingface.co/canersahin/SmolVLM2-500M-Video-Instruct-video-feedback) | 2025-11-01T10:26:14Z |  |  |  | license_unknown,size_unknown |
+| [endyjasmi/Qwen3-Embedding-0.6B-Q4_K_M-GGUF](https://huggingface.co/endyjasmi/Qwen3-Embedding-0.6B-Q4_K_M-GGUF) | 2025-11-01T10:23:19Z |  |  |  | license_unknown,size_unknown |
+| [endyjasmi/Qwen3-Embedding-4B-Q4_K_M-GGUF](https://huggingface.co/endyjasmi/Qwen3-Embedding-4B-Q4_K_M-GGUF) | 2025-11-01T10:20:48Z |  |  |  | license_unknown,size_unknown |
+| [endyjasmi/Qwen3-Embedding-8B-Q4_K_M-GGUF](https://huggingface.co/endyjasmi/Qwen3-Embedding-8B-Q4_K_M-GGUF) | 2025-11-01T09:58:14Z |  |  |  | license_unknown,size_unknown |
+| [Sukmin/toy-bert-model](https://huggingface.co/Sukmin/toy-bert-model) | 2025-11-01T05:13:37Z |  |  |  | license_unknown,size_unknown |
+| [echovl/roberta-bne-autex-new](https://huggingface.co/echovl/roberta-bne-autex-new) | 2025-11-01T04:06:56Z |  |  |  | license_unknown,size_unknown |
+| [SharpAI/dinov3-vits16-pretrain-lvd1689m-coreml-INT8-560x560](https://huggingface.co/SharpAI/dinov3-vits16-pretrain-lvd1689m-coreml-INT8-560x560) | 2025-11-01T01:05:05Z |  |  |  | license_unknown,size_unknown |
+| [SharpAI/dinov3-vits16-pretrain-lvd1689m-coreml-FP16-560x560](https://huggingface.co/SharpAI/dinov3-vits16-pretrain-lvd1689m-coreml-FP16-560x560) | 2025-11-01T01:04:56Z |  |  |  | license_unknown,size_unknown |
+| [SharpAI/dinov3-vits16-pretrain-lvd1689m-coreml-FP32-560x560](https://huggingface.co/SharpAI/dinov3-vits16-pretrain-lvd1689m-coreml-FP32-560x560) | 2025-11-01T01:04:51Z |  |  |  | license_unknown,size_unknown |
+
+## Baseline
+| Model | Last Modified | Size MB (min/max) | License | Formats | Flags |
+|---|---|---|---|---|---|
+
+## Rejected
+| Model | Last Modified | Size MB (min/max) | License | Formats | Flags |
+|---|---|---|---|---|---|
