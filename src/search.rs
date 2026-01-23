@@ -515,6 +515,7 @@ impl SearchEngine {
     /// # Errors
     ///
     /// Returns an error if the query cannot be parsed or the search fails.
+    #[allow(clippy::too_many_lines)]
     pub fn search(
         &self,
         query_str: &str,

@@ -70,6 +70,7 @@ mod tests {
             Ok(vec![0.0; documents.len()])
         }
 
+        #[allow(clippy::unnecessary_literal_bound)]
         fn model_name(&self) -> &str {
             "dummy"
         }

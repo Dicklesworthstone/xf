@@ -6,7 +6,7 @@ use anyhow::Result;
 use serde::Serialize;
 
 use crate::benchmark::datasets::BenchmarkCorpus;
-use crate::benchmark::metrics::{percentile, SpeedMetrics};
+use crate::benchmark::metrics::{SpeedMetrics, percentile};
 use crate::embedder::Embedder;
 
 /// Configuration for a benchmark run.
@@ -46,6 +46,7 @@ pub struct BenchmarkResult {
 }
 
 /// Run an embedding benchmark using a factory to capture cold start time.
+#[allow(clippy::cast_precision_loss)]
 pub fn run_embedding_benchmark<F>(
     factory: F,
     corpus: &BenchmarkCorpus,
@@ -151,12 +152,9 @@ mod tests {
             batch_size: 2,
         };
 
-        let result = run_embedding_benchmark(
-            || Ok(Box::new(HashEmbedder::default())),
-            &corpus,
-            &config,
-        )
-        .expect("benchmark failed");
+        let result =
+            run_embedding_benchmark(|| Ok(Box::new(HashEmbedder::default())), &corpus, &config)
+                .expect("benchmark failed");
 
         assert!(result.speed.warm_latency_p50_ms >= 0.0);
         assert!(result.speed.throughput_docs_per_sec >= 0.0);

@@ -170,6 +170,7 @@ pub struct IndexArgs {
   xf search "2024" --since "last week" # Recent content
   xf search "bug" --limit 50           # More results
 "#)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct SearchArgs {
     /// Search query
     pub query: String,

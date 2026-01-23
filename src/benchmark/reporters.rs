@@ -1,7 +1,8 @@
 //! Reporters for benchmark results.
 
+use std::fmt::Write as FmtWrite;
 use std::fs::File;
-use std::io::{Write, BufWriter};
+use std::io::{BufWriter, Write};
 use std::path::Path;
 
 use anyhow::Result;
@@ -40,32 +41,38 @@ pub fn write_json(path: &Path, result: &BenchmarkResult) -> Result<()> {
 pub fn write_markdown(path: &Path, result: &BenchmarkResult) -> Result<()> {
     let mut out = String::new();
     out.push_str("# Benchmark Report\n\n");
-    out.push_str(&format!("Model: `{}`\n\n", result.metadata.model));
+    let _ = writeln!(out, "Model: `{}`\n", result.metadata.model);
     out.push_str("| Metric | Value |\n|---|---|\n");
-    out.push_str(&format!(
-        "| Cold start (ms) | {:.2} |\n",
+    let _ = writeln!(
+        out,
+        "| Cold start (ms) | {:.2} |",
         result.speed.cold_start_ms
-    ));
-    out.push_str(&format!(
-        "| TTFR (ms) | {:.2} |\n",
+    );
+    let _ = writeln!(
+        out,
+        "| TTFR (ms) | {:.2} |",
         result.speed.time_to_first_result_ms
-    ));
-    out.push_str(&format!(
-        "| Warm p50 (ms) | {:.2} |\n",
+    );
+    let _ = writeln!(
+        out,
+        "| Warm p50 (ms) | {:.2} |",
         result.speed.warm_latency_p50_ms
-    ));
-    out.push_str(&format!(
-        "| Warm p95 (ms) | {:.2} |\n",
+    );
+    let _ = writeln!(
+        out,
+        "| Warm p95 (ms) | {:.2} |",
         result.speed.warm_latency_p95_ms
-    ));
-    out.push_str(&format!(
-        "| Warm p99 (ms) | {:.2} |\n",
+    );
+    let _ = writeln!(
+        out,
+        "| Warm p99 (ms) | {:.2} |",
         result.speed.warm_latency_p99_ms
-    ));
-    out.push_str(&format!(
-        "| Throughput (docs/sec) | {:.2} |\n",
+    );
+    let _ = writeln!(
+        out,
+        "| Throughput (docs/sec) | {:.2} |",
         result.speed.throughput_docs_per_sec
-    ));
+    );
     std::fs::write(path, out)?;
     Ok(())
 }

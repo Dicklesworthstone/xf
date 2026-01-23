@@ -80,16 +80,15 @@ impl FastEmbedModelEmbedder {
             init = init.with_cache_dir(dir);
         }
 
-        let embedding = TextEmbedding::try_new(init).map_err(|e| {
-            EmbedderError::Internal(format!("failed to load FastEmbed model: {e}"))
-        })?;
+        let embedding = TextEmbedding::try_new(init)
+            .map_err(|e| EmbedderError::Internal(format!("failed to load FastEmbed model: {e}")))?;
 
         let dim = {
             // Probe a single embedding to derive dimension.
             let probe = embedding
                 .embed(vec!["dimension probe"], None)
                 .map_err(|e| EmbedderError::EmbeddingFailed(format!("probe failed: {e}")))?;
-            probe.first().map(|v| v.len()).unwrap_or(0)
+            probe.first().map_or(0, Vec::len)
         };
 
         if dim == 0 {
@@ -138,9 +137,8 @@ impl FastEmbedder {
             .with_cache_dir(model_dir.to_path_buf())
             .with_show_download_progress(false);
 
-        let model = TextEmbedding::try_new(init_options).map_err(|e| {
-            EmbedderError::Internal(format!("failed to load MiniLM model: {e}"))
-        })?;
+        let model = TextEmbedding::try_new(init_options)
+            .map_err(|e| EmbedderError::Internal(format!("failed to load MiniLM model: {e}")))?;
 
         Ok(Self {
             model: Mutex::new(model),
@@ -195,18 +193,18 @@ impl FastEmbedder {
         }
 
         // Model not found, download it
-        let cache_dir = dirs::cache_dir()
-            .map(|p| p.join("fastembed"))
-            .unwrap_or_else(|| std::path::PathBuf::from(".cache/fastembed"));
+        let cache_dir = dirs::cache_dir().map_or_else(
+            || std::path::PathBuf::from(".cache/fastembed"),
+            |p| p.join("fastembed"),
+        );
 
         // Create cache directory if needed
-        std::fs::create_dir_all(&cache_dir).map_err(|e| {
-            EmbedderError::Internal(format!("failed to create cache dir: {e}"))
-        })?;
+        std::fs::create_dir_all(&cache_dir)
+            .map_err(|e| EmbedderError::Internal(format!("failed to create cache dir: {e}")))?;
 
         // Initialize with download enabled
         let init_options = InitOptions::new(MODEL_ID)
-            .with_cache_dir(cache_dir.clone())
+            .with_cache_dir(cache_dir)
             .with_show_download_progress(show_progress);
 
         let model = TextEmbedding::try_new(init_options).map_err(|e| {
@@ -257,17 +255,20 @@ impl Embedder for FastEmbedder {
             return Err(EmbedderError::InvalidInput("empty text".to_string()));
         }
 
-        let model = self.model.lock().map_err(|e| {
-            EmbedderError::Internal(format!("model lock poisoned: {e}"))
-        })?;
+        let embeddings = {
+            let model = self
+                .model
+                .lock()
+                .map_err(|e| EmbedderError::Internal(format!("model lock poisoned: {e}")))?;
+            model
+                .embed(vec![text], None)
+                .map_err(|e| EmbedderError::EmbeddingFailed(format!("embedding failed: {e}")))?
+        };
 
-        let embeddings = model.embed(vec![text], None).map_err(|e| {
-            EmbedderError::EmbeddingFailed(format!("embedding failed: {e}"))
-        })?;
-
-        let mut embedding = embeddings.into_iter().next().ok_or_else(|| {
-            EmbedderError::Internal("no embedding returned".to_string())
-        })?;
+        let mut embedding = embeddings
+            .into_iter()
+            .next()
+            .ok_or_else(|| EmbedderError::Internal("no embedding returned".to_string()))?;
 
         // Ensure L2 normalization (fastembed should already normalize, but be safe)
         l2_normalize(&mut embedding);
@@ -289,16 +290,20 @@ impl Embedder for FastEmbedder {
             .unzip();
 
         if non_empty_texts.is_empty() {
-            return Err(EmbedderError::InvalidInput("all texts are empty".to_string()));
+            return Err(EmbedderError::InvalidInput(
+                "all texts are empty".to_string(),
+            ));
         }
 
-        let model = self.model.lock().map_err(|e| {
-            EmbedderError::Internal(format!("model lock poisoned: {e}"))
-        })?;
-
-        let mut embeddings = model.embed(non_empty_texts, None).map_err(|e| {
-            EmbedderError::EmbeddingFailed(format!("batch embedding failed: {e}"))
-        })?;
+        let mut embeddings = {
+            let model = self
+                .model
+                .lock()
+                .map_err(|e| EmbedderError::Internal(format!("model lock poisoned: {e}")))?;
+            model.embed(non_empty_texts, None).map_err(|e| {
+                EmbedderError::EmbeddingFailed(format!("batch embedding failed: {e}"))
+            })?
+        };
 
         // L2 normalize all embeddings
         for embedding in &mut embeddings {
@@ -355,17 +360,20 @@ impl Embedder for FastEmbedModelEmbedder {
             return Err(EmbedderError::InvalidInput("empty text".to_string()));
         }
 
-        let model = self.model.lock().map_err(|e| {
-            EmbedderError::Internal(format!("model lock poisoned: {e}"))
-        })?;
+        let embeddings = {
+            let model = self
+                .model
+                .lock()
+                .map_err(|e| EmbedderError::Internal(format!("model lock poisoned: {e}")))?;
+            model
+                .embed(vec![text], None)
+                .map_err(|e| EmbedderError::EmbeddingFailed(format!("embedding failed: {e}")))?
+        };
 
-        let embeddings = model.embed(vec![text], None).map_err(|e| {
-            EmbedderError::EmbeddingFailed(format!("embedding failed: {e}"))
-        })?;
-
-        let mut embedding = embeddings.into_iter().next().ok_or_else(|| {
-            EmbedderError::Internal("no embedding returned".to_string())
-        })?;
+        let mut embedding = embeddings
+            .into_iter()
+            .next()
+            .ok_or_else(|| EmbedderError::Internal("no embedding returned".to_string()))?;
 
         l2_normalize(&mut embedding);
         Ok(embedding)
@@ -384,16 +392,20 @@ impl Embedder for FastEmbedModelEmbedder {
             .unzip();
 
         if non_empty_texts.is_empty() {
-            return Err(EmbedderError::InvalidInput("all texts are empty".to_string()));
+            return Err(EmbedderError::InvalidInput(
+                "all texts are empty".to_string(),
+            ));
         }
 
-        let model = self.model.lock().map_err(|e| {
-            EmbedderError::Internal(format!("model lock poisoned: {e}"))
-        })?;
-
-        let mut embeddings = model.embed(non_empty_texts, None).map_err(|e| {
-            EmbedderError::EmbeddingFailed(format!("batch embedding failed: {e}"))
-        })?;
+        let mut embeddings = {
+            let model = self
+                .model
+                .lock()
+                .map_err(|e| EmbedderError::Internal(format!("model lock poisoned: {e}")))?;
+            model.embed(non_empty_texts, None).map_err(|e| {
+                EmbedderError::EmbeddingFailed(format!("batch embedding failed: {e}"))
+            })?
+        };
 
         for embedding in &mut embeddings {
             l2_normalize(embedding);
@@ -458,13 +470,14 @@ mod tests {
     #[test]
     #[ignore = "requires model files"]
     fn test_embed_semantic_similarity() {
+        use crate::embedder::dot_product;
+
         let embedder = FastEmbedder::try_load().expect("model not available");
 
         let happy = embedder.embed("I am very happy today").unwrap();
         let joyful = embedder.embed("I am feeling joyful").unwrap();
         let sad = embedder.embed("I am feeling very sad").unwrap();
 
-        use crate::embedder::dot_product;
         let sim_happy_joyful = dot_product(&happy, &joyful);
         let sim_happy_sad = dot_product(&happy, &sad);
 

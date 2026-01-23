@@ -19,10 +19,10 @@ use std::time::{Duration, Instant, SystemTime};
 use tracing::{Level, info, warn};
 use tracing_subscriber::EnvFilter;
 
-use xf::canonicalize::canonicalize_for_embedding;
 use xf::benchmark::datasets::BenchmarkCorpus;
 use xf::benchmark::reporters;
 use xf::benchmark::runner::{BenchmarkConfig, run_embedding_benchmark};
+use xf::canonicalize::canonicalize_for_embedding;
 use xf::cli;
 use xf::config::Config;
 use xf::date_parser;
@@ -147,16 +147,14 @@ static SEMANTIC_EMBEDDER: OnceLock<Option<FastEmbedder>> = OnceLock::new();
 /// Returns `None` if the FastEmbed model is not available (falls back to hash embedder).
 fn get_semantic_embedder() -> Option<&'static FastEmbedder> {
     SEMANTIC_EMBEDDER
-        .get_or_init(|| {
-            match FastEmbedder::try_load() {
-                Ok(embedder) => {
-                    info!("Loaded FastEmbed model for semantic search");
-                    Some(embedder)
-                }
-                Err(e) => {
-                    warn!("FastEmbed model not available, using hash embedder: {e}");
-                    None
-                }
+        .get_or_init(|| match FastEmbedder::try_load() {
+            Ok(embedder) => {
+                info!("Loaded FastEmbed model for semantic search");
+                Some(embedder)
+            }
+            Err(e) => {
+                warn!("FastEmbed model not available, using hash embedder: {e}");
+                None
             }
         })
         .as_ref()
@@ -196,7 +194,10 @@ fn main() -> Result<()> {
 
     // Setup logging
     // Default to xf-only logs so machine-readable output stays clean.
-    let machine_output = matches!(cli.format, OutputFormat::Json | OutputFormat::JsonPretty | OutputFormat::Csv);
+    let machine_output = matches!(
+        cli.format,
+        OutputFormat::Json | OutputFormat::JsonPretty | OutputFormat::Csv
+    );
     let log_level = if cli.verbose {
         Level::DEBUG
     } else if cli.quiet || machine_output {
@@ -1303,7 +1304,9 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs) -> Result<()> {
             let vector_index = vector_index
                 .ok_or_else(|| anyhow::anyhow!("vector index required for semantic"))?;
             // Use explicit model if provided, otherwise FastEmbedder fallback
+            #[allow(unused_assignments)]
             let mut embedder_box: Option<Box<dyn Embedder>> = None;
+            #[allow(unused_assignments)]
             let mut hash_embedder_fallback: Option<HashEmbedder> = None;
             let embedder: &dyn Embedder = if let Some(model) = &args.model {
                 if let Some(dims) = args.dimensions {
@@ -1373,7 +1376,9 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs) -> Result<()> {
         SearchMode::Hybrid => {
             // Hybrid search using RRF fusion
             // Use explicit model if provided, otherwise FastEmbedder fallback
+            #[allow(unused_assignments)]
             let mut embedder_box: Option<Box<dyn Embedder>> = None;
+            #[allow(unused_assignments)]
             let mut hash_embedder_fallback: Option<HashEmbedder> = None;
             let embedder: &dyn Embedder = if let Some(model) = &args.model {
                 if let Some(dims) = args.dimensions {
@@ -3721,7 +3726,9 @@ fn cmd_shell(cli: &Cli, args: &cli::ShellArgs) -> Result<()> {
 fn cmd_benchmark(_cli: &Cli, args: &cli::BenchmarkArgs) -> Result<()> {
     let corpus = BenchmarkCorpus::load(&args.corpus)
         .with_context(|| format!("Failed to load corpus: {}", args.corpus.display()))?;
-    corpus.validate().with_context(|| "Corpus validation failed")?;
+    corpus
+        .validate()
+        .with_context(|| "Corpus validation failed")?;
 
     let registry = ModelRegistry::new();
     let mut config = EmbedderConfig::new(&args.model);

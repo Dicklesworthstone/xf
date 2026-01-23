@@ -1,6 +1,6 @@
 //! Benchmark metrics for embedding and reranker evaluation.
 
-use rand::{rngs::StdRng, Rng, SeedableRng};
+use rand::{Rng, SeedableRng, rngs::StdRng};
 use serde::Serialize;
 
 /// Speed metrics for a benchmark run.
@@ -32,18 +32,26 @@ pub struct ReliabilityMetrics {
 }
 
 /// Compute a percentile from a list of values.
+#[must_use]
+#[allow(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss
+)]
 pub fn percentile(values: &[f64], pct: f64) -> Option<f64> {
     if values.is_empty() {
         return None;
     }
     let mut sorted = values.to_vec();
-    sorted.sort_by(|a, b| a.total_cmp(b));
+    sorted.sort_by(f64::total_cmp);
     let clamped = pct.clamp(0.0, 1.0);
     let idx = ((sorted.len() - 1) as f64 * clamped).round() as usize;
     sorted.get(idx).copied()
 }
 
 /// Compute MRR from a ranked list of graded relevance (0 = not relevant).
+#[must_use]
+#[allow(clippy::cast_precision_loss)]
 pub fn compute_mrr(relevance: &[u8]) -> f64 {
     for (idx, rel) in relevance.iter().enumerate() {
         if *rel > 0 {
@@ -54,6 +62,8 @@ pub fn compute_mrr(relevance: &[u8]) -> f64 {
 }
 
 /// Compute precision@k from graded relevance.
+#[must_use]
+#[allow(clippy::cast_precision_loss)]
 pub fn precision_at_k(relevance: &[u8], k: usize) -> f64 {
     if k == 0 {
         return 0.0;
@@ -63,6 +73,8 @@ pub fn precision_at_k(relevance: &[u8], k: usize) -> f64 {
 }
 
 /// Compute recall@k given total relevant count.
+#[must_use]
+#[allow(clippy::cast_precision_loss)]
 pub fn recall_at_k(relevance: &[u8], k: usize, total_relevant: usize) -> f64 {
     if total_relevant == 0 {
         return 0.0;
@@ -72,13 +84,15 @@ pub fn recall_at_k(relevance: &[u8], k: usize, total_relevant: usize) -> f64 {
 }
 
 /// Compute DCG for graded relevance.
+#[must_use]
+#[allow(clippy::cast_precision_loss, clippy::cast_lossless)]
 pub fn dcg(relevance: &[u8], k: usize) -> f64 {
     relevance
         .iter()
         .take(k)
         .enumerate()
         .map(|(i, rel)| {
-            let gain = (2_u32.pow(*rel as u32) - 1) as f64;
+            let gain = f64::from(2_u32.pow(u32::from(*rel)) - 1);
             let denom = (i as f64 + 2.0).log2();
             gain / denom
         })
@@ -86,6 +100,7 @@ pub fn dcg(relevance: &[u8], k: usize) -> f64 {
 }
 
 /// Compute nDCG@k from graded relevance.
+#[must_use]
 pub fn ndcg_at_k(relevance: &[u8], k: usize) -> f64 {
     if relevance.is_empty() || k == 0 {
         return 0.0;
@@ -102,6 +117,12 @@ pub fn ndcg_at_k(relevance: &[u8], k: usize) -> f64 {
 }
 
 /// Bootstrap confidence interval for mean difference between two samples.
+#[must_use]
+#[allow(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss
+)]
 pub fn bootstrap_mean_diff(
     baseline: &[f64],
     improved: &[f64],
@@ -124,7 +145,7 @@ pub fn bootstrap_mean_diff(
         }
         diffs.push((imp_sum / n as f64) - (base_sum / n as f64));
     }
-    diffs.sort_by(|a, b| a.total_cmp(b));
+    diffs.sort_by(f64::total_cmp);
     let low = diffs[(n_bootstrap as f64 * 0.05) as usize];
     let high = diffs[(n_bootstrap as f64 * 0.95) as usize];
     let significant = low > 0.0;

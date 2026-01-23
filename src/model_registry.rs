@@ -7,7 +7,7 @@ use std::path::PathBuf;
 
 use crate::embedder::{Embedder, EmbedderError, EmbedderResult};
 use crate::fastembed_embedder::FastEmbedModelEmbedder;
-use crate::hash_embedder::{HashEmbedder, DEFAULT_DIMENSION as HASH_DEFAULT_DIM};
+use crate::hash_embedder::{DEFAULT_DIMENSION as HASH_DEFAULT_DIM, HashEmbedder};
 use crate::reranker::{Reranker, RerankerError, RerankerResult};
 
 use fastembed::EmbeddingModel;
@@ -222,12 +222,8 @@ impl ModelRegistry {
                 Some(EMBEDDER_MINILM_L6_V2)
             }
             "bge-small-en-v1.5" | "baai/bge-small-en-v1.5" => Some(EMBEDDER_BGE_SMALL_EN_V15),
-            "nomic-embed-text-v1.5" | "nomic-ai/nomic-embed-text-v1.5" => {
-                Some(EMBEDDER_NOMIC_V15)
-            }
-            "multilingual-e5-small" | "intfloat/multilingual-e5-small" => {
-                Some(EMBEDDER_E5_SMALL)
-            }
+            "nomic-embed-text-v1.5" | "nomic-ai/nomic-embed-text-v1.5" => Some(EMBEDDER_NOMIC_V15),
+            "multilingual-e5-small" | "intfloat/multilingual-e5-small" => Some(EMBEDDER_E5_SMALL),
             "static-retrieval-mrl-en-v1" | "sentence-transformers/static-retrieval-mrl-en-v1" => {
                 Some(EMBEDDER_STATIC_MRL_EN_V1)
             }
@@ -330,6 +326,9 @@ mod tests {
             ModelRegistry::canonical_reranker_name("flashrank/ms-marco-nano"),
             Some(RERANKER_FLASHRANK_NANO)
         );
-        assert_eq!(ModelRegistry::canonical_reranker_name("none"), Some(RERANKER_NONE));
+        assert_eq!(
+            ModelRegistry::canonical_reranker_name("none"),
+            Some(RERANKER_NONE)
+        );
     }
 }

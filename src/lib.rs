@@ -12,13 +12,13 @@
 //! - [`search`] - Tantivy-based full-text search engine
 //! - [`storage`] - `SQLite` storage layer
 
+pub mod benchmark;
 pub mod canonicalize;
 pub mod cli;
 pub mod config;
 pub mod date_parser;
 pub mod doctor;
 pub mod embedder;
-pub mod benchmark;
 pub mod error;
 pub mod fastembed_embedder;
 pub mod hash_embedder;
@@ -294,17 +294,17 @@ pub fn generate_embeddings_with_config(storage: &Storage, config: &EmbeddingConf
         let mut cfg = RegistryConfig::new(model);
         cfg.dimensions = config.dimensions;
         cfg.show_progress = config.show_progress;
-        registry.embedder(&cfg).map_err(|e| {
-            anyhow::anyhow!("Failed to load embedder {model}: {e}")
-        })?
+        registry
+            .embedder(&cfg)
+            .map_err(|e| anyhow::anyhow!("Failed to load embedder {model}: {e}"))?
     } else if config.use_semantic {
         info!("Loading semantic embedder (default MiniLM)...");
         let mut cfg = RegistryConfig::new("all-MiniLM-L6-v2");
         cfg.dimensions = config.dimensions;
         cfg.show_progress = config.show_progress;
-        let embedder = registry.embedder(&cfg).map_err(|e| {
-            anyhow::anyhow!("Failed to load semantic model: {e}")
-        })?;
+        let embedder = registry
+            .embedder(&cfg)
+            .map_err(|e| anyhow::anyhow!("Failed to load semantic model: {e}"))?;
         info!("Semantic embedder loaded successfully");
         embedder
     } else {
