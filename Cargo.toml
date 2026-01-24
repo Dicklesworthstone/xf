@@ -27,7 +27,7 @@ path = "src/main.rs"
 [dependencies]
 # Core
 anyhow = "1.0"
-thiserror = "1.0"
+thiserror = "2.0"
 
 # Async runtime
 tokio = { version = "1.0", features = ["rt-multi-thread", "macros", "fs", "io-util", "time", "signal"] }
@@ -45,6 +45,7 @@ console = "0.15"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 toml = "0.8"
+toon_rust = { git = "https://github.com/Dicklesworthstone/toon_rust" }
 
 # Database
 rusqlite = { version = "0.32", features = ["bundled", "modern_sqlite"] }
@@ -62,8 +63,8 @@ unicode-normalization = "0.1"
 half = "2.4"            # F16 quantization for vector storage
 wide = "0.7"            # Portable SIMD for fast dot products
 ring = "0.17"           # SHA256 for content hashing
-fastembed = { version = "4", default-features = false, features = ["ort-download-binaries", "hf-hub"] }
-ort = "2.0.0-rc.9"      # ONNX Runtime for static embedding models
+fastembed = { version = "4.9", default-features = false, features = ["ort-download-binaries", "online"] }
+ort = { version = "2.0.0-rc.9", features = ["download-binaries"] }  # ONNX Runtime for static embedding models
 tokenizers = "0.21"     # HuggingFace tokenizers
 ndarray = "0.16"        # N-dimensional arrays for ONNX tensors
 

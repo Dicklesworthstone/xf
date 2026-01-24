@@ -464,7 +464,7 @@ impl DataType {
     }
 }
 
-#[derive(ValueEnum, Clone, Debug, Default)]
+#[derive(ValueEnum, Clone, Debug, Default, PartialEq, Eq)]
 pub enum OutputFormat {
     #[default]
     Text,
@@ -472,6 +472,8 @@ pub enum OutputFormat {
     JsonPretty,
     Compact,
     Csv,
+    /// Token-optimized output notation (40-60% fewer tokens than JSON)
+    Toon,
 }
 
 #[derive(ValueEnum, Clone, Debug, Default)]

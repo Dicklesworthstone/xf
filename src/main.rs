@@ -196,7 +196,7 @@ fn main() -> Result<()> {
     // Default to xf-only logs so machine-readable output stays clean.
     let machine_output = matches!(
         cli.format,
-        OutputFormat::Json | OutputFormat::JsonPretty | OutputFormat::Csv
+        OutputFormat::Json | OutputFormat::JsonPretty | OutputFormat::Csv | OutputFormat::Toon
     );
     let log_level = if cli.verbose {
         Level::DEBUG
@@ -1181,9 +1181,9 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs) -> Result<()> {
     if args.context {
         if !matches!(
             cli.format,
-            OutputFormat::Text | OutputFormat::Json | OutputFormat::JsonPretty
+            OutputFormat::Text | OutputFormat::Json | OutputFormat::JsonPretty | OutputFormat::Toon
         ) {
-            anyhow::bail!("--context only supports text or json output.");
+            anyhow::bail!("--context only supports text, json, or toon output.");
         }
         if let Some(types) = &args.types {
             if types.len() != 1 || !types.contains(&SearchType::Dm) {
@@ -1196,8 +1196,11 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs) -> Result<()> {
         if args.context {
             anyhow::bail!("--fields is not supported with --context.");
         }
-        if !matches!(cli.format, OutputFormat::Json | OutputFormat::JsonPretty) {
-            anyhow::bail!("--fields is only supported with --format json or json-pretty.");
+        if !matches!(
+            cli.format,
+            OutputFormat::Json | OutputFormat::JsonPretty | OutputFormat::Toon
+        ) {
+            anyhow::bail!("--fields is only supported with --format json, json-pretty, or toon.");
         }
         validate_output_fields(fields)?;
     }
@@ -1580,6 +1583,15 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs) -> Result<()> {
                 print_result(i + 1, r);
             }
         }
+        OutputFormat::Toon => {
+            let json = if let Some(fields) = &args.fields {
+                let filtered = filter_results_fields(&results, fields)?;
+                serde_json::to_value(&filtered)?
+            } else {
+                serde_json::to_value(&results)?
+            };
+            println!("{}", toon_rust::encode(json, None));
+        }
     }
 
     Ok(())
@@ -1740,8 +1752,12 @@ fn output_dm_context(
         OutputFormat::Text => {
             print_dm_context_text(contexts, highlight_enabled);
         }
+        OutputFormat::Toon => {
+            let json = serde_json::to_value(contexts)?;
+            println!("{}", toon_rust::encode(json, None));
+        }
         _ => {
-            anyhow::bail!("--context only supports text or json output.");
+            anyhow::bail!("--context only supports text, json, or toon output.");
         }
     }
     Ok(())
@@ -2184,6 +2200,24 @@ fn cmd_stats(cli: &Cli, args: &cli::StatsArgs) -> Result<()> {
                 println!("{json}");
             }
         }
+        OutputFormat::Toon => {
+            if needs_extended {
+                let extended = StatsExtended {
+                    stats,
+                    detailed,
+                    top_hashtags,
+                    top_mentions,
+                    temporal,
+                    engagement,
+                    content,
+                };
+                let json = serde_json::to_value(&extended)?;
+                println!("{}", toon_rust::encode(json, None));
+            } else {
+                let json = serde_json::to_value(&stats)?;
+                println!("{}", toon_rust::encode(json, None));
+            }
+        }
         _ => {
             // Show fancy banner for --detailed mode
             if args.detailed {
@@ -2597,6 +2631,10 @@ fn cmd_tweet(cli: &Cli, args: &cli::TweetArgs) -> Result<()> {
                     serde_json::to_string(&t)?
                 };
                 println!("{json}");
+            }
+            OutputFormat::Toon => {
+                let json = serde_json::to_value(&t)?;
+                println!("{}", toon_rust::encode(json, None));
             }
             _ => {
                 println!("{}", "─".repeat(CONTENT_DIVIDER_WIDTH));
@@ -3086,6 +3124,10 @@ fn cmd_tweet_thread(cli: &Cli, storage: &Storage, args: &cli::TweetArgs) -> Resu
                 serde_json::to_string(&thread)?
             };
             println!("{json}");
+        }
+        OutputFormat::Toon => {
+            let json = serde_json::to_value(&thread)?;
+            println!("{}", toon_rust::encode(json, None));
         }
         _ => {
             println!("{}", "Thread".bold().cyan());
@@ -3597,6 +3639,16 @@ fn cmd_doctor(cli: &Cli, args: &cli::DoctorArgs) -> Result<()> {
                 runtime_ms,
             };
             println!("{}", serde_json::to_string_pretty(&output)?);
+        }
+        OutputFormat::Toon => {
+            let output = DoctorOutput {
+                checks: all_checks,
+                summary,
+                suggestions,
+                runtime_ms,
+            };
+            let json = serde_json::to_value(&output)?;
+            println!("{}", toon_rust::encode(json, None));
         }
         _ => {
             // Text output with colors
