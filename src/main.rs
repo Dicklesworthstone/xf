@@ -1183,7 +1183,7 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs) -> Result<()> {
             cli.format,
             OutputFormat::Text | OutputFormat::Json | OutputFormat::JsonPretty | OutputFormat::Toon
         ) {
-            anyhow::bail!("--context only supports text, json, or toon output.");
+            anyhow::bail!("--context only supports text, json, json-pretty, or toon output.");
         }
         if let Some(types) = &args.types {
             if types.len() != 1 || !types.contains(&SearchType::Dm) {
@@ -1757,7 +1757,7 @@ fn output_dm_context(
             println!("{}", toon_rust::encode(json, None));
         }
         _ => {
-            anyhow::bail!("--context only supports text, json, or toon output.");
+            anyhow::bail!("--context only supports text, json, json-pretty, or toon output.");
         }
     }
     Ok(())
