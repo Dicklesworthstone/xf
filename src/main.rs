@@ -3739,6 +3739,7 @@ fn cmd_benchmark(_cli: &Cli, args: &cli::BenchmarkArgs) -> Result<()> {
         warmup_iters: args.warmup_iters,
         measure_iters: args.measure_iters,
         batch_size: args.batch_size,
+        ..Default::default()
     };
 
     let model_name = args.model.clone();
