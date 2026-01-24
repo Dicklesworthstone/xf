@@ -6,7 +6,7 @@ use anyhow::Result;
 use serde::Serialize;
 
 use crate::benchmark::datasets::BenchmarkCorpus;
-use crate::benchmark::metrics::{SpeedMetrics, percentile};
+use crate::benchmark::metrics::{SpeedMetrics, coefficient_of_variation, percentile};
 use crate::embedder::Embedder;
 
 /// Configuration for a benchmark run.
@@ -90,6 +90,12 @@ where
     let warm_p50 = percentile(&latencies, 0.5).unwrap_or(0.0);
     let warm_p95 = percentile(&latencies, 0.95).unwrap_or(0.0);
     let warm_p99 = percentile(&latencies, 0.99).unwrap_or(0.0);
+    let warm_max = latencies
+        .iter()
+        .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
+        .copied()
+        .unwrap_or(0.0);
+    let jitter = coefficient_of_variation(&latencies);
     let total_docs = (config.measure_iters * config.batch_size) as f64;
     let throughput_docs_per_sec = if total_elapsed > Duration::ZERO {
         total_docs / total_elapsed.as_secs_f64()
@@ -110,8 +116,10 @@ where
         warm_latency_p50_ms: warm_p50,
         warm_latency_p95_ms: warm_p95,
         warm_latency_p99_ms: warm_p99,
+        warm_latency_max_ms: warm_max,
         throughput_docs_per_sec,
         time_to_first_result_ms: ttfr_ms,
+        jitter_cv: jitter,
     };
 
     Ok(BenchmarkResult {
