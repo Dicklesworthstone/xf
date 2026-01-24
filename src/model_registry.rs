@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::embedder::{Embedder, EmbedderError, EmbedderResult, ModelCategory};
 use crate::fastembed_embedder::FastEmbedModelEmbedder;
+use crate::flashrank_reranker::FlashRankReranker;
 use crate::hash_embedder::{DEFAULT_DIMENSION as HASH_DEFAULT_DIM, HashEmbedder};
 use crate::reranker::{Reranker, RerankerError, RerankerResult};
 use crate::static_mrl_embedder::StaticMrlEmbedder;
@@ -342,9 +343,10 @@ impl ModelRegistry {
 
         match name {
             RERANKER_NONE => Ok(None),
-            RERANKER_FLASHRANK_NANO => Err(RerankerError::Unavailable(
-                "flashrank-nano backend not implemented yet".to_string(),
-            )),
+            RERANKER_FLASHRANK_NANO => {
+                let reranker = FlashRankReranker::load()?;
+                Ok(Some(Box::new(reranker)))
+            }
             RERANKER_MXBAI_XSMALL_V1 => Err(RerankerError::Unavailable(
                 "mxbai-rerank-xsmall-v1 backend not implemented yet".to_string(),
             )),

@@ -21,6 +21,7 @@ pub mod doctor;
 pub mod embedder;
 pub mod error;
 pub mod fastembed_embedder;
+pub mod flashrank_reranker;
 pub mod hash_embedder;
 pub mod hybrid;
 pub mod logging;
