@@ -663,8 +663,8 @@ mod tests {
         let embedder = HashEmbedder::default();
         let quality = evaluate_embedder_quality(&embedder, &corpus).unwrap();
 
-        assert_eq!(quality.ndcg_at_10, 0.0);
-        assert_eq!(quality.mrr_at_10, 0.0);
+        assert!((quality.ndcg_at_10 - 0.0).abs() < f64::EPSILON);
+        assert!((quality.mrr_at_10 - 0.0).abs() < f64::EPSILON);
     }
 
     #[test]
@@ -677,8 +677,8 @@ mod tests {
 
     #[test]
     fn test_mean() {
-        assert_eq!(mean(&[1.0, 2.0, 3.0, 4.0, 5.0]), 3.0);
-        assert_eq!(mean(&[]), 0.0);
+        assert!((mean(&[1.0, 2.0, 3.0, 4.0, 5.0]) - 3.0).abs() < f64::EPSILON);
+        assert!((mean(&[]) - 0.0).abs() < f64::EPSILON);
     }
 
     #[test]

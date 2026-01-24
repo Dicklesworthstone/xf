@@ -476,6 +476,42 @@ pub enum OutputFormat {
     Toon,
 }
 
+impl OutputFormat {
+    /// Get format from environment variables.
+    /// Precedence: XF_OUTPUT_FORMAT > TOON_DEFAULT_FORMAT
+    pub fn from_env() -> Option<Self> {
+        if let Ok(val) = std::env::var("XF_OUTPUT_FORMAT") {
+            return Self::from_str(&val);
+        }
+        if let Ok(val) = std::env::var("TOON_DEFAULT_FORMAT") {
+            return Self::from_str(&val);
+        }
+        None
+    }
+
+    fn from_str(s: &str) -> Option<Self> {
+        match s.to_lowercase().as_str() {
+            "text" => Some(Self::Text),
+            "json" => Some(Self::Json),
+            "json-pretty" | "json_pretty" | "jsonpretty" => Some(Self::JsonPretty),
+            "compact" => Some(Self::Compact),
+            "csv" => Some(Self::Csv),
+            "toon" => Some(Self::Toon),
+            _ => None,
+        }
+    }
+
+    /// Resolve format: CLI explicit value wins, then env vars, then default
+    pub fn resolve(cli_format: Self) -> Self {
+        // If CLI specified a non-default format, use it
+        if cli_format != Self::Text {
+            return cli_format;
+        }
+        // Check environment variables
+        Self::from_env().unwrap_or(Self::Text)
+    }
+}
+
 #[derive(ValueEnum, Clone, Debug, Default)]
 pub enum SortOrder {
     #[default]

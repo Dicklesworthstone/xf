@@ -767,7 +767,7 @@ impl ContentStats {
 
         // Sort by count and take top N
         let mut sorted: Vec<_> = counts.into_iter().collect();
-        sorted.sort_by(|a, b| b.1.cmp(&a.1));
+        sorted.sort_by_key(|b| std::cmp::Reverse(b.1));
 
         Ok(sorted
             .into_iter()
@@ -802,7 +802,7 @@ impl ContentStats {
 
         // Sort by count and take top N
         let mut sorted: Vec<_> = counts.into_iter().collect();
-        sorted.sort_by(|a, b| b.1.cmp(&a.1));
+        sorted.sort_by_key(|b| std::cmp::Reverse(b.1));
 
         Ok(sorted
             .into_iter()
@@ -814,7 +814,7 @@ impl ContentStats {
 
 /// Format length distribution as a horizontal bar chart.
 #[must_use]
-#[allow(clippy::cast_precision_loss)]
+#[allow(clippy::cast_precision_loss, clippy::manual_checked_ops)]
 pub fn format_length_distribution(distribution: &[LengthBucket]) -> String {
     let max_count = distribution.iter().map(|b| b.count).max().unwrap_or(1);
 
@@ -881,7 +881,7 @@ fn truncate_text(text: &str, max_len: usize) -> String {
 
 /// Format likes histogram as a horizontal bar chart.
 #[must_use]
-#[allow(clippy::cast_precision_loss)]
+#[allow(clippy::cast_precision_loss, clippy::manual_checked_ops)]
 pub fn format_likes_histogram(histogram: &[LikesBucket]) -> String {
     let max_count = histogram.iter().map(|b| b.count).max().unwrap_or(1);
 

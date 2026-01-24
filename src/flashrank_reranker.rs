@@ -128,7 +128,10 @@ impl FlashRankReranker {
 
         Err(RerankerError::Unavailable(format!(
             "FlashRank model not found in standard locations: {:?}",
-            search_paths.iter().map(|p| p.display().to_string()).collect::<Vec<_>>()
+            search_paths
+                .iter()
+                .map(|p| p.display().to_string())
+                .collect::<Vec<_>>()
         )))
     }
 
@@ -144,7 +147,8 @@ impl FlashRankReranker {
         let mut all_type_ids = Vec::with_capacity(documents.len());
 
         for doc in documents {
-            let encoding = self.tokenizer
+            let encoding = self
+                .tokenizer
                 .encode((query, *doc), true)
                 .map_err(|e| RerankerError::Internal(format!("tokenization failed: {e}")))?;
 
@@ -191,53 +195,70 @@ impl FlashRankReranker {
 
         // Create tensors
         let batch_size = documents.len();
-        let input_ids = Array2::from_shape_vec((batch_size, max_len), input_ids_flat)
-            .map_err(|e| RerankerError::Internal(format!("failed to create input_ids tensor: {e}")))?;
+        let input_ids =
+            Array2::from_shape_vec((batch_size, max_len), input_ids_flat).map_err(|e| {
+                RerankerError::Internal(format!("failed to create input_ids tensor: {e}"))
+            })?;
         let attention_mask = Array2::from_shape_vec((batch_size, max_len), attention_mask_flat)
-            .map_err(|e| RerankerError::Internal(format!("failed to create attention_mask tensor: {e}")))?;
-        let token_type_ids = Array2::from_shape_vec((batch_size, max_len), type_ids_flat)
-            .map_err(|e| RerankerError::Internal(format!("failed to create token_type_ids tensor: {e}")))?;
+            .map_err(|e| {
+                RerankerError::Internal(format!("failed to create attention_mask tensor: {e}"))
+            })?;
+        let token_type_ids =
+            Array2::from_shape_vec((batch_size, max_len), type_ids_flat).map_err(|e| {
+                RerankerError::Internal(format!("failed to create token_type_ids tensor: {e}"))
+            })?;
 
         // Run inference
-        let session = self.session.lock()
+        let session = self
+            .session
+            .lock()
             .map_err(|e| RerankerError::Internal(format!("session lock failed: {e}")))?;
 
         let inputs = ort::inputs![
             "input_ids" => input_ids.view(),
             "attention_mask" => attention_mask.view(),
             "token_type_ids" => token_type_ids.view(),
-        ].map_err(|e| RerankerError::Internal(format!("failed to create inputs: {e}")))?;
+        ]
+        .map_err(|e| RerankerError::Internal(format!("failed to create inputs: {e}")))?;
 
-        let outputs = session.run(inputs)
+        let outputs = session
+            .run(inputs)
             .map_err(|e| RerankerError::RerankFailed(format!("ONNX inference failed: {e}")))?;
 
         // Extract scores from output
         // FlashRank outputs logits of shape (batch_size, 1) or (batch_size,)
         // Try named outputs first, fall back to index-based access
         let scores: Vec<f32> = if let Some(output) = outputs.get("logits") {
-            let tensor = output.try_extract_tensor::<f32>()
+            let tensor = output
+                .try_extract_tensor::<f32>()
                 .map_err(|e| RerankerError::Internal(format!("failed to extract logits: {e}")))?;
-            tensor.as_slice()
+            tensor
+                .as_slice()
                 .ok_or_else(|| RerankerError::Internal("non-contiguous tensor".into()))?
                 .iter()
                 .take(batch_size)
                 .copied()
                 .collect()
         } else if let Some(output) = outputs.get("output") {
-            let tensor = output.try_extract_tensor::<f32>()
+            let tensor = output
+                .try_extract_tensor::<f32>()
                 .map_err(|e| RerankerError::Internal(format!("failed to extract output: {e}")))?;
-            tensor.as_slice()
+            tensor
+                .as_slice()
                 .ok_or_else(|| RerankerError::Internal("non-contiguous tensor".into()))?
                 .iter()
                 .take(batch_size)
                 .copied()
                 .collect()
         } else {
-            return Err(RerankerError::Internal("no output tensor found (expected 'logits' or 'output')".into()));
+            return Err(RerankerError::Internal(
+                "no output tensor found (expected 'logits' or 'output')".into(),
+            ));
         };
 
         // Apply sigmoid for probability-like scores
-        let scores: Vec<f32> = scores.into_iter()
+        let scores: Vec<f32> = scores
+            .into_iter()
             .map(|s| 1.0 / (1.0 + (-s).exp()))
             .collect();
 
@@ -280,11 +301,14 @@ fn find_latest_snapshot(snapshots_dir: &Path) -> RerankerResult<PathBuf> {
         .collect();
 
     entries.sort_by(|a, b| {
-        b.metadata().ok().and_then(|m| m.modified().ok())
+        b.metadata()
+            .ok()
+            .and_then(|m| m.modified().ok())
             .cmp(&a.metadata().ok().and_then(|m| m.modified().ok()))
     });
 
-    entries.first()
+    entries
+        .first()
         .map(|e| e.path())
         .ok_or_else(|| RerankerError::Unavailable("no snapshot found".into()))
 }

@@ -185,7 +185,10 @@ impl CacheMeta {
 }
 
 fn main() -> Result<()> {
-    let cli = Cli::parse();
+    let mut cli = Cli::parse();
+
+    // Resolve format: CLI explicit value wins, then env vars (XF_OUTPUT_FORMAT, TOON_DEFAULT_FORMAT)
+    cli.format = OutputFormat::resolve(cli.format);
 
     // Handle --no-color flag, NO_COLOR env var, and non-interactive output
     if should_disable_color(&cli) {
