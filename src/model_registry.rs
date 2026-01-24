@@ -11,6 +11,7 @@ use crate::embedder::{Embedder, EmbedderError, EmbedderResult, ModelCategory};
 use crate::fastembed_embedder::FastEmbedModelEmbedder;
 use crate::hash_embedder::{DEFAULT_DIMENSION as HASH_DEFAULT_DIM, HashEmbedder};
 use crate::reranker::{Reranker, RerankerError, RerankerResult};
+use crate::static_mrl_embedder::StaticMrlEmbedder;
 
 use fastembed::EmbeddingModel;
 
@@ -217,8 +218,8 @@ impl ModelRegistry {
                 supports_mrl: true,
                 native_dims: 1024,
                 size_mb: Some(100.0),
-                downloaded: false,
-                available: false, // Not implemented yet
+                downloaded: StaticMrlEmbedder::is_available(),
+                available: StaticMrlEmbedder::is_available(),
             },
             ModelInfo {
                 name: EMBEDDER_POTION_RETRIEVAL_32M.to_string(),
@@ -289,9 +290,11 @@ impl ModelRegistry {
                 config.show_progress,
             )?),
             EMBEDDER_STATIC_MRL_EN_V1 => {
-                return Err(EmbedderError::Unavailable(
-                    "static-retrieval-mrl-en-v1 backend not implemented yet".to_string(),
-                ));
+                let dims = config.dimensions;
+                Box::new(
+                    StaticMrlEmbedder::try_load_with_dims(dims)
+                        .map_err(|e| EmbedderError::Unavailable(format!("{e}")))?,
+                )
             }
             EMBEDDER_POTION_RETRIEVAL_32M => {
                 return Err(EmbedderError::Unavailable(

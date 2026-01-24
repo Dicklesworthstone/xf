@@ -63,6 +63,9 @@ half = "2.4"            # F16 quantization for vector storage
 wide = "0.7"            # Portable SIMD for fast dot products
 ring = "0.17"           # SHA256 for content hashing
 fastembed = { version = "4", default-features = false, features = ["ort-download-binaries", "hf-hub"] }
+ort = "2.0.0-rc.9"      # ONNX Runtime for static embedding models
+tokenizers = "0.21"     # HuggingFace tokenizers
+ndarray = "0.16"        # N-dimensional arrays for ONNX tensors
 
 # Parallelism
 rayon = "1.10"

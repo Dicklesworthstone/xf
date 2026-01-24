@@ -31,6 +31,7 @@ pub mod perf;
 pub mod repl;
 pub mod reranker;
 pub mod search;
+pub mod static_mrl_embedder;
 pub mod stats_analytics;
 pub mod storage;
 pub mod vector;

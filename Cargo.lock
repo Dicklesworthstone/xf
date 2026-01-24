@@ -1072,6 +1072,9 @@ name = "esaxx-rs"
 version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d817e038c30374a4bcb22f94d0a8a0e216958d4c3dcde369b1439fec4bdda6e6"
+dependencies = [
+ "cc",
+]
 
 [[package]]
 name = "exr"
@@ -3083,6 +3086,7 @@ version = "2.0.0-rc.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52afb44b6b0cffa9bf45e4d37e5a4935b0334a51570658e279e9e3e6cf324aa5"
 dependencies = [
+ "half",
  "ndarray",
  "ort-sys",
  "tracing",
@@ -4465,6 +4469,7 @@ dependencies = [
  "derive_builder",
  "esaxx-rs",
  "getrandom 0.3.4",
+ "indicatif",
  "itertools 0.14.0",
  "log",
  "macro_rules_attribute",
@@ -5337,7 +5342,9 @@ dependencies = [
  "indicatif",
  "itertools 0.13.0",
  "memchr",
+ "ndarray",
  "once_cell",
+ "ort",
  "parking_lot",
  "predicates",
  "proptest",
@@ -5353,6 +5360,7 @@ dependencies = [
  "tempfile",
  "textwrap",
  "thiserror 1.0.69",
+ "tokenizers",
  "tokio",
  "toml",
  "tracing",
