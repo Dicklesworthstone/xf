@@ -137,6 +137,9 @@ mod tests {
     #[test]
     fn test_benchmark_runs() {
         let corpus = BenchmarkCorpus {
+            corpus_version: None,
+            generation_seed: None,
+            generated_at: None,
             corpus: vec![
                 crate::benchmark::datasets::CorpusDoc {
                     id: "doc1".into(),
@@ -152,6 +155,8 @@ mod tests {
                 },
             ],
             queries: vec![],
+            splits: Default::default(),
+            stats: Default::default(),
         };
 
         let config = BenchmarkConfig {
