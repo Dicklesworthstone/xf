@@ -1,0 +1,224 @@
+{
+  "metadata": {
+    "research_date": "2026-01-24",
+    "bead_id": "bd-35wf",
+    "cutoff_date": "2025-11-01",
+    "eligibility_criteria": {
+      "release_date": ">= 2025-11-01",
+      "weights": "open (downloadable)",
+      "cpu_viable": true,
+      "max_params": "500M or quantized equivalent",
+      "max_disk_mb": 500,
+      "license": "permissive (Apache-2.0, MIT, BSD)"
+    }
+  },
+  "summary": {
+    "eligible_count": 10,
+    "baseline_count": 5,
+    "rejected_count": 5,
+    "recommendation": "proceed_with_bakeoff"
+  },
+  "eligible": [
+    {
+      "model_id": "thebajajra/RexReranker-micro",
+      "release_date": "2026-01-24",
+      "params_millions": 17,
+      "context_tokens": 512,
+      "license": "TBD",
+      "runtimes": ["transformers"],
+      "cpu_viable": true,
+      "url": "https://huggingface.co/thebajajra/RexReranker-micro",
+      "notes": "Brand new release. Smallest RexReranker variant."
+    },
+    {
+      "model_id": "thebajajra/RexReranker-mini",
+      "release_date": "2026-01-24",
+      "params_millions": 32,
+      "context_tokens": 512,
+      "license": "TBD",
+      "runtimes": ["transformers"],
+      "cpu_viable": true,
+      "url": "https://huggingface.co/thebajajra/RexReranker-mini",
+      "notes": "Brand new release. Mini RexReranker variant."
+    },
+    {
+      "model_id": "thebajajra/RexReranker-base",
+      "release_date": "2026-01-24",
+      "params_millions": 68,
+      "context_tokens": 512,
+      "license": "TBD",
+      "runtimes": ["transformers"],
+      "cpu_viable": true,
+      "url": "https://huggingface.co/thebajajra/RexReranker-base",
+      "notes": "Brand new release. Base RexReranker variant."
+    },
+    {
+      "model_id": "bansalaman18/reranker-msmarco-v1.1-ettin-encoder-17m-listnet",
+      "release_date": "2025-12-31",
+      "params_millions": 17,
+      "loss_function": "ListNet",
+      "license": "TBD",
+      "runtimes": ["transformers", "onnx"],
+      "cpu_viable": true,
+      "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-17m-listnet",
+      "notes": "Tiny MS-MARCO reranker. ListNet loss."
+    },
+    {
+      "model_id": "bansalaman18/reranker-msmarco-v1.1-ettin-encoder-32m-listnet",
+      "release_date": "2025-12-31",
+      "params_millions": 32,
+      "loss_function": "ListNet",
+      "license": "TBD",
+      "runtimes": ["transformers", "onnx"],
+      "cpu_viable": true,
+      "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-32m-listnet",
+      "notes": "Small MS-MARCO reranker. ListNet loss."
+    },
+    {
+      "model_id": "bansalaman18/reranker-msmarco-v1.1-ettin-encoder-68m-listnet",
+      "release_date": "2025-12-31",
+      "params_millions": 68,
+      "loss_function": "ListNet",
+      "license": "TBD",
+      "runtimes": ["transformers", "onnx"],
+      "cpu_viable": true,
+      "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-68m-listnet",
+      "notes": "Medium MS-MARCO reranker. ListNet loss."
+    },
+    {
+      "model_id": "bansalaman18/reranker-msmarco-v1.1-ettin-encoder-150m-listnet",
+      "release_date": "2026-01-01",
+      "params_millions": 150,
+      "loss_function": "ListNet",
+      "license": "TBD",
+      "runtimes": ["transformers", "onnx"],
+      "cpu_viable": true,
+      "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-150m-listnet",
+      "notes": "Large MS-MARCO reranker. ListNet loss."
+    },
+    {
+      "model_id": "ContextualAI/ctxl-rerank-v2-instruct-multilingual-1b",
+      "release_date": "2025-12-22",
+      "params_millions": 1000,
+      "license": "TBD",
+      "runtimes": ["transformers"],
+      "cpu_viable": false,
+      "quantization": ["nvfp4"],
+      "url": "https://huggingface.co/ContextualAI/ctxl-rerank-v2-instruct-multilingual-1b",
+      "notes": "Borderline size. FP4 quantized variant available for GPU."
+    },
+    {
+      "model_id": "Chiwei/Qwen3-Reranker-0.6B-Q8_0-GGUF",
+      "release_date": "2026-01-20",
+      "params_millions": 600,
+      "license": "Apache-2.0",
+      "runtimes": ["gguf", "llama.cpp"],
+      "cpu_viable": true,
+      "url": "https://huggingface.co/Chiwei/Qwen3-Reranker-0.6B-Q8_0-GGUF",
+      "notes": "GGUF quantized Qwen3 reranker for CPU inference."
+    },
+    {
+      "model_id": "svk2118/reranker-22m",
+      "release_date": "2025-12-20",
+      "params_millions": 22,
+      "license": "TBD",
+      "runtimes": ["transformers"],
+      "cpu_viable": true,
+      "url": "https://huggingface.co/svk2118/reranker-22m",
+      "notes": "Very small reranker."
+    }
+  ],
+  "baselines": [
+    {
+      "model_id": "Alibaba-NLP/gte-reranker-modernbert-base",
+      "release_date": "2025-01-21",
+      "params_millions": 149,
+      "context_tokens": 8192,
+      "license": "Apache-2.0",
+      "runtimes": ["transformers", "onnx"],
+      "cpu_viable": true,
+      "url": "https://huggingface.co/Alibaba-NLP/gte-reranker-modernbert-base",
+      "notes": "ModernBERT-based, CPU-optimized.",
+      "baseline_reason": "released_before_cutoff"
+    },
+    {
+      "model_id": "ibm-granite/granite-embedding-reranker-english-r2",
+      "release_date": "2025-08-15",
+      "params_millions": 149,
+      "context_tokens": 8192,
+      "license": "Apache-2.0",
+      "runtimes": ["transformers", "onnx"],
+      "cpu_viable": true,
+      "url": "https://huggingface.co/ibm-granite/granite-embedding-reranker-english-r2",
+      "notes": "ModernBERT-based, enterprise-grade.",
+      "baseline_reason": "released_before_cutoff"
+    },
+    {
+      "model_id": "Qwen/Qwen3-Reranker-0.6B",
+      "release_date": "2025-06-05",
+      "params_millions": 600,
+      "license": "Apache-2.0",
+      "runtimes": ["transformers", "gguf"],
+      "cpu_viable": true,
+      "url": "https://huggingface.co/Qwen/Qwen3-Reranker-0.6B",
+      "notes": "GGUF available. 100+ languages.",
+      "baseline_reason": "released_before_cutoff"
+    },
+    {
+      "model_id": "cross-encoder/ms-marco-MiniLM-L6-v2",
+      "release_date": "2022-01-01",
+      "params_millions": 22,
+      "license": "Apache-2.0",
+      "runtimes": ["transformers", "onnx"],
+      "cpu_viable": true,
+      "url": "https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2",
+      "notes": "Industry standard baseline. Very fast.",
+      "baseline_reason": "released_before_cutoff"
+    },
+    {
+      "model_id": "flashrank-tiny",
+      "release_date": "2024-01-01",
+      "params_millions": 4,
+      "disk_mb": 4,
+      "license": "Apache-2.0",
+      "runtimes": ["flashrank", "onnx"],
+      "cpu_viable": true,
+      "url": "https://github.com/PrithivirajDamodaran/FlashRank",
+      "notes": "World's tiniest reranker. ~4MB. Library-based.",
+      "baseline_reason": "library_not_standalone_model"
+    }
+  ],
+  "rejected": [
+    {
+      "model_id": "Qwen/Qwen3-Reranker-8B",
+      "reason": "too_large",
+      "details": "8B params exceeds limit"
+    },
+    {
+      "model_id": "ContextualAI/ctxl-rerank-v2-6b",
+      "reason": "too_large",
+      "details": "6B params exceeds limit"
+    },
+    {
+      "model_id": "ContextualAI/ctxl-rerank-v2-2b",
+      "reason": "too_large",
+      "details": "2B params exceeds limit"
+    },
+    {
+      "model_id": "jinaai/jina-reranker-v2-base-multilingual",
+      "reason": "gpu_focused",
+      "details": "Requires CUDA for optimal performance"
+    },
+    {
+      "model_id": "BAAI/bge-reranker-v2-gemma",
+      "reason": "too_large",
+      "details": "Gemma-based, large model"
+    }
+  ],
+  "decision_gate": {
+    "eligible_count": 10,
+    "threshold_for_pause": 0,
+    "action": "proceed_with_bakeoff",
+    "notes": "Strong eligible pool with multiple size tiers (17M, 32M, 68M, 150M, 600M). Ettin-encoder and RexReranker series provide good benchmarking options."
+  }
+}

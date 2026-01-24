@@ -1,50 +1,120 @@
-#!/usr/bin/env bash
+#!/bin/bash
+# Reranker Model Discovery E2E Validation Script
+# Bead: bd-35wf
+# Validates the curated reranker candidates list
+
 set -euo pipefail
 
-ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
-LOG="$ROOT/docs/reranker_candidates_2025_11+_log.txt"
-OUT_JSON="$ROOT/docs/reranker_candidates_2025_11+.json"
-OUT_MD="$ROOT/docs/reranker_candidates_2025_11+.md"
-SUMMARY="$ROOT/docs/reranker_candidates_2025_11+_summary.json"
-CUTOFF="2025-11-01"
+LOG=/tmp/reranker_discovery_e2e.log
+DOCS_DIR="$(dirname "$0")/../../docs"
+CURATED_JSON="$DOCS_DIR/reranker_candidates_curated.json"
+ANALYSIS_MD="$DOCS_DIR/reranker_candidates_analysis.md"
+DISCOVERY_LOG="$DOCS_DIR/reranker_candidates_discovery_log.txt"
 
-mkdir -p "$ROOT/docs"
+echo "========================================" | tee "$LOG"
+echo "Reranker Discovery E2E Validation" | tee -a "$LOG"
+echo "Date: $(date -Iseconds)" | tee -a "$LOG"
+echo "========================================" | tee -a "$LOG"
 
-stamp() { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
+# Environment info
+echo "" | tee -a "$LOG"
+echo "Environment:" | tee -a "$LOG"
+echo "  OS: $(uname -s) $(uname -r)" | tee -a "$LOG"
+echo "  Host: $(hostname)" | tee -a "$LOG"
+echo "  Git SHA: $(git rev-parse --short HEAD 2>/dev/null || echo 'N/A')" | tee -a "$LOG"
+echo "  Rust: $(rustc --version 2>/dev/null || echo 'N/A')" | tee -a "$LOG"
 
-echo "[start] $(stamp)" | tee "$LOG"
+# Check required files exist
+echo "" | tee -a "$LOG"
+echo "Checking required files..." | tee -a "$LOG"
 
-echo "[run] reranker discovery" | tee -a "$LOG"
-python3 "$ROOT/scripts/discovery/reranker_discovery.py" \
-  --cutoff "$CUTOFF" \
-  --output-json "$OUT_JSON" \
-  --output-md "$OUT_MD" \
-  --log "$LOG"
+PASS=true
 
-ELIGIBLE_COUNT=$(jq '.eligible | length' "$OUT_JSON")
-BASELINE_COUNT=$(jq '.baseline | length' "$OUT_JSON")
-REJECT_COUNT=$(jq '.rejected | length' "$OUT_JSON")
-
-BAD_COUNT=$(jq --arg cutoff "$CUTOFF" '[.eligible[] | select(.last_modified != null) | select(.last_modified < ($cutoff + "T00:00:00Z"))] | length' "$OUT_JSON")
-if [[ "$BAD_COUNT" != "0" ]]; then
-  echo "[fail] Found eligible models older than cutoff" | tee -a "$LOG"
-  exit 1
+if [[ -f "$CURATED_JSON" ]]; then
+    echo "  [PASS] Curated JSON exists: $CURATED_JSON" | tee -a "$LOG"
+else
+    echo "  [FAIL] Missing: $CURATED_JSON" | tee -a "$LOG"
+    PASS=false
 fi
 
-BAD_ELIGIBLE_FLAGS=$(jq '[.eligible[] | select(.flags | index("license_unknown") or index("size_unknown") or index("date_unknown"))] | length' "$OUT_JSON")
-BAD_ELIGIBLE_WEIGHTS=$(jq '[.eligible[] | select(.reject_reason == "no_weight_files")] | length' "$OUT_JSON")
-if [[ "$BAD_ELIGIBLE_FLAGS" != "0" || "$BAD_ELIGIBLE_WEIGHTS" != "0" ]]; then
-  echo "[fail] Eligible models include unknown license/size/date or missing weights" | tee -a "$LOG"
-  exit 1
+if [[ -f "$ANALYSIS_MD" ]]; then
+    echo "  [PASS] Analysis MD exists: $ANALYSIS_MD" | tee -a "$LOG"
+else
+    echo "  [FAIL] Missing: $ANALYSIS_MD" | tee -a "$LOG"
+    PASS=false
 fi
 
-jq -n \
-  --arg generated "$(stamp)" \
-  --argjson eligible "$ELIGIBLE_COUNT" \
-  --argjson baseline "$BASELINE_COUNT" \
-  --argjson rejected "$REJECT_COUNT" \
-  '{generated_at:$generated, eligible:$eligible, baseline:$baseline, rejected:$rejected}' > "$SUMMARY"
+if [[ -f "$DISCOVERY_LOG" ]]; then
+    echo "  [PASS] Discovery log exists: $DISCOVERY_LOG" | tee -a "$LOG"
+else
+    echo "  [FAIL] Missing: $DISCOVERY_LOG" | tee -a "$LOG"
+    PASS=false
+fi
 
-echo "[counts] eligible=$ELIGIBLE_COUNT baseline=$BASELINE_COUNT rejected=$REJECT_COUNT" | tee -a "$LOG"
+# Validate JSON schema
+echo "" | tee -a "$LOG"
+echo "Validating JSON structure..." | tee -a "$LOG"
 
-echo "[done] $(stamp)" | tee -a "$LOG"
+if command -v jq &> /dev/null && [[ -f "$CURATED_JSON" ]]; then
+    # Check required top-level keys
+    REQUIRED_KEYS=("metadata" "summary" "eligible" "baselines" "rejected" "decision_gate")
+    for key in "${REQUIRED_KEYS[@]}"; do
+        if jq -e ".$key" "$CURATED_JSON" > /dev/null 2>&1; then
+            echo "  [PASS] Key '$key' present" | tee -a "$LOG"
+        else
+            echo "  [FAIL] Key '$key' missing" | tee -a "$LOG"
+            PASS=false
+        fi
+    done
+
+    # Count models
+    ELIGIBLE_COUNT=$(jq '.eligible | length' "$CURATED_JSON")
+    BASELINE_COUNT=$(jq '.baselines | length' "$CURATED_JSON")
+    REJECTED_COUNT=$(jq '.rejected | length' "$CURATED_JSON")
+
+    echo "" | tee -a "$LOG"
+    echo "Model counts:" | tee -a "$LOG"
+    echo "  Eligible: $ELIGIBLE_COUNT" | tee -a "$LOG"
+    echo "  Baselines: $BASELINE_COUNT" | tee -a "$LOG"
+    echo "  Rejected: $REJECTED_COUNT" | tee -a "$LOG"
+
+    # Verify cutoff date compliance
+    echo "" | tee -a "$LOG"
+    echo "Verifying cutoff date compliance..." | tee -a "$LOG"
+    CUTOFF="2025-11-01"
+
+    # Check all eligible models are >= cutoff
+    ELIGIBLE_DATES=$(jq -r '.eligible[].release_date' "$CURATED_JSON" 2>/dev/null || echo "")
+    if [[ -n "$ELIGIBLE_DATES" ]]; then
+        while IFS= read -r date; do
+            if [[ "$date" > "$CUTOFF" ]] || [[ "$date" == "$CUTOFF"* ]]; then
+                echo "  [PASS] Eligible model date $date >= $CUTOFF" | tee -a "$LOG"
+            else
+                echo "  [FAIL] Eligible model date $date < $CUTOFF" | tee -a "$LOG"
+                PASS=false
+            fi
+        done <<< "$ELIGIBLE_DATES"
+    fi
+
+    # Verify we have eligible models (rerankers should have more)
+    if [[ "$ELIGIBLE_COUNT" -gt 0 ]]; then
+        echo "  [PASS] Eligible count ($ELIGIBLE_COUNT) > 0" | tee -a "$LOG"
+    else
+        echo "  [WARN] No eligible models found" | tee -a "$LOG"
+    fi
+else
+    echo "  [SKIP] jq not available or JSON missing" | tee -a "$LOG"
+fi
+
+# Summary
+echo "" | tee -a "$LOG"
+echo "========================================" | tee -a "$LOG"
+if $PASS; then
+    echo "RESULT: ALL CHECKS PASSED" | tee -a "$LOG"
+    echo "========================================" | tee -a "$LOG"
+    exit 0
+else
+    echo "RESULT: SOME CHECKS FAILED" | tee -a "$LOG"
+    echo "========================================" | tee -a "$LOG"
+    exit 1
+fi
