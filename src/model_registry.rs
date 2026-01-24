@@ -5,7 +5,9 @@
 
 use std::path::PathBuf;
 
-use crate::embedder::{Embedder, EmbedderError, EmbedderResult};
+use serde::{Deserialize, Serialize};
+
+use crate::embedder::{Embedder, EmbedderError, EmbedderResult, ModelCategory};
 use crate::fastembed_embedder::FastEmbedModelEmbedder;
 use crate::hash_embedder::{DEFAULT_DIMENSION as HASH_DEFAULT_DIM, HashEmbedder};
 use crate::reranker::{Reranker, RerankerError, RerankerResult};
@@ -27,6 +29,27 @@ pub const EMBEDDER_EMBEDDINGGEMMA_300M: &str = "embeddinggemma-300m";
 pub const RERANKER_NONE: &str = "none";
 pub const RERANKER_FLASHRANK_NANO: &str = "flashrank-nano";
 pub const RERANKER_MXBAI_XSMALL_V1: &str = "mxbai-rerank-xsmall-v1";
+
+/// Information about a model in the registry.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModelInfo {
+    /// Canonical model name (registry key).
+    pub name: String,
+    /// Model category for benchmark classification.
+    pub category: ModelCategory,
+    /// Backend type (e.g., "hash", "fastembed", "model2vec").
+    pub backend: String,
+    /// Whether this model supports MRL truncation.
+    pub supports_mrl: bool,
+    /// Native embedding dimensions.
+    pub native_dims: usize,
+    /// Approximate model size in MB (None if not downloaded or unknown).
+    pub size_mb: Option<f64>,
+    /// Whether the model is downloaded and available locally.
+    pub downloaded: bool,
+    /// Whether the model is currently available for use.
+    pub available: bool,
+}
 
 /// Embedder configuration.
 #[derive(Debug, Clone)]
@@ -114,6 +137,120 @@ impl ModelRegistry {
     #[must_use]
     pub fn has_reranker(&self, name: &str) -> bool {
         Self::canonical_reranker_name(name).is_some()
+    }
+
+    /// Convenience method to create an embedder by name.
+    ///
+    /// Uses default configuration (no MRL truncation, no progress bar).
+    pub fn embedder_by_name(&self, name: &str) -> EmbedderResult<Box<dyn Embedder>> {
+        self.embedder(&EmbedderConfig::new(name))
+    }
+
+    /// Convenience method to create a reranker by name.
+    ///
+    /// Uses default configuration (no progress bar).
+    pub fn reranker_by_name(&self, name: &str) -> RerankerResult<Option<Box<dyn Reranker>>> {
+        self.reranker(&RerankerConfig::new(name))
+    }
+
+    /// List all known models with their metadata.
+    ///
+    /// Returns information about each model including category, backend,
+    /// dimensions, MRL support, and availability status.
+    #[must_use]
+    pub fn list_models(&self) -> Vec<ModelInfo> {
+        vec![
+            ModelInfo {
+                name: EMBEDDER_HASH_FNV1A_384.to_string(),
+                category: ModelCategory::StaticEmbedder,
+                backend: "hash".to_string(),
+                supports_mrl: false,
+                native_dims: HASH_DEFAULT_DIM,
+                size_mb: Some(0.0), // No model files
+                downloaded: true,   // Always available
+                available: true,
+            },
+            ModelInfo {
+                name: EMBEDDER_MINILM_L6_V2.to_string(),
+                category: ModelCategory::TransformerEmbedder,
+                backend: "fastembed".to_string(),
+                supports_mrl: false,
+                native_dims: 384,
+                size_mb: Some(80.0),
+                downloaded: true, // fastembed handles download
+                available: true,
+            },
+            ModelInfo {
+                name: EMBEDDER_BGE_SMALL_EN_V15.to_string(),
+                category: ModelCategory::TransformerEmbedder,
+                backend: "fastembed".to_string(),
+                supports_mrl: false,
+                native_dims: 384,
+                size_mb: Some(130.0),
+                downloaded: true,
+                available: true,
+            },
+            ModelInfo {
+                name: EMBEDDER_NOMIC_V15.to_string(),
+                category: ModelCategory::TransformerEmbedder,
+                backend: "fastembed".to_string(),
+                supports_mrl: true, // Nomic supports MRL
+                native_dims: 768,
+                size_mb: Some(560.0),
+                downloaded: true,
+                available: true,
+            },
+            ModelInfo {
+                name: EMBEDDER_E5_SMALL.to_string(),
+                category: ModelCategory::TransformerEmbedder,
+                backend: "fastembed".to_string(),
+                supports_mrl: false,
+                native_dims: 384,
+                size_mb: Some(470.0),
+                downloaded: true,
+                available: true,
+            },
+            ModelInfo {
+                name: EMBEDDER_STATIC_MRL_EN_V1.to_string(),
+                category: ModelCategory::StaticEmbedder,
+                backend: "onnx".to_string(),
+                supports_mrl: true,
+                native_dims: 1024,
+                size_mb: Some(100.0),
+                downloaded: false,
+                available: false, // Not implemented yet
+            },
+            ModelInfo {
+                name: EMBEDDER_POTION_RETRIEVAL_32M.to_string(),
+                category: ModelCategory::StaticEmbedder,
+                backend: "model2vec".to_string(),
+                supports_mrl: false,
+                native_dims: 256,
+                size_mb: Some(32.0),
+                downloaded: false,
+                available: false, // Not implemented yet
+            },
+            ModelInfo {
+                name: EMBEDDER_POTION_MULTI_128M.to_string(),
+                category: ModelCategory::StaticEmbedder,
+                backend: "model2vec".to_string(),
+                supports_mrl: false,
+                native_dims: 256,
+                size_mb: Some(128.0),
+                downloaded: false,
+                available: false, // Not implemented yet
+            },
+            ModelInfo {
+                name: EMBEDDER_EMBEDDINGGEMMA_300M.to_string(),
+                category: ModelCategory::TransformerEmbedder,
+                backend: "fastembed".to_string(),
+                supports_mrl: true,
+                native_dims: 768,
+                size_mb: Some(600.0),
+                downloaded: false,
+                available: false, // Not implemented yet
+            },
+        ]
     }
 
     /// Build an embedder from configuration.
@@ -302,6 +439,10 @@ impl Embedder for TruncateEmbedder {
     fn supports_mrl(&self) -> bool {
         self.inner.supports_mrl()
     }
+
+    fn category(&self) -> ModelCategory {
+        self.inner.category()
+    }
 }
 
 #[cfg(test)]
@@ -329,6 +470,69 @@ mod tests {
         assert_eq!(
             ModelRegistry::canonical_reranker_name("none"),
             Some(RERANKER_NONE)
+        );
+    }
+
+    #[test]
+    fn test_list_models() {
+        let registry = ModelRegistry::new();
+        let models = registry.list_models();
+
+        // Should have entries for all known embedders
+        assert!(!models.is_empty());
+
+        // Hash embedder should always be available
+        let hash = models.iter().find(|m| m.name == EMBEDDER_HASH_FNV1A_384);
+        assert!(hash.is_some());
+        let hash = hash.unwrap();
+        assert!(hash.available);
+        assert!(hash.downloaded);
+        assert_eq!(hash.category, ModelCategory::StaticEmbedder);
+        assert_eq!(hash.backend, "hash");
+
+        // MiniLM should be a transformer
+        let minilm = models.iter().find(|m| m.name == EMBEDDER_MINILM_L6_V2);
+        assert!(minilm.is_some());
+        let minilm = minilm.unwrap();
+        assert_eq!(minilm.category, ModelCategory::TransformerEmbedder);
+        assert_eq!(minilm.backend, "fastembed");
+    }
+
+    #[test]
+    fn test_embedder_by_name() {
+        let registry = ModelRegistry::new();
+
+        // Hash embedder should work
+        let embedder = registry.embedder_by_name("hash");
+        assert!(embedder.is_ok());
+        let embedder = embedder.unwrap();
+        assert_eq!(embedder.category(), ModelCategory::StaticEmbedder);
+
+        // Unknown embedder should fail
+        let unknown = registry.embedder_by_name("unknown-model-xyz");
+        assert!(unknown.is_err());
+    }
+
+    #[test]
+    fn test_reranker_by_name() {
+        let registry = ModelRegistry::new();
+
+        // "none" reranker should return None (no reranker)
+        let none_reranker = registry.reranker_by_name("none");
+        assert!(none_reranker.is_ok());
+        assert!(none_reranker.unwrap().is_none());
+
+        // Unknown reranker should fail
+        let unknown = registry.reranker_by_name("unknown-reranker-xyz");
+        assert!(unknown.is_err());
+    }
+
+    #[test]
+    fn test_model_category_display() {
+        assert_eq!(format!("{}", ModelCategory::StaticEmbedder), "static");
+        assert_eq!(
+            format!("{}", ModelCategory::TransformerEmbedder),
+            "transformer"
         );
     }
 }

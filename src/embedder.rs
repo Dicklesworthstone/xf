@@ -3,7 +3,31 @@
 //! Provides a common interface for converting text into dense vectors
 //! for semantic similarity search.
 
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
+
+/// Category of embedding model (for benchmark classification).
+///
+/// This distinguishes between fast static embedders (feature hashing, Model2Vec)
+/// and slower but more capable transformer-based embedders (MiniLM, BGE, etc.).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum ModelCategory {
+    /// Static/hashing embedders: FNV-1a hash, Model2Vec, static-retrieval-mrl.
+    /// Very fast (~0ms per embedding), no GPU required.
+    StaticEmbedder,
+    /// Transformer-based embedders: MiniLM, BGE, Nomic, Gemma (ONNX inference).
+    /// Slower (~5-100ms per embedding) but more semantically aware.
+    TransformerEmbedder,
+}
+
+impl std::fmt::Display for ModelCategory {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::StaticEmbedder => write!(f, "static"),
+            Self::TransformerEmbedder => write!(f, "transformer"),
+        }
+    }
+}
 
 /// Errors that can occur during embedding operations.
 #[derive(Debug, Error)]
@@ -29,7 +53,7 @@ pub enum EmbedderError {
 pub type EmbedderResult<T> = Result<T, EmbedderError>;
 
 /// Information about an embedder.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EmbedderInfo {
     /// Unique identifier for this embedder (e.g., "fnv1a-384", "minilm-384").
     pub id: String,
@@ -41,6 +65,8 @@ pub struct EmbedderInfo {
     pub is_semantic: bool,
     /// Whether this embedder supports MRL truncation.
     pub supports_mrl: bool,
+    /// Model category for benchmark classification.
+    pub category: ModelCategory,
 }
 
 /// Trait for text embedding implementations.
@@ -95,6 +121,18 @@ pub trait Embedder: Send + Sync {
     /// Hash-based embedders return `false`, ML embedders return `true`.
     fn is_semantic(&self) -> bool;
 
+    /// Get the model category for benchmark classification.
+    ///
+    /// Defaults to `TransformerEmbedder` for semantic models,
+    /// `StaticEmbedder` for non-semantic models.
+    fn category(&self) -> ModelCategory {
+        if self.is_semantic() {
+            ModelCategory::TransformerEmbedder
+        } else {
+            ModelCategory::StaticEmbedder
+        }
+    }
+
     /// Whether this model supports Matryoshka truncation.
     ///
     /// Defaults to `false`.
@@ -140,6 +178,7 @@ pub trait Embedder: Send + Sync {
             dimension: self.dimension(),
             is_semantic: self.is_semantic(),
             supports_mrl: self.supports_mrl(),
+            category: self.category(),
         }
     }
 }
