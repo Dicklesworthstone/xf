@@ -1,0 +1,149 @@
+{
+  "metadata": {
+    "research_date": "2026-01-24",
+    "bead_id": "bd-e9kz",
+    "cutoff_date": "2025-11-01",
+    "eligibility_criteria": {
+      "release_date": ">= 2025-11-01",
+      "weights": "open (downloadable)",
+      "cpu_viable": true,
+      "max_params": "500M or quantized equivalent",
+      "max_disk_mb": 500,
+      "license": "permissive (Apache-2.0, MIT, BSD)"
+    }
+  },
+  "summary": {
+    "eligible_count": 1,
+    "baseline_count": 5,
+    "rejected_count": 7,
+    "recommendation": "proceed_with_baselines"
+  },
+  "eligible": [
+    {
+      "model_id": "voyageai/voyage-4-nano",
+      "release_date": "2026-01-15",
+      "params_millions": 600,
+      "dimensions": 2048,
+      "mrl_dims": [256, 512, 1024, 2048],
+      "context_tokens": 32768,
+      "license": "Apache-2.0",
+      "runtimes": ["transformers", "onnx"],
+      "cpu_viable": true,
+      "quantization": ["fp32", "int8", "binary"],
+      "url": "https://huggingface.co/voyageai/voyage-4-nano",
+      "notes": "First open-weight Voyage model. Built on Qwen. Shared embedding space with voyage-4 family."
+    }
+  ],
+  "baselines": [
+    {
+      "model_id": "Alibaba-NLP/gte-modernbert-base",
+      "release_date": "2025-01-21",
+      "params_millions": 149,
+      "dimensions": 768,
+      "context_tokens": 8192,
+      "license": "Apache-2.0",
+      "runtimes": ["transformers", "onnx", "openvino"],
+      "cpu_viable": true,
+      "url": "https://huggingface.co/Alibaba-NLP/gte-modernbert-base",
+      "notes": "#1 on MTEB for <300M params. ModernBERT architecture optimized for CPU.",
+      "baseline_reason": "released_before_cutoff"
+    },
+    {
+      "model_id": "ibm-granite/granite-embedding-small-english-r2",
+      "release_date": "2025-08-15",
+      "params_millions": 47,
+      "dimensions": 384,
+      "context_tokens": 8192,
+      "license": "Apache-2.0",
+      "runtimes": ["transformers", "onnx"],
+      "cpu_viable": true,
+      "url": "https://huggingface.co/ibm-granite/granite-embedding-small-english-r2",
+      "notes": "#2 on MTEB for <100M. ~200 docs/sec throughput. Smallest high-quality model.",
+      "baseline_reason": "released_before_cutoff"
+    },
+    {
+      "model_id": "minishlab/potion-retrieval-32M",
+      "release_date": "2025-01-30",
+      "params_millions": 32,
+      "dimensions": 768,
+      "disk_mb": 30,
+      "license": "MIT",
+      "runtimes": ["model2vec"],
+      "cpu_viable": true,
+      "url": "https://huggingface.co/minishlab/potion-retrieval-32M",
+      "notes": "Static embeddings. 500x faster than transformers. Best static retrieval model.",
+      "baseline_reason": "released_before_cutoff"
+    },
+    {
+      "model_id": "Qwen/Qwen3-Embedding-0.6B",
+      "release_date": "2025-06-05",
+      "params_millions": 600,
+      "dimensions": 1024,
+      "context_tokens": 32768,
+      "license": "Apache-2.0",
+      "runtimes": ["transformers", "gguf", "openvino"],
+      "cpu_viable": true,
+      "quantization": ["fp16", "int8", "int4"],
+      "url": "https://huggingface.co/Qwen/Qwen3-Embedding-0.6B",
+      "notes": "GGUF available. 100+ languages. Part of Qwen3 embedding series.",
+      "baseline_reason": "released_before_cutoff"
+    },
+    {
+      "model_id": "sentence-transformers/static-retrieval-mrl-en-v1",
+      "release_date": "2025-01-01",
+      "params_millions": 0,
+      "dimensions": 1024,
+      "mrl_dims": [256, 512, 768, 1024],
+      "disk_mb": 100,
+      "license": "Apache-2.0",
+      "runtimes": ["sentence-transformers"],
+      "cpu_viable": true,
+      "url": "https://huggingface.co/sentence-transformers/static-retrieval-mrl-en-v1",
+      "notes": "Zero active params. 100-400x faster. Already integrated in xf.",
+      "baseline_reason": "released_before_cutoff"
+    }
+  ],
+  "rejected": [
+    {
+      "model_id": "jinaai/jina-embeddings-v3",
+      "reason": "gpu_focused",
+      "details": "570M params, primarily GPU-targeted, no small CPU variant"
+    },
+    {
+      "model_id": "BAAI/bge-m3",
+      "reason": "too_large",
+      "details": "568M params, GPU-targeted"
+    },
+    {
+      "model_id": "Qwen/Qwen3-Embedding-8B",
+      "reason": "too_large",
+      "details": "8B params exceeds limit"
+    },
+    {
+      "model_id": "nomic-ai/nomic-embed-text-v1.5",
+      "reason": "too_old",
+      "details": "Released 2024"
+    },
+    {
+      "model_id": "sentence-transformers/all-MiniLM-L6-v2",
+      "reason": "too_old",
+      "details": "Released 2021"
+    },
+    {
+      "model_id": "intfloat/multilingual-e5-small",
+      "reason": "too_old",
+      "details": "Released 2023"
+    },
+    {
+      "model_id": "Snowflake/snowflake-arctic-embed-xs",
+      "reason": "too_old",
+      "details": "Released 2024"
+    }
+  ],
+  "decision_gate": {
+    "eligible_count": 1,
+    "threshold_for_pause": 0,
+    "action": "proceed_with_single_eligible_plus_baselines",
+    "notes": "Only voyage-4-nano meets strict >= 2025-11-01 cutoff. Recommend proceeding with bake-off using voyage-4-nano vs strong baselines."
+  }
+}

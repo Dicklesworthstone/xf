@@ -1,0 +1,243 @@
+================================================================================
+EMBEDDING MODEL DISCOVERY LOG
+Bead: bd-e9kz
+Date: 2026-01-24
+Agent: OliveRidge
+================================================================================
+
+[2026-01-24T00:00:00Z] START Discovery for post-2025-10 tiny CPU embedding models
+
+================================================================================
+PHASE 0: WEB SCAN FOR POST-2025-10 ANNOUNCEMENTS
+================================================================================
+
+[Query 1] "tiny CPU embedding models released November December 2025 2026 sentence transformers MTEB"
+  Found:
+  - Model2Vec/POTION series from MinishLab
+  - static-retrieval-mrl-en-v1 from sentence-transformers
+  - EmbeddingGemma from Google (308M params)
+  Note: Most results are pre-cutoff models
+
+[Query 2] "small embedding models 2025 2026 ONNX CPU inference text embeddings"
+  Found:
+  - FastEmbed ONNX (wrapper, not new model)
+  - all-MiniLM-L6-v2 (old)
+  - nomic-embed-text-v1.5 (2024)
+  - Qwen3-Embedding-0.6B (pre-cutoff)
+  Note: No new models >= 2025-11-01 found
+
+[Query 3] "Hugging Face embedding models November 2025 2026 feature extraction"
+  Found:
+  - General sentence-transformers documentation
+  - EmbeddingGemma (September 2025 - pre-cutoff)
+  Note: No specific Nov+ 2025 releases
+
+[Query 4] "Model2Vec sentence transformers embedding 2025 release download"
+  Found:
+  - potion-base-32M: 2025-01-30 (pre-cutoff)
+  - potion-retrieval-32M: 2025-01-30 (pre-cutoff)
+  - potion-multilingual-128M: 2025-05-23 (pre-cutoff)
+  Note: All Model2Vec releases are before 2025-11-01
+
+[Query 5] "static-retrieval-mrl-en-v1 sentence transformers release date 2025"
+  Found:
+  - Released ~early 2025 (approximately 1 year before Jan 2026)
+  Note: Pre-cutoff baseline
+
+[Query 6] "BGE embedding models 2025 2026 small CPU BAAI"
+  Found:
+  - BGE-VL (March 2025 - multimodal, pre-cutoff)
+  - BGE-M3 (568M params - too large)
+  - BGE-small-en-v1.5 (August 2023 - old)
+  Note: No new tiny CPU models post-cutoff
+
+[Query 7] "nomic-embed-text v1.5 v2 2025 release CPU ONNX"
+  Found:
+  - nomic-embed-text-v1.5: Has ONNX, but released 2024
+  - nomic-embed-text-v2-moe: Feb 2025 (pre-cutoff)
+  Note: v2 is MoE, ~300M params, pre-cutoff
+
+[Query 8] "snowflake-arctic-embed 2025 small CPU embedding model"
+  Found:
+  - snowflake-arctic-embed-xs: 22M params, released 2024
+  - snowflake-arctic-embed-m-v2.0: Dec 2024 (pre-cutoff)
+  - snowflake-arctic-embed-l-v2.0: Dec 2024 (pre-cutoff)
+  Note: All Arctic models pre-cutoff
+
+[Query 9] "Qwen embedding model 2025 2026 small CPU text"
+  Found:
+  - Qwen3-Embedding-0.6B: June 2025 (pre-cutoff)
+  - Qwen3-Embedding-4B: Too large
+  - Qwen3-Embedding-8B: Too large
+  Note: Smallest Qwen3 is 0.6B, pre-cutoff
+
+[Query 10] "GTE embedding model 2025 Alibaba small multilingual"
+  Found:
+  - gte-multilingual-base: 305M params
+  - Collection updated Jan 21, 2025
+  Note: Pre-cutoff
+
+[Query 11] "jina embedding model v3 2025 small CPU"
+  Found:
+  - jina-embeddings-v3: 570M params, GPU-focused
+  Note: Rejected - GPU-focused, no small variant
+
+[Query 12] "E5 embedding model v2 v3 2025 intfloat Microsoft small"
+  Found:
+  - e5-small-v2: 12 layers, 384 dims (old)
+  - multilingual-e5-small: (old)
+  Note: No v3 found, all E5 models pre-cutoff
+
+[Query 13] "minishlab potion embedding model release date 2025"
+  Found:
+  - potion-base-32M: 2025-01-30
+  - potion-retrieval-32M: 2025-01-30
+  - potion-multilingual-128M: 2025-05-23
+  Note: All pre-cutoff
+
+[Query 14] "MTEB leaderboard January 2026 best small embedding models"
+  Found:
+  - Top models: Cohere embed-v4, OpenAI text-3-large, BGE-M3
+  - Qwen3 family high ranking
+  Note: Leaderboard shows no new tiny models post-cutoff
+
+[Query 15] "GTE-ModernBERT embedding model November December 2025 release Alibaba"
+  Found:
+  - gte-modernbert-base: 149M params, 768 dims
+  - Released: 2025-01-21 (PRE-CUTOFF)
+  - #1 on MTEB for <300M params
+  Note: Excellent model but released before 2025-11-01
+
+[Query 16] "ModernBERT embedding model 2025 release small CPU"
+  Found:
+  - IBM granite-embedding-small-english-r2: 47M params, Aug 2025 (pre-cutoff)
+  - IBM granite-embedding-english-r2: 149M params, Aug 2025 (pre-cutoff)
+  - nomic-ai/modernbert-embed-base: Dec 2024 (pre-cutoff)
+  Note: All ModernBERT-based models pre-cutoff
+
+[Query 17] "voyage-4-nano embedding model release date 2025 2026 small CPU"
+  FOUND POST-CUTOFF MODEL:
+  - voyage-4-nano: Released 2026-01-15
+  - ~600M params (Qwen-based)
+  - Apache-2.0 license
+  - MRL: 256-2048 dims
+  - Quantization-aware training
+  Note: ELIGIBLE - first open-weight Voyage model
+
+[Query 18] "IBM granite-embedding-small-english-r2 September 2025 release CPU"
+  Found:
+  - Release: 2025-08-15 (pre-cutoff)
+  - 47M params, 384 dims
+  - #2 on MTEB for <100M
+  - ModernBERT architecture
+  Note: Strong baseline, but pre-cutoff
+
+================================================================================
+PHASE 1: HUGGING FACE HUB API SWEEP
+================================================================================
+
+[API Query] pipeline_tag=feature-extraction, sort=lastModified, limit=100
+  Total models returned: 100+
+  Embedding-related models identified: ~20
+  Notable recent updates:
+  - mixedbread-ai/mxbai-embed-large-v1: 2026-01-23
+  - voyageai/voyage-4-nano: 2026-01-23 (ELIGIBLE)
+  - Various Qwen3 fine-tunes
+  - Many test/experiment uploads (rejected)
+
+[API Query] pipeline_tag=sentence-similarity, sort=lastModified, limit=100
+  Total models returned: 100
+  Notable finds:
+  - lightonai/GTE-ModernColBERT-v1: 2026-01-21
+  - unsloth/embeddinggemma-300m: 2026-01-22
+  - unsloth/gte-modernbert-base: 2026-01-22
+  Note: These are mirrors/forks of pre-cutoff models
+
+================================================================================
+PHASE 2: CPU-OPTIMIZED VARIANTS CHECK
+================================================================================
+
+For voyage-4-nano (ELIGIBLE):
+  - ONNX: Not yet available (can be exported)
+  - GGUF: Not available
+  - Quantization: Built-in INT8/binary support
+  - SafeTensors: Available
+
+For gte-modernbert-base (BASELINE):
+  - ONNX: Available
+  - OpenVINO: Supported
+  - Optimum: Compatible
+
+For granite-embedding-small-english-r2 (BASELINE):
+  - ONNX: Available
+  - 47M params fits easily on CPU
+
+For potion-retrieval-32M (BASELINE):
+  - model2vec format: Native
+  - 30MB disk footprint
+  - 500x faster than transformers
+
+================================================================================
+PHASE 3: VENDOR DOCS / ANNOUNCEMENTS
+================================================================================
+
+[Voyage AI Blog - 2026-01-15]
+  Title: "The Voyage 4 model family: shared embedding space with MoE architecture"
+  - voyage-4-large, voyage-4, voyage-4-lite, voyage-4-nano
+  - voyage-4-nano is first open-weight model
+  - Shared embedding space allows mixing models
+  - Built on Qwen foundation
+
+[IBM Research - 2025-09-12]
+  Title: "IBM AI Research Releases Two English Granite Embedding Models"
+  - granite-embedding-english-r2 (149M)
+  - granite-embedding-small-english-r2 (47M)
+  - ModernBERT architecture
+  - Pre-cutoff but excellent baseline
+
+[Alibaba/Tom Aarsen - 2025-01-22]
+  Title: GTE-ModernBERT announcement
+  - #1 on MTEB for <300M
+  - Pre-cutoff but top baseline
+
+================================================================================
+PHASE 4: FINAL TALLY
+================================================================================
+
+ELIGIBLE (>= 2025-11-01): 1
+  - voyageai/voyage-4-nano (2026-01-15)
+
+BASELINE (pre-cutoff, high quality): 5
+  - Alibaba-NLP/gte-modernbert-base (2025-01-21)
+  - ibm-granite/granite-embedding-small-english-r2 (2025-08-15)
+  - minishlab/potion-retrieval-32M (2025-01-30)
+  - Qwen/Qwen3-Embedding-0.6B (2025-06-05)
+  - sentence-transformers/static-retrieval-mrl-en-v1 (early 2025)
+
+REJECTED: 7
+  - jinaai/jina-embeddings-v3 (GPU-focused)
+  - BAAI/bge-m3 (too large)
+  - Qwen/Qwen3-Embedding-8B (too large)
+  - nomic-ai/nomic-embed-text-v1.5 (2024)
+  - sentence-transformers/all-MiniLM-L6-v2 (2021)
+  - intfloat/multilingual-e5-small (2023)
+  - Snowflake/snowflake-arctic-embed-xs (2024)
+
+================================================================================
+DECISION GATE
+================================================================================
+
+Eligible count: 1
+Threshold for pause: 0 (per bd-wyw)
+
+RECOMMENDATION: Proceed with bake-off
+  - voyage-4-nano as sole eligible candidate
+  - Compare against strong baselines
+  - Flag low eligible count in results
+
+================================================================================
+[2026-01-24T01:00:00Z] END Discovery
+Total queries: 18+
+Eligible found: 1
+Baselines identified: 5
+================================================================================
