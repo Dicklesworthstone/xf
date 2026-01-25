@@ -583,6 +583,93 @@ mod mrl {
         let minilm = models.iter().find(|m| m.name == EMBEDDER_MINILM_L6_V2).unwrap();
         assert!(!minilm.supports_mrl, "MiniLM should not support MRL");
     }
+
+    /// Nomic embedding quality with MRL-capable model.
+    #[test]
+    #[ignore = "requires model files"]
+    fn test_nomic_mrl_quality_at_full_dims() {
+        let embedder = create_embedder(EMBEDDER_NOMIC_V15).unwrap();
+
+        // At full 768 dimensions, nomic should have strong retrieval quality
+        let query = embedder.embed("machine learning algorithms").unwrap();
+        let relevant = embedder.embed("neural network training optimization").unwrap();
+        let irrelevant = embedder.embed("chocolate chip cookie recipe").unwrap();
+
+        assert_eq!(query.len(), 768, "Nomic should have 768 dimensions");
+
+        let sim_relevant = cosine_similarity(&query, &relevant);
+        let sim_irrelevant = cosine_similarity(&query, &irrelevant);
+
+        assert!(
+            sim_relevant > sim_irrelevant,
+            "Nomic should rank relevant doc higher"
+        );
+        assert!(
+            sim_relevant > 0.5,
+            "Nomic should have strong similarity for related concepts"
+        );
+    }
+}
+
+// =============================================================================
+// Long Context Tests (nomic-specific - requires model files)
+// =============================================================================
+
+mod long_context {
+    use super::*;
+
+    /// Nomic supports 8192 token context (vs 512 for MiniLM/BGE).
+    /// Test that embeddings are stable for longer text.
+    #[test]
+    #[ignore = "requires model files"]
+    fn test_nomic_long_text_embedding() {
+        let embedder = create_embedder(EMBEDDER_NOMIC_V15).unwrap();
+
+        // Generate text that would exceed 512 tokens
+        let long_text = "This is a sentence about technology and innovation. "
+            .repeat(100); // ~800 tokens
+
+        let result = embedder.embed(&long_text);
+        assert!(result.is_ok(), "Nomic should handle long text");
+
+        let embedding = result.unwrap();
+        assert_eq!(embedding.len(), 768);
+
+        // Verify L2 normalized
+        let norm: f32 = embedding.iter().map(|x| x * x).sum::<f32>().sqrt();
+        assert!((norm - 1.0).abs() < 0.01, "Should be L2 normalized");
+    }
+
+    /// Verify nomic produces consistent dimensions regardless of input length.
+    #[test]
+    #[ignore = "requires model files"]
+    fn test_nomic_dimension_consistency() {
+        let embedder = create_embedder(EMBEDDER_NOMIC_V15).unwrap();
+
+        let short = embedder.embed("hi").unwrap();
+        let medium = embedder.embed("This is a medium length sentence").unwrap();
+        let long = embedder.embed(&"word ".repeat(500)).unwrap();
+
+        assert_eq!(short.len(), 768);
+        assert_eq!(medium.len(), 768);
+        assert_eq!(long.len(), 768);
+    }
+
+    /// MiniLM truncates at 512 tokens; test that truncation is handled gracefully.
+    #[test]
+    #[ignore = "requires model files"]
+    fn test_minilm_truncation_for_long_text() {
+        let embedder = create_embedder(EMBEDDER_MINILM_L6_V2).unwrap();
+
+        // Generate text that would exceed 512 tokens
+        let long_text = "This is a test sentence. ".repeat(200); // ~1000 tokens
+
+        let result = embedder.embed(&long_text);
+        assert!(result.is_ok(), "MiniLM should truncate without error");
+
+        let embedding = result.unwrap();
+        assert_eq!(embedding.len(), 384);
+    }
 }
 
 // =============================================================================
@@ -671,6 +758,32 @@ mod performance {
         assert!(
             avg_ms < 100.0,
             "BGE should be <100ms per embed, got {avg_ms}ms"
+        );
+    }
+
+    /// Nomic is larger (137M params) so expect higher latency than MiniLM/BGE.
+    #[test]
+    #[ignore = "requires model files"]
+    fn test_nomic_latency_reasonable() {
+        let embedder = create_embedder(EMBEDDER_NOMIC_V15).unwrap();
+
+        // Warmup
+        for _ in 0..5 {
+            let _ = embedder.embed("warmup");
+        }
+
+        let start = Instant::now();
+        let iterations = 30; // Fewer iterations since nomic is larger
+        for _ in 0..iterations {
+            let _ = embedder.embed("benchmark text for latency measurement");
+        }
+        #[allow(clippy::cast_precision_loss)] // Precision loss negligible for timing
+        let avg_ms = start.elapsed().as_millis() as f64 / f64::from(iterations);
+
+        // Nomic is larger (137M) so allow more latency (<200ms per embedding on CPU)
+        assert!(
+            avg_ms < 200.0,
+            "Nomic should be <200ms per embed, got {avg_ms}ms"
         );
     }
 }
