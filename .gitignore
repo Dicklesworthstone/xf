@@ -60,6 +60,7 @@ test_dir/
 # Logs
 *.log
 logs/
+test_logs/
 
 # Python bytecode
 __pycache__/

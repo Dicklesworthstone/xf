@@ -479,6 +479,7 @@ pub enum OutputFormat {
 impl OutputFormat {
     /// Get format from environment variables.
     /// Precedence: XF_OUTPUT_FORMAT > TOON_DEFAULT_FORMAT
+    #[must_use]
     pub fn from_env() -> Option<Self> {
         if let Ok(val) = std::env::var("XF_OUTPUT_FORMAT") {
             return Self::from_str(&val);
@@ -502,6 +503,7 @@ impl OutputFormat {
     }
 
     /// Resolve format: CLI explicit value wins, then env vars, then default
+    #[must_use]
     pub fn resolve(cli_format: Self) -> Self {
         // If CLI specified a non-default format, use it
         if cli_format != Self::Text {

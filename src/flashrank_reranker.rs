@@ -164,7 +164,7 @@ impl FlashRankReranker {
         }
 
         // Pad to uniform length
-        let max_len = all_input_ids.iter().map(|v| v.len()).max().unwrap_or(0);
+        let max_len = all_input_ids.iter().map(Vec::len).max().unwrap_or(0);
 
         let mut input_ids_flat = Vec::with_capacity(documents.len() * max_len);
         let mut attention_mask_flat = Vec::with_capacity(documents.len() * max_len);
@@ -188,9 +188,9 @@ impl FlashRankReranker {
 
             // Pad to max_len
             let padding = max_len - ids.len();
-            input_ids_flat.extend(std::iter::repeat(0i64).take(padding));
-            attention_mask_flat.extend(std::iter::repeat(0i64).take(padding));
-            type_ids_flat.extend(std::iter::repeat(0i64).take(padding));
+            input_ids_flat.extend(std::iter::repeat_n(0i64, padding));
+            attention_mask_flat.extend(std::iter::repeat_n(0i64, padding));
+            type_ids_flat.extend(std::iter::repeat_n(0i64, padding));
         }
 
         // Create tensors
@@ -309,7 +309,7 @@ fn find_latest_snapshot(snapshots_dir: &Path) -> RerankerResult<PathBuf> {
 
     entries
         .first()
-        .map(|e| e.path())
+        .map(std::fs::DirEntry::path)
         .ok_or_else(|| RerankerError::Unavailable("no snapshot found".into()))
 }
 
