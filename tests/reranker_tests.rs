@@ -14,12 +14,12 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use xf::flashrank_reranker::{FlashRankReranker, MODEL_NAME as FLASHRANK_MODEL_NAME};
-use xf::mxbai_reranker::{MxbaiReranker, MODEL_NAME as MXBAI_MODEL_NAME};
 use xf::model::SearchResult;
 use xf::model::SearchResultType;
 use xf::model_registry::ModelRegistry;
-use xf::reranker::Reranker;
+use xf::mxbai_reranker::{MODEL_NAME as MXBAI_MODEL_NAME, MxbaiReranker};
 use xf::rerank_step::RerankStep;
+use xf::reranker::Reranker;
 
 use chrono::Utc;
 
@@ -181,7 +181,9 @@ mod relevance {
             "Recipe: How to make chocolate cake from scratch",
         ];
 
-        let scores = reranker.rerank(query, &docs).expect("rerank should succeed");
+        let scores = reranker
+            .rerank(query, &docs)
+            .expect("rerank should succeed");
         println!("{} scores: {:?}", name, scores);
 
         // Rust doc (index 0) should score highest (most relevant to query)
@@ -215,7 +217,9 @@ mod relevance {
         let reranker = try_flashrank().expect("FlashRank required");
         let query = "test query";
         let docs = vec!["same doc", "same doc", "different doc"];
-        let scores = reranker.rerank(query, &docs).expect("rerank should succeed");
+        let scores = reranker
+            .rerank(query, &docs)
+            .expect("rerank should succeed");
 
         // Identical docs should get same score (within tolerance)
         assert!(
@@ -285,10 +289,18 @@ mod calibration {
     fn test_scores_are_bounded<R: Reranker>(reranker: &R, name: &str) {
         let query = "test query";
         let docs = vec!["relevant doc about testing", "irrelevant doc about cooking"];
-        let scores = reranker.rerank(query, &docs).expect("rerank should succeed");
+        let scores = reranker
+            .rerank(query, &docs)
+            .expect("rerank should succeed");
 
         for (i, score) in scores.iter().enumerate() {
-            assert!(score.is_finite(), "{}: Score {} should be finite, got {}", name, i, score);
+            assert!(
+                score.is_finite(),
+                "{}: Score {} should be finite, got {}",
+                name,
+                i,
+                score
+            );
             // After sigmoid, scores should be in [0, 1]
             assert!(
                 *score >= 0.0 && *score <= 1.0,
@@ -318,8 +330,12 @@ mod calibration {
         let query = "test query for determinism check";
         let docs = vec!["document one", "document two", "document three"];
 
-        let scores1 = reranker.rerank(query, &docs).expect("rerank should succeed");
-        let scores2 = reranker.rerank(query, &docs).expect("rerank should succeed");
+        let scores1 = reranker
+            .rerank(query, &docs)
+            .expect("rerank should succeed");
+        let scores2 = reranker
+            .rerank(query, &docs)
+            .expect("rerank should succeed");
 
         for (i, (s1, s2)) in scores1.iter().zip(scores2.iter()).enumerate() {
             assert!(
@@ -341,7 +357,9 @@ mod calibration {
         for n in [1, 5, 20, 50] {
             let docs: Vec<String> = (0..n).map(|i| format!("document number {}", i)).collect();
             let doc_refs: Vec<&str> = docs.iter().map(|s| s.as_str()).collect();
-            let scores = reranker.rerank("query", &doc_refs).expect("rerank should succeed");
+            let scores = reranker
+                .rerank("query", &doc_refs)
+                .expect("rerank should succeed");
             assert_eq!(scores.len(), n, "Should return exactly {} scores", n);
         }
     }
@@ -510,7 +528,10 @@ mod performance {
         }
         let avg_ms = start.elapsed().as_millis() as f64 / 10.0;
 
-        println!("mxbai-rerank-xsmall top-20 reranking: {:.1}ms average", avg_ms);
+        println!(
+            "mxbai-rerank-xsmall top-20 reranking: {:.1}ms average",
+            avg_ms
+        );
         // mxbai-xsmall is larger, allow more headroom
         assert!(
             avg_ms < 300.0,
@@ -573,7 +594,9 @@ mod comparison {
             "how to make pasta from scratch at home",
         ];
 
-        let scores = reranker.rerank(query, &docs).expect("rerank should succeed");
+        let scores = reranker
+            .rerank(query, &docs)
+            .expect("rerank should succeed");
 
         // ML docs (indices 0, 2) should outrank non-ML docs (1, 3)
         let ml_avg = (scores[0] + scores[2]) / 2.0;
@@ -597,7 +620,9 @@ mod comparison {
             "How to bake a chocolate cake recipe",
         ];
 
-        let fr_scores = flashrank.rerank(query, &docs).expect("FlashRank should succeed");
+        let fr_scores = flashrank
+            .rerank(query, &docs)
+            .expect("FlashRank should succeed");
         let mx_scores = mxbai.rerank(query, &docs).expect("mxbai should succeed");
 
         println!("FlashRank scores: {:?}", fr_scores);
@@ -644,9 +669,13 @@ mod pipeline {
         // Rust doc should be reranked to top for programming query
         assert!(
             candidates[0].id == "rust"
-                || candidates[0].rerank_score.unwrap_or(0.0) >= candidates[1].rerank_score.unwrap_or(0.0),
+                || candidates[0].rerank_score.unwrap_or(0.0)
+                    >= candidates[1].rerank_score.unwrap_or(0.0),
             "Rust doc should rank higher for programming query: {:?}",
-            candidates.iter().map(|c| (&c.id, c.rerank_score)).collect::<Vec<_>>()
+            candidates
+                .iter()
+                .map(|c| (&c.id, c.rerank_score))
+                .collect::<Vec<_>>()
         );
     }
 

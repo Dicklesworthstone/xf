@@ -563,10 +563,7 @@ mod tests {
         let texts = ["first text", "second text", "third text"];
 
         // Embed individually
-        let individual: Vec<Vec<f32>> = texts
-            .iter()
-            .map(|t| embedder.embed(t).unwrap())
-            .collect();
+        let individual: Vec<Vec<f32>> = texts.iter().map(|t| embedder.embed(t).unwrap()).collect();
 
         // Embed as batch
         let batch = embedder.embed_batch(&texts).unwrap();

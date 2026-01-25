@@ -126,10 +126,11 @@ impl RerankStep {
         let elapsed = start.elapsed();
 
         // Calculate score statistics for logging
-        let (top_score, bottom_score) = scores.iter().fold(
-            (f32::NEG_INFINITY, f32::INFINITY),
-            |(max, min), &s| (max.max(s), min.min(s)),
-        );
+        let (top_score, bottom_score) = scores
+            .iter()
+            .fold((f32::NEG_INFINITY, f32::INFINITY), |(max, min), &s| {
+                (max.max(s), min.min(s))
+            });
 
         tracing::info!(
             elapsed_ms = elapsed.as_millis(),
@@ -261,7 +262,10 @@ mod tests {
         let reranker = MockReranker::with_scores(vec![0.9, 0.8]);
         let step = RerankStep::with_reranker(Box::new(reranker)).with_min_candidates(5);
 
-        let mut candidates = vec![make_result("A", "Text A", 0.9), make_result("B", "Text B", 0.8)];
+        let mut candidates = vec![
+            make_result("A", "Text A", 0.9),
+            make_result("B", "Text B", 0.8),
+        ];
 
         step.rerank("query", &mut candidates).unwrap();
 
@@ -314,7 +318,10 @@ mod tests {
         let reranker = MockReranker::failing();
         let step = RerankStep::with_reranker(Box::new(reranker)).with_min_candidates(1);
 
-        let mut candidates = vec![make_result("A", "Text A", 0.9), make_result("B", "Text B", 0.8)];
+        let mut candidates = vec![
+            make_result("A", "Text A", 0.9),
+            make_result("B", "Text B", 0.8),
+        ];
 
         assert!(step.rerank("query", &mut candidates).is_err());
     }

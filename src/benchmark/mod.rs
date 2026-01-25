@@ -2,6 +2,6 @@
 
 pub mod datasets;
 pub mod metrics;
-pub mod rerank_quality;
 pub mod reporters;
+pub mod rerank_quality;
 pub mod runner;

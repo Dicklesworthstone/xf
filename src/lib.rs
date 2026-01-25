@@ -29,6 +29,7 @@ pub mod logging;
 pub mod model;
 pub mod model_registry;
 pub mod mxbai_reranker;
+pub mod output;
 pub mod parser;
 pub mod perf;
 pub mod repl;

@@ -36,10 +36,16 @@ tokio = { version = "1.0", features = ["rt-multi-thread", "macros", "fs", "io-ut
 clap = { version = "4.5", features = ["derive", "cargo", "env", "unicode", "wrap_help"] }
 clap_complete = "4.5"
 
-# Terminal output
+# Terminal output (keep existing for fallback)
 colored = "2.1"
 indicatif = "0.17"
 console = "0.15"
+
+# Rich terminal output (optional)
+rich_rust = { version = "0.1", optional = true }
+
+# Terminal dimension detection
+terminal_size = "0.4"
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
@@ -103,6 +109,18 @@ criterion = { version = "0.5", features = ["html_reports"] }
 proptest = "1.5"
 
 [features]
+default = []
+
+# Enable rich_rust styled output
+rich = ["dep:rich_rust"]
+
+# Full feature set
+full = ["rich"]
+
+# Legacy colored output (uses colored crate, no rich_rust)
+legacy-colors = []
+
+# Existing features
 parallel-search = []
 alloc-count = []
 

@@ -285,8 +285,11 @@ impl RerankQualityBenchmark {
 
             // Evaluate with each reranker
             for reranker in &self.rerankers {
-                let (result, reranked_ndcg_values) =
-                    self.evaluate_pipeline(embedder.as_ref(), &doc_embeddings, Some(reranker.as_ref()))?;
+                let (result, reranked_ndcg_values) = self.evaluate_pipeline(
+                    embedder.as_ref(),
+                    &doc_embeddings,
+                    Some(reranker.as_ref()),
+                )?;
 
                 // Compute lift and significance
                 let lift = compute_lift(&baseline_result.metrics, &result.metrics);
@@ -373,9 +376,7 @@ impl RerankQualityBenchmark {
                 let rerank_scores = rr.rerank(&query.text, &texts)?;
                 let mut rescored: Vec<(usize, f32)> =
                     candidates.into_iter().zip(rerank_scores).collect();
-                rescored.sort_by(|a, b| {
-                    b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal)
-                });
+                rescored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
                 rescored.into_iter().map(|(i, _)| i).collect()
             } else {
                 candidates

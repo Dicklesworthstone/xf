@@ -14,8 +14,8 @@ use std::sync::Arc;
 
 use xf::embedder::{Embedder, EmbedderResult, l2_normalize};
 use xf::model_registry::{
-    EmbedderConfig, ModelRegistry, EMBEDDER_BGE_SMALL_EN_V15, EMBEDDER_EMBEDDINGGEMMA_300M,
-    EMBEDDER_MINILM_L6_V2, EMBEDDER_NOMIC_V15,
+    EMBEDDER_BGE_SMALL_EN_V15, EMBEDDER_EMBEDDINGGEMMA_300M, EMBEDDER_MINILM_L6_V2,
+    EMBEDDER_NOMIC_V15, EmbedderConfig, ModelRegistry,
 };
 
 /// Cosine similarity between two vectors.
@@ -42,7 +42,14 @@ fn create_embedder(model: &str) -> EmbedderResult<Box<dyn Embedder>> {
 
 /// Assert two vectors are approximately equal.
 fn assert_vectors_close(a: &[f32], b: &[f32], tolerance: f32, msg: &str) {
-    assert_eq!(a.len(), b.len(), "{}: length mismatch {} vs {}", msg, a.len(), b.len());
+    assert_eq!(
+        a.len(),
+        b.len(),
+        "{}: length mismatch {} vs {}",
+        msg,
+        a.len(),
+        b.len()
+    );
     for (i, (x, y)) in a.iter().zip(b.iter()).enumerate() {
         assert!(
             (x - y).abs() < tolerance,
@@ -112,20 +119,32 @@ mod constants {
         let registry = ModelRegistry::new();
         let models = registry.list_models();
 
-        let minilm = models.iter().find(|m| m.name == EMBEDDER_MINILM_L6_V2).unwrap();
+        let minilm = models
+            .iter()
+            .find(|m| m.name == EMBEDDER_MINILM_L6_V2)
+            .unwrap();
         assert_eq!(minilm.native_dims, 384);
         assert!(!minilm.supports_mrl);
         assert_eq!(minilm.backend, "fastembed");
 
-        let bge = models.iter().find(|m| m.name == EMBEDDER_BGE_SMALL_EN_V15).unwrap();
+        let bge = models
+            .iter()
+            .find(|m| m.name == EMBEDDER_BGE_SMALL_EN_V15)
+            .unwrap();
         assert_eq!(bge.native_dims, 384);
         assert!(!bge.supports_mrl);
 
-        let nomic = models.iter().find(|m| m.name == EMBEDDER_NOMIC_V15).unwrap();
+        let nomic = models
+            .iter()
+            .find(|m| m.name == EMBEDDER_NOMIC_V15)
+            .unwrap();
         assert_eq!(nomic.native_dims, 768);
         assert!(nomic.supports_mrl);
 
-        let gemma = models.iter().find(|m| m.name == EMBEDDER_EMBEDDINGGEMMA_300M).unwrap();
+        let gemma = models
+            .iter()
+            .find(|m| m.name == EMBEDDER_EMBEDDINGGEMMA_300M)
+            .unwrap();
         assert_eq!(gemma.native_dims, 768);
         assert!(gemma.supports_mrl);
     }
@@ -207,12 +226,36 @@ mod quality {
     /// Test that a model can distinguish related from unrelated texts.
     fn quality_test_for_model(embedder: &dyn Embedder) {
         let pairs = [
-            ("buy bitcoin cryptocurrency", "crypto trading exchange", true),
-            ("buy bitcoin cryptocurrency", "chocolate cake recipe baking", false),
-            ("machine learning neural networks", "deep learning training data", true),
-            ("machine learning neural networks", "flower arrangement centerpiece", false),
-            ("rust programming language safety", "systems programming memory safe", true),
-            ("rust programming language safety", "vacation resort beach hotel", false),
+            (
+                "buy bitcoin cryptocurrency",
+                "crypto trading exchange",
+                true,
+            ),
+            (
+                "buy bitcoin cryptocurrency",
+                "chocolate cake recipe baking",
+                false,
+            ),
+            (
+                "machine learning neural networks",
+                "deep learning training data",
+                true,
+            ),
+            (
+                "machine learning neural networks",
+                "flower arrangement centerpiece",
+                false,
+            ),
+            (
+                "rust programming language safety",
+                "systems programming memory safe",
+                true,
+            ),
+            (
+                "rust programming language safety",
+                "vacation resort beach hotel",
+                false,
+            ),
         ];
 
         for (query, doc, should_be_related) in pairs {
@@ -414,7 +457,12 @@ mod thread_safety {
 
         let results: Vec<_> = handles.into_iter().map(|h| h.join().unwrap()).collect();
         for i in 1..results.len() {
-            assert_vectors_close(&results[0], &results[i], 1e-5, &format!("thread {i} mismatch"));
+            assert_vectors_close(
+                &results[0],
+                &results[i],
+                1e-5,
+                &format!("thread {i} mismatch"),
+            );
         }
     }
 }
@@ -449,11 +497,11 @@ mod edge_cases {
 
         // Various Unicode texts
         let texts = [
-            "café",                                       // Latin extended
-            "日本語",                                     // Japanese
-            "العربية",                                    // Arabic
-            "🚀🔥💻",                                     // Emoji
-            "mixed 日本語 and English テスト",           // Mixed
+            "café",                            // Latin extended
+            "日本語",                          // Japanese
+            "العربية",                         // Arabic
+            "🚀🔥💻",                          // Emoji
+            "mixed 日本語 and English テスト", // Mixed
         ];
 
         for text in texts {
@@ -551,8 +599,12 @@ mod pooling {
         let embedder = create_embedder(EMBEDDER_BGE_SMALL_EN_V15).unwrap();
 
         // BGE should produce high-quality embeddings for retrieval
-        let query = embedder.embed("programming languages for systems development").unwrap();
-        let relevant = embedder.embed("Rust is a systems programming language").unwrap();
+        let query = embedder
+            .embed("programming languages for systems development")
+            .unwrap();
+        let relevant = embedder
+            .embed("Rust is a systems programming language")
+            .unwrap();
         let irrelevant = embedder.embed("Chocolate chip cookies recipe").unwrap();
 
         let sim_relevant = cosine_similarity(&query, &relevant);
@@ -598,7 +650,10 @@ mod mrl {
     fn test_nomic_supports_mrl() {
         let registry = ModelRegistry::new();
         let models = registry.list_models();
-        let nomic = models.iter().find(|m| m.name == EMBEDDER_NOMIC_V15).unwrap();
+        let nomic = models
+            .iter()
+            .find(|m| m.name == EMBEDDER_NOMIC_V15)
+            .unwrap();
         assert!(nomic.supports_mrl, "Nomic should support MRL");
     }
 
@@ -607,7 +662,10 @@ mod mrl {
     fn test_minilm_does_not_support_mrl() {
         let registry = ModelRegistry::new();
         let models = registry.list_models();
-        let minilm = models.iter().find(|m| m.name == EMBEDDER_MINILM_L6_V2).unwrap();
+        let minilm = models
+            .iter()
+            .find(|m| m.name == EMBEDDER_MINILM_L6_V2)
+            .unwrap();
         assert!(!minilm.supports_mrl, "MiniLM should not support MRL");
     }
 
@@ -619,7 +677,9 @@ mod mrl {
 
         // At full 768 dimensions, nomic should have strong retrieval quality
         let query = embedder.embed("machine learning algorithms").unwrap();
-        let relevant = embedder.embed("neural network training optimization").unwrap();
+        let relevant = embedder
+            .embed("neural network training optimization")
+            .unwrap();
         let irrelevant = embedder.embed("chocolate chip cookie recipe").unwrap();
 
         assert_eq!(query.len(), 768, "Nomic should have 768 dimensions");
@@ -653,8 +713,7 @@ mod long_context {
         let embedder = create_embedder(EMBEDDER_NOMIC_V15).unwrap();
 
         // Generate text that would exceed 512 tokens
-        let long_text = "This is a sentence about technology and innovation. "
-            .repeat(100); // ~800 tokens
+        let long_text = "This is a sentence about technology and innovation. ".repeat(100); // ~800 tokens
 
         let result = embedder.embed(&long_text);
         assert!(result.is_ok(), "Nomic should handle long text");
