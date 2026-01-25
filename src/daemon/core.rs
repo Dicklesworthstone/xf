@@ -6,7 +6,7 @@
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant};
 
 use tokio::fs;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -14,7 +14,7 @@ use tokio::net::{UnixListener, UnixStream};
 use tokio::sync::Mutex;
 
 use super::models::ModelManager;
-use super::protocol::{error_codes, Envelope, LoadedModelInfo, Request, Response, PROTOCOL_VERSION};
+use super::protocol::{error_codes, Envelope, Request, Response, PROTOCOL_VERSION};
 
 /// Default idle timeout before daemon shuts down (30 minutes).
 const DEFAULT_IDLE_TIMEOUT_SECS: u64 = 30 * 60;
@@ -40,9 +40,12 @@ pub struct DaemonConfig {
 
 impl Default for DaemonConfig {
     fn default() -> Self {
-        let uid = unsafe { libc::getuid() };
-        let socket_path = PathBuf::from(format!("/tmp/xf-daemon-{uid}.sock"));
-        let pid_path = PathBuf::from(format!("/tmp/xf-daemon-{uid}.pid"));
+        // Get user identifier for unique socket paths (safe alternative to getuid)
+        let user_id = std::env::var("USER")
+            .or_else(|_| std::env::var("USERNAME"))
+            .unwrap_or_else(|_| "default".to_string());
+        let socket_path = PathBuf::from(format!("/tmp/xf-daemon-{user_id}.sock"));
+        let pid_path = PathBuf::from(format!("/tmp/xf-daemon-{user_id}.pid"));
 
         Self {
             socket_path,
@@ -194,7 +197,7 @@ impl ModelDaemon {
                     tracing::info!("idle timeout reached, shutting down");
                     break;
                 }
-                () = tokio::signal::ctrl_c() => {
+                _ = tokio::signal::ctrl_c() => {
                     tracing::info!("received SIGINT, shutting down");
                     break;
                 }

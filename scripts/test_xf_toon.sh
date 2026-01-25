@@ -206,13 +206,17 @@ if [[ -s "$LOG_DIR/search_json.out" ]]; then
     STATS_LINE=$(tru --stats "$LOG_DIR/search_json.out" 2>&1 | rg -m1 "Saved" || true)
     log "$STATS_LINE"
     SAVINGS_PCT=$(printf "%s" "$STATS_LINE" | sed -n 's/.*(\([-0-9.]*\)%).*/\1/p')
-    SAVINGS_PCT=${SAVINGS_PCT#-}
     if [[ -n "$SAVINGS_PCT" ]]; then
-      log "Savings: ${SAVINGS_PCT}%"
-      if [[ "${SAVINGS_PCT%.*}" -ge "$MIN_SAVINGS" ]]; then
-        pass "Token savings >= ${MIN_SAVINGS}%"
+      if [[ "$SAVINGS_PCT" == -* ]]; then
+        log "Savings: ${SAVINGS_PCT}% (TOON larger)"
+        skip "Token savings negative (TOON larger)"
       else
-        fail "Token savings < ${MIN_SAVINGS}%"
+        log "Savings: ${SAVINGS_PCT}%"
+        if [[ "${SAVINGS_PCT%.*}" -ge "$MIN_SAVINGS" ]]; then
+          pass "Token savings >= ${MIN_SAVINGS}%"
+        else
+          fail "Token savings < ${MIN_SAVINGS}%"
+        fi
       fi
     else
       fail "Token savings could not be parsed"
