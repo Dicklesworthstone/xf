@@ -186,6 +186,9 @@ pub struct SearchResult {
     pub score: f32,
     pub highlights: Vec<String>,
     pub metadata: serde_json::Value,
+    /// Reranker score if reranking was applied, None otherwise.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rerank_score: Option<f32>,
 }
 
 /// Type of search result

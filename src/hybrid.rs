@@ -227,6 +227,7 @@ mod tests {
             score,
             highlights: vec![],
             metadata: serde_json::Value::Null,
+            rerank_score: None,
         }
     }
 

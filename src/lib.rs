@@ -32,6 +32,7 @@ pub mod mxbai_reranker;
 pub mod parser;
 pub mod perf;
 pub mod repl;
+pub mod rerank_step;
 pub mod reranker;
 pub mod search;
 pub mod static_mrl_embedder;

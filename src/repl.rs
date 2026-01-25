@@ -1991,6 +1991,7 @@ mod tests {
                 created_at: Utc::now(),
                 highlights: vec![],
                 metadata: serde_json::json!({}),
+                rerank_score: None,
             },
             SearchResult {
                 id: "tweet_002".to_string(),
@@ -2000,6 +2001,7 @@ mod tests {
                 created_at: Utc::now(),
                 highlights: vec![],
                 metadata: serde_json::json!({}),
+                rerank_score: None,
             },
             SearchResult {
                 id: "tweet_003".to_string(),
@@ -2009,6 +2011,7 @@ mod tests {
                 created_at: Utc::now(),
                 highlights: vec![],
                 metadata: serde_json::json!({}),
+                rerank_score: None,
             },
         ];
 

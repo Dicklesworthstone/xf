@@ -2011,6 +2011,7 @@ mod search_filter_tests {
             score: 1.0,
             highlights: Vec::new(),
             metadata: serde_json::json!({}),
+            rerank_score: None,
         }
     }
 

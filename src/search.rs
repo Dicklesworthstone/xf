@@ -149,6 +149,7 @@ fn doc_to_search_result(
         score: 1.0,
         highlights: vec![],
         metadata: parse_metadata(metadata_str),
+        rerank_score: None,
     };
 
     (result, doc_type_str.to_string())
@@ -645,6 +646,7 @@ impl SearchEngine {
                 score,
                 highlights,
                 metadata: parse_metadata(metadata_str),
+                rerank_score: None,
             });
         }
 
@@ -817,6 +819,7 @@ impl SearchEngine {
                 score: 1.0, // ID lookup has no relevance score
                 highlights: vec![],
                 metadata: parse_metadata(metadata_str),
+                rerank_score: None,
             }))
         } else {
             Ok(None)
