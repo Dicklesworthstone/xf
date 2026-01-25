@@ -466,6 +466,45 @@ mod tests {
         assert!(dir.to_string_lossy().contains("xf"));
     }
 
+    #[test]
+    fn test_minilm_baseline_constants() {
+        // MiniLM baseline should have fixed characteristics
+        // This is used as the reference point for all model comparisons
+
+        // Fixed 384-dimensional output (no MRL support)
+        assert_eq!(EMBEDDING_DIMENSION, 384);
+
+        // Model identifier matches sentence-transformers convention
+        assert!(MODEL_DIR_NAME.contains("MiniLM"));
+
+        // Required files for ONNX inference
+        assert_eq!(REQUIRED_FILES.len(), 5);
+        assert!(REQUIRED_FILES.contains(&"model.onnx"));
+        assert!(REQUIRED_FILES.contains(&"tokenizer.json"));
+        assert!(REQUIRED_FILES.contains(&"config.json"));
+        assert!(REQUIRED_FILES.contains(&"special_tokens_map.json"));
+        assert!(REQUIRED_FILES.contains(&"tokenizer_config.json"));
+    }
+
+    #[test]
+    fn test_embedder_id_format() {
+        // ID format: "minilm-{dimension}"
+        assert!(EMBEDDER_ID.starts_with("minilm-"));
+        let dim_str = EMBEDDER_ID.strip_prefix("minilm-").unwrap();
+        let dim: usize = dim_str.parse().unwrap();
+        assert_eq!(dim, EMBEDDING_DIMENSION);
+    }
+
+    #[test]
+    fn test_model_dir_name_convention() {
+        // Should match HuggingFace model ID convention
+        // all-MiniLM-L6-v2 = all layers, MiniLM architecture, 6 layers, version 2
+        assert!(MODEL_DIR_NAME.starts_with("all-"));
+        assert!(MODEL_DIR_NAME.contains("MiniLM"));
+        assert!(MODEL_DIR_NAME.contains("L6")); // 6 transformer layers
+        assert!(MODEL_DIR_NAME.ends_with("v2")); // Version 2
+    }
+
     // Integration tests require actual model files
     #[test]
     #[ignore = "requires model files"]
@@ -486,5 +525,71 @@ mod tests {
             sim_happy_joyful > sim_happy_sad,
             "semantic similarity failed: happy-joyful={sim_happy_joyful}, happy-sad={sim_happy_sad}"
         );
+    }
+
+    #[test]
+    #[ignore = "requires model files"]
+    fn test_minilm_output_dimensions() {
+        let embedder = FastEmbedder::try_load().expect("model not available");
+
+        // Dimension should always be 384 (no MRL support)
+        assert_eq!(embedder.dimension(), 384);
+
+        // Embed a test text and verify output dimension
+        let embedding = embedder.embed("test text").unwrap();
+        assert_eq!(embedding.len(), 384);
+    }
+
+    #[test]
+    #[ignore = "requires model files"]
+    fn test_minilm_l2_normalization() {
+        let embedder = FastEmbedder::try_load().expect("model not available");
+
+        let embedding = embedder.embed("any text").unwrap();
+
+        // L2 norm should be approximately 1.0 (unit vector)
+        let norm: f32 = embedding.iter().map(|x| x * x).sum::<f32>().sqrt();
+        assert!(
+            (norm - 1.0).abs() < 1e-5,
+            "embedding not normalized: L2 norm = {norm}"
+        );
+    }
+
+    #[test]
+    #[ignore = "requires model files"]
+    fn test_minilm_batch_matches_individual() {
+        let embedder = FastEmbedder::try_load().expect("model not available");
+
+        let texts = ["first text", "second text", "third text"];
+
+        // Embed individually
+        let individual: Vec<Vec<f32>> = texts
+            .iter()
+            .map(|t| embedder.embed(t).unwrap())
+            .collect();
+
+        // Embed as batch
+        let batch = embedder.embed_batch(&texts).unwrap();
+
+        // Results should match
+        assert_eq!(individual.len(), batch.len());
+        for (i, (ind, bat)) in individual.iter().zip(batch.iter()).enumerate() {
+            assert_eq!(ind.len(), bat.len(), "dimension mismatch at index {i}");
+            for (a, b) in ind.iter().zip(bat.iter()) {
+                assert!(
+                    (a - b).abs() < 1e-5,
+                    "value mismatch at index {i}: {a} vs {b}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    #[ignore = "requires model files"]
+    fn test_minilm_is_semantic() {
+        let embedder = FastEmbedder::try_load().expect("model not available");
+
+        // MiniLM is a semantic embedder (not a hash-based one)
+        assert!(embedder.is_semantic());
     }
 }
