@@ -64,3 +64,12 @@ logs/
 # Python bytecode
 __pycache__/
 *.pyc
+
+# Ephemeral/temporary files (agent workflow artifacts)
+RESEARCH_FINDINGS.md
+TOON_INTEGRATION_BRIEF.md
+cov_*.out
+rustc-ice-*.txt
+*.snap.new
+sweep_*.png
+test_screenshot.png
