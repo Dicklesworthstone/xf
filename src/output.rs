@@ -22,16 +22,16 @@
 //! }
 //! ```
 
-use once_cell::sync::Lazy;
 use regex::Regex;
 use std::io::{self, IsTerminal, Write};
+use std::sync::LazyLock;
 
 #[cfg(feature = "rich")]
 pub use rich_rust::prelude::*;
 
 /// Regex for stripping markup tags - compiled once at startup
-static MARKUP_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"\[/?[^\]]*\]").expect("Invalid markup regex"));
+static MARKUP_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"\[/?[^\]]*\]").expect("Invalid markup regex"));
 
 /// Returns true if the rich_rust feature is enabled.
 ///
@@ -70,18 +70,13 @@ pub enum Verbosity {
 }
 
 /// Color support level detection
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
 pub enum ColorSupport {
+    #[default]
     None,
     Basic,     // 16 colors
     Extended,  // 256 colors
     TrueColor, // 24-bit
-}
-
-impl Default for ColorSupport {
-    fn default() -> Self {
-        Self::detect()
-    }
 }
 
 impl ColorSupport {
@@ -110,23 +105,15 @@ impl ColorSupport {
 }
 
 /// Simple theme for consistent styling
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Theme {
     pub color_support: ColorSupport,
-}
-
-impl Default for Theme {
-    fn default() -> Self {
-        Self {
-            color_support: ColorSupport::detect(),
-        }
-    }
 }
 
 impl Theme {
     /// Create theme for specific color support level
     #[must_use]
-    pub fn for_color_support(support: ColorSupport) -> Self {
+    pub const fn for_color_support(support: ColorSupport) -> Self {
         Self {
             color_support: support,
         }
@@ -140,6 +127,7 @@ impl Theme {
 }
 
 /// Central output abstraction for all CLI output
+#[allow(clippy::struct_excessive_bools)]
 pub struct Output {
     format: OutputFormat,
     stdout_is_tty: bool,
@@ -176,8 +164,7 @@ impl Output {
         let clicolor = std::env::var("CLICOLOR").ok().map(|v| v != "0");
 
         let terminal_width = terminal_size::terminal_size()
-            .map(|(w, _)| w.0 as usize)
-            .unwrap_or(80)
+            .map_or(80, |(w, _)| w.0 as usize)
             .clamp(40, 300); // Sensible bounds
 
         let color_support = if no_color || clicolor == Some(false) {
@@ -222,7 +209,7 @@ impl Output {
 
     /// Set verbosity level
     #[must_use]
-    pub fn with_verbosity(mut self, verbosity: Verbosity) -> Self {
+    pub const fn with_verbosity(mut self, verbosity: Verbosity) -> Self {
         self.verbosity = verbosity;
         self
     }
@@ -263,19 +250,19 @@ impl Output {
 
     /// Get output format
     #[must_use]
-    pub fn format(&self) -> OutputFormat {
+    pub const fn format(&self) -> OutputFormat {
         self.format
     }
 
     /// Get terminal width
     #[must_use]
-    pub fn width(&self) -> usize {
+    pub const fn width(&self) -> usize {
         self.terminal_width
     }
 
     /// Get current verbosity
     #[must_use]
-    pub fn verbosity(&self) -> Verbosity {
+    pub const fn verbosity(&self) -> Verbosity {
         self.verbosity
     }
 
@@ -287,7 +274,7 @@ impl Output {
 
     /// Check verbosity level - verbose or debug mode
     #[must_use]
-    pub fn is_verbose(&self) -> bool {
+    pub const fn is_verbose(&self) -> bool {
         matches!(self.verbosity, Verbosity::Verbose | Verbosity::Debug)
     }
 
