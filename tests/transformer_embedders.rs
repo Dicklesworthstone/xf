@@ -14,8 +14,8 @@ use std::sync::Arc;
 
 use xf::embedder::{Embedder, EmbedderResult, l2_normalize};
 use xf::model_registry::{
-    EmbedderConfig, ModelRegistry, EMBEDDER_BGE_SMALL_EN_V15, EMBEDDER_MINILM_L6_V2,
-    EMBEDDER_NOMIC_V15,
+    EmbedderConfig, ModelRegistry, EMBEDDER_BGE_SMALL_EN_V15, EMBEDDER_EMBEDDINGGEMMA_300M,
+    EMBEDDER_MINILM_L6_V2, EMBEDDER_NOMIC_V15,
 };
 
 /// Cosine similarity between two vectors.
@@ -79,6 +79,11 @@ mod constants {
     }
 
     #[test]
+    fn test_embeddinggemma_model_name() {
+        assert_eq!(EMBEDDER_EMBEDDINGGEMMA_300M, "embeddinggemma-300m");
+    }
+
+    #[test]
     fn test_e5_model_name() {
         assert_eq!(EMBEDDER_E5_SMALL, "multilingual-e5-small");
     }
@@ -90,6 +95,7 @@ mod constants {
         assert!(registry.has_embedder(EMBEDDER_BGE_SMALL_EN_V15));
         assert!(registry.has_embedder(EMBEDDER_NOMIC_V15));
         assert!(registry.has_embedder(EMBEDDER_E5_SMALL));
+        assert!(registry.has_embedder(EMBEDDER_EMBEDDINGGEMMA_300M));
     }
 
     #[test]
@@ -118,6 +124,10 @@ mod constants {
         let nomic = models.iter().find(|m| m.name == EMBEDDER_NOMIC_V15).unwrap();
         assert_eq!(nomic.native_dims, 768);
         assert!(nomic.supports_mrl);
+
+        let gemma = models.iter().find(|m| m.name == EMBEDDER_EMBEDDINGGEMMA_300M).unwrap();
+        assert_eq!(gemma.native_dims, 768);
+        assert!(gemma.supports_mrl);
     }
 }
 
@@ -151,6 +161,23 @@ mod loading {
         let embedder = create_embedder(EMBEDDER_NOMIC_V15).expect("failed to load Nomic");
         assert_eq!(embedder.dimension(), 768);
         assert!(embedder.is_semantic());
+    }
+
+    /// EmbeddingGemma loading test - currently returns Unavailable error.
+    /// Will work when backend is implemented.
+    #[test]
+    fn test_embeddinggemma_not_yet_available() {
+        let result = create_embedder(EMBEDDER_EMBEDDINGGEMMA_300M);
+        // Expected to fail with Unavailable until backend is implemented
+        assert!(result.is_err());
+        let err = match result {
+            Err(e) => e.to_string(),
+            Ok(_) => panic!("expected unavailable error"),
+        };
+        assert!(
+            err.contains("not implemented") || err.contains("unavailable"),
+            "Should indicate model is not implemented: {err}"
+        );
     }
 
     #[test]
