@@ -515,6 +515,48 @@ mod pooling {
             "Different texts should produce different embeddings"
         );
     }
+
+    /// BGE uses CLS token pooling (position 0) instead of mean pooling.
+    /// This test verifies that BGE produces quality embeddings suitable for retrieval.
+    #[test]
+    #[ignore = "requires model files"]
+    fn test_bge_cls_pooling_retrieval_quality() {
+        let embedder = create_embedder(EMBEDDER_BGE_SMALL_EN_V15).unwrap();
+
+        // BGE should produce high-quality embeddings for retrieval
+        let query = embedder.embed("programming languages for systems development").unwrap();
+        let relevant = embedder.embed("Rust is a systems programming language").unwrap();
+        let irrelevant = embedder.embed("Chocolate chip cookies recipe").unwrap();
+
+        let sim_relevant = cosine_similarity(&query, &relevant);
+        let sim_irrelevant = cosine_similarity(&query, &irrelevant);
+
+        assert!(
+            sim_relevant > sim_irrelevant,
+            "BGE should rank relevant doc higher: relevant={sim_relevant} vs irrelevant={sim_irrelevant}"
+        );
+        assert!(
+            sim_relevant > 0.4,
+            "BGE should have reasonable similarity for related concepts"
+        );
+    }
+
+    /// Verify BGE produces consistent 384-dimensional output regardless of input length.
+    #[test]
+    #[ignore = "requires model files"]
+    fn test_bge_cls_consistent_dimensions() {
+        let embedder = create_embedder(EMBEDDER_BGE_SMALL_EN_V15).unwrap();
+
+        let short = embedder.embed("hi").unwrap();
+        let medium = embedder.embed("This is a medium length sentence").unwrap();
+        let long = embedder.embed(
+            "This is a much longer sentence that contains many more tokens and words to process",
+        ).unwrap();
+
+        assert_eq!(short.len(), 384);
+        assert_eq!(medium.len(), 384);
+        assert_eq!(long.len(), 384);
+    }
 }
 
 // =============================================================================
@@ -602,6 +644,33 @@ mod performance {
         assert!(
             batch_ms <= individual_ms + 100,
             "Batch should be faster: batch={batch_ms}ms vs individual={individual_ms}ms"
+        );
+    }
+
+    /// BGE should have comparable latency to MiniLM despite slightly more parameters.
+    #[test]
+    #[ignore = "requires model files"]
+    fn test_bge_latency_reasonable() {
+        let embedder = create_embedder(EMBEDDER_BGE_SMALL_EN_V15).unwrap();
+
+        // Warmup
+        for _ in 0..5 {
+            let _ = embedder.embed("warmup");
+        }
+
+        let start = Instant::now();
+        let iterations = 50;
+        for _ in 0..iterations {
+            let _ = embedder.embed("benchmark text for latency measurement");
+        }
+        #[allow(clippy::cast_precision_loss)] // Precision loss negligible for timing
+        let avg_ms = start.elapsed().as_millis() as f64 / f64::from(iterations);
+
+        // BGE should be reasonably fast (<100ms per embedding on CPU)
+        // Slightly larger than MiniLM (33M vs 22M) but same architecture
+        assert!(
+            avg_ms < 100.0,
+            "BGE should be <100ms per embed, got {avg_ms}ms"
         );
     }
 }
