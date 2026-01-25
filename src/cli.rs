@@ -48,7 +48,7 @@ pub struct Cli {
     #[arg(long, env = "XF_INDEX", global = true)]
     pub index: Option<PathBuf>,
 
-    /// Output format
+    /// Output format (env: XF_OUTPUT_FORMAT, TOON_DEFAULT_FORMAT)
     #[arg(long, short = 'f', default_value = "text", global = true)]
     pub format: OutputFormat,
 
