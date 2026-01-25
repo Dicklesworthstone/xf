@@ -39,6 +39,7 @@ pub mod search;
 pub mod static_mrl_embedder;
 pub mod stats_analytics;
 pub mod storage;
+pub mod theme;
 pub mod vector;
 
 pub use cli::*;
