@@ -37,9 +37,7 @@ pub const fn is_rich_available() -> bool {
 /// Falls back to (80, 24) if terminal size cannot be determined.
 #[must_use]
 pub fn terminal_dimensions() -> (u16, u16) {
-    terminal_size::terminal_size()
-        .map(|(w, h)| (w.0, h.0))
-        .unwrap_or((80, 24))
+    terminal_size::terminal_size().map_or((80, 24), |(w, h)| (w.0, h.0))
 }
 
 #[cfg(test)]
