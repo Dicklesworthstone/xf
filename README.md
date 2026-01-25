@@ -36,6 +36,21 @@ scoop install dicklesworthstone/xf
 
 ---
 
+## 🤖 Agent Quickstart (JSON)
+
+**Use `--format json` in agent contexts.** stdout = data, stderr = diagnostics, exit 0 = success.
+
+```bash
+# 1) Index once (required before search)
+xf index ~/x-archive
+
+# 2) Search (machine-readable)
+xf search "machine learning" --format json --limit 20
+
+# 3) Archive stats (machine-readable)
+xf stats --format json
+```
+
 ## TL;DR
 
 **The Problem**: X lets you download all your data, but actually *finding* anything in that archive is painful. The built-in HTML viewer is slow and clunky, there's no real search, and your data is scattered across separate files.
