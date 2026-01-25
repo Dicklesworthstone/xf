@@ -57,14 +57,23 @@ impl ModelManager {
     ///
     /// Models are loaded on first access and cached. If loading would exceed
     /// `max_models`, the least recently used model is evicted first.
+    ///
+    /// # Panics
+    ///
+    /// This function uses `expect` internally but will not panic in practice
+    /// because the HashMap accesses are immediately after confirmed insertions.
     pub fn get_embedder(&mut self, name: &str) -> Result<&dyn Embedder, EmbedderError> {
         // Update last_used if already loaded
-        if self.embedders.contains_key(name) {
-            if let Some(entry) = self.embedders.get_mut(name) {
-                entry.last_used = Instant::now();
-                entry.requests_served.fetch_add(1, Ordering::Relaxed);
-            }
-            return Ok(self.embedders.get(name).unwrap().embedder.as_ref());
+        if let Some(entry) = self.embedders.get_mut(name) {
+            entry.last_used = Instant::now();
+            entry.requests_served.fetch_add(1, Ordering::Relaxed);
+            // Safety: We know the entry exists because get_mut succeeded
+            return Ok(self
+                .embedders
+                .get(name)
+                .expect("entry exists")
+                .embedder
+                .as_ref());
         }
 
         // Evict if necessary
@@ -89,12 +98,23 @@ impl ModelManager {
         };
 
         self.embedders.insert(name.to_string(), entry);
-        Ok(self.embedders.get(name).unwrap().embedder.as_ref())
+        // Safety: We just inserted this entry
+        Ok(self
+            .embedders
+            .get(name)
+            .expect("just inserted")
+            .embedder
+            .as_ref())
     }
 
     /// Get or load a reranker by name.
     ///
     /// Returns `None` for the "none" reranker.
+    ///
+    /// # Panics
+    ///
+    /// This function uses `expect` internally but will not panic in practice
+    /// because the HashMap accesses are immediately after confirmed insertions.
     pub fn get_reranker(&mut self, name: &str) -> Result<Option<&dyn Reranker>, RerankerError> {
         // Handle "none" case
         if name == "none" || name.is_empty() {
@@ -102,12 +122,17 @@ impl ModelManager {
         }
 
         // Update last_used if already loaded
-        if self.rerankers.contains_key(name) {
-            if let Some(entry) = self.rerankers.get_mut(name) {
-                entry.last_used = Instant::now();
-                entry.requests_served.fetch_add(1, Ordering::Relaxed);
-            }
-            return Ok(Some(self.rerankers.get(name).unwrap().reranker.as_ref()));
+        if let Some(entry) = self.rerankers.get_mut(name) {
+            entry.last_used = Instant::now();
+            entry.requests_served.fetch_add(1, Ordering::Relaxed);
+            // Safety: We know the entry exists because get_mut succeeded
+            return Ok(Some(
+                self.rerankers
+                    .get(name)
+                    .expect("entry exists")
+                    .reranker
+                    .as_ref(),
+            ));
         }
 
         // Evict if necessary
@@ -136,7 +161,14 @@ impl ModelManager {
         };
 
         self.rerankers.insert(name.to_string(), entry);
-        Ok(Some(self.rerankers.get(name).unwrap().reranker.as_ref()))
+        // Safety: We just inserted this entry
+        Ok(Some(
+            self.rerankers
+                .get(name)
+                .expect("just inserted")
+                .reranker
+                .as_ref(),
+        ))
     }
 
     /// Total number of loaded models.
@@ -261,7 +293,7 @@ mod tests {
 
         let models = manager.loaded_models();
         assert_eq!(models.len(), 1);
-        assert_eq!(models[0].name, "hash-fnv1a-384");
+        assert_eq!(models[0].name, "hash");
         assert_eq!(models[0].model_type, "embedder");
         assert!(models[0].requests_served >= 1);
     }

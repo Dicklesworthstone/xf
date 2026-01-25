@@ -43,6 +43,4 @@ mod protocol;
 
 pub use core::{DaemonConfig, ModelDaemon};
 pub use models::ModelManager;
-pub use protocol::{
-    error_codes, Envelope, LoadedModelInfo, Request, Response, PROTOCOL_VERSION,
-};
+pub use protocol::{Envelope, LoadedModelInfo, PROTOCOL_VERSION, Request, Response, error_codes};

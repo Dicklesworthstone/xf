@@ -21,7 +21,7 @@ pub struct Envelope {
 impl Envelope {
     /// Create a new envelope with the given request ID and payload.
     #[must_use]
-    pub fn new(id: u64, payload: Vec<u8>) -> Self {
+    pub const fn new(id: u64, payload: Vec<u8>) -> Self {
         Self {
             version: PROTOCOL_VERSION,
             id,
@@ -263,9 +263,9 @@ mod tests {
             models: vec![LoadedModelInfo {
                 name: "all-MiniLM-L6-v2".to_string(),
                 model_type: "embedder".to_string(),
-                loaded_at: 1700000000,
+                loaded_at: 1_700_000_000,
                 requests_served: 100,
-                last_used: 1700003600,
+                last_used: 1_700_003_600,
             }],
             rss_mb: 256.5,
             requests_served: 1000,

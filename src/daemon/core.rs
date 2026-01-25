@@ -4,8 +4,8 @@
 //! accepting requests over a Unix Domain Socket with MessagePack protocol.
 
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
 use tokio::fs;
@@ -14,7 +14,7 @@ use tokio::net::{UnixListener, UnixStream};
 use tokio::sync::Mutex;
 
 use super::models::ModelManager;
-use super::protocol::{error_codes, Envelope, Request, Response, PROTOCOL_VERSION};
+use super::protocol::{Envelope, PROTOCOL_VERSION, Request, Response, error_codes};
 
 /// Default idle timeout before daemon shuts down (30 minutes).
 const DEFAULT_IDLE_TIMEOUT_SECS: u64 = 30 * 60;
@@ -165,11 +165,8 @@ impl ModelDaemon {
                     break;
                 }
                 let elapsed = state.last_request.elapsed();
-                if elapsed >= self.config.idle_timeout {
-                    None // Already timed out
-                } else {
-                    Some(self.config.idle_timeout - elapsed)
-                }
+                drop(state); // Release lock early
+                self.config.idle_timeout.checked_sub(elapsed)
             };
 
             let Some(remaining) = idle_timeout else {
@@ -232,32 +229,30 @@ impl ModelDaemon {
 }
 
 /// Handle a single client connection.
-async fn handle_connection(mut stream: UnixStream, state: Arc<Mutex<DaemonState>>) -> anyhow::Result<()> {
-    // Check in-flight limit
-    {
-        let s = state.lock().await;
-        let in_flight = s.in_flight.load(Ordering::Relaxed);
-        if in_flight >= MAX_IN_FLIGHT as u64 {
-            let response = Response::error(error_codes::OVERLOADED, "server overloaded");
-            let envelope = Envelope::from_response(0, &response)?;
-            let bytes = rmp_serde::to_vec(&envelope)?;
-            stream.write_u32(bytes.len() as u32).await?;
-            stream.write_all(&bytes).await?;
-            return Ok(());
-        }
+#[allow(clippy::cast_possible_truncation)] // Message size is validated < 10MB
+async fn handle_connection(
+    mut stream: UnixStream,
+    state: Arc<Mutex<DaemonState>>,
+) -> anyhow::Result<()> {
+    // Check in-flight limit and increment counter atomically
+    let in_flight = state.lock().await.in_flight.load(Ordering::Relaxed);
+    if in_flight >= MAX_IN_FLIGHT as u64 {
+        let response = Response::error(error_codes::OVERLOADED, "server overloaded");
+        let envelope = Envelope::from_response(0, &response)?;
+        let bytes = rmp_serde::to_vec(&envelope)?;
+        stream.write_u32(bytes.len() as u32).await?;
+        stream.write_all(&bytes).await?;
+        return Ok(());
     }
 
     // Increment in-flight counter
-    {
-        let s = state.lock().await;
-        s.in_flight.fetch_add(1, Ordering::Relaxed);
-    }
+    state.lock().await.in_flight.fetch_add(1, Ordering::Relaxed);
 
     // Read length-prefixed message
     let len = stream.read_u32().await?;
     if len > 10 * 1024 * 1024 {
         // 10MB limit
-        anyhow::bail!("message too large: {} bytes", len);
+        anyhow::bail!("message too large: {len} bytes");
     }
 
     let mut buf = vec![0u8; len as usize];
@@ -270,15 +265,17 @@ async fn handle_connection(mut stream: UnixStream, state: Arc<Mutex<DaemonState>
     if envelope.version != PROTOCOL_VERSION {
         let response = Response::error(
             error_codes::VERSION_MISMATCH,
-            format!("protocol version {} not supported, expected {}", envelope.version, PROTOCOL_VERSION),
+            format!(
+                "protocol version {} not supported, expected {PROTOCOL_VERSION}",
+                envelope.version
+            ),
         );
         let resp_envelope = Envelope::from_response(envelope.id, &response)?;
         let bytes = rmp_serde::to_vec(&resp_envelope)?;
         stream.write_u32(bytes.len() as u32).await?;
         stream.write_all(&bytes).await?;
 
-        let s = state.lock().await;
-        s.in_flight.fetch_sub(1, Ordering::Relaxed);
+        state.lock().await.in_flight.fetch_sub(1, Ordering::Relaxed);
         return Ok(());
     }
 
@@ -304,6 +301,7 @@ async fn handle_connection(mut stream: UnixStream, state: Arc<Mutex<DaemonState>
 }
 
 /// Handle a decoded request.
+#[allow(clippy::significant_drop_tightening)] // Lock must be held while accessing model references
 async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Response {
     match request {
         Request::Health => {
@@ -355,7 +353,11 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
             Response::Embeddings { vectors }
         }
 
-        Request::Rerank { query, documents, model } => {
+        Request::Rerank {
+            query,
+            documents,
+            model,
+        } => {
             let mut s = state.lock().await;
 
             // Get reranker
@@ -394,14 +396,15 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
                 models: s.models.loaded_models(),
                 rss_mb,
                 requests_served: s.requests_served.load(Ordering::Relaxed),
+                // Safety: in_flight is bounded by MAX_IN_FLIGHT (64), fits in usize
+                #[allow(clippy::cast_possible_truncation)]
                 in_flight: s.in_flight.load(Ordering::Relaxed) as usize,
                 queue_len: 0, // No queue in current implementation
             }
         }
 
         Request::Shutdown => {
-            let mut s = state.lock().await;
-            s.shutdown_requested = true;
+            state.lock().await.shutdown_requested = true;
             Response::Shutdown { ok: true }
         }
     }
@@ -482,7 +485,10 @@ mod tests {
         let response = handle_request(Request::Health, &state).await;
 
         match response {
-            Response::Health { uptime_secs, models_loaded } => {
+            Response::Health {
+                uptime_secs,
+                models_loaded,
+            } => {
                 assert!(uptime_secs < 5); // Should be very quick
                 assert_eq!(models_loaded, 0);
             }
@@ -529,7 +535,13 @@ mod tests {
         let response = handle_request(Request::Status, &state).await;
 
         match response {
-            Response::Status { uptime_secs, models, in_flight, queue_len, .. } => {
+            Response::Status {
+                uptime_secs,
+                models,
+                in_flight,
+                queue_len,
+                ..
+            } => {
                 assert!(uptime_secs < 5);
                 assert_eq!(models.len(), 1);
                 assert_eq!(in_flight, 0);

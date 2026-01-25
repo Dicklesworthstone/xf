@@ -136,6 +136,7 @@ impl FlashRankReranker {
     }
 
     /// Batch score multiple query-document pairs.
+    #[allow(clippy::significant_drop_tightening)] // Session lock needed throughout inference
     fn score_batch(&self, query: &str, documents: &[&str]) -> RerankerResult<Vec<f32>> {
         if documents.is_empty() {
             return Ok(vec![]);
