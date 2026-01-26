@@ -544,7 +544,7 @@ mod tests {
 
     #[test]
     fn test_pct_lift_zero_baseline() {
-        assert_eq!(pct_lift(0.0, 0.5), 0.0);
+        assert!(pct_lift(0.0, 0.5).abs() < f64::EPSILON);
     }
 
     #[test]
@@ -631,7 +631,7 @@ mod tests {
     #[test]
     fn test_latency_stats_empty() {
         let stats = LatencyStats::from_millis(&[]);
-        assert_eq!(stats.mean_ms, 0.0);
+        assert!(stats.mean_ms.abs() < f64::EPSILON);
     }
 
     #[test]

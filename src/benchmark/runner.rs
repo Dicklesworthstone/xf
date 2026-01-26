@@ -498,7 +498,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::benchmark::datasets::{CorpusDoc, LabeledQuery};
+    use crate::benchmark::datasets::{CorpusDoc, CorpusStats, CrossValidationSplits, LabeledQuery};
     use crate::hash_embedder::HashEmbedder;
 
     fn make_test_corpus() -> BenchmarkCorpus {
@@ -538,8 +538,8 @@ mod tests {
                 split: None,
                 category: None,
             }],
-            splits: Default::default(),
-            stats: Default::default(),
+            splits: CrossValidationSplits::default(),
+            stats: CorpusStats::default(),
         }
     }
 
@@ -656,8 +656,8 @@ mod tests {
                 metadata: serde_json::Value::Null,
             }],
             queries: vec![], // Empty queries
-            splits: Default::default(),
-            stats: Default::default(),
+            splits: CrossValidationSplits::default(),
+            stats: CorpusStats::default(),
         };
 
         let embedder = HashEmbedder::default();

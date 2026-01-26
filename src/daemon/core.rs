@@ -2,6 +2,9 @@
 //!
 //! The daemon keeps embedding and reranking models warm in memory,
 //! accepting requests over a Unix Domain Socket with MessagePack protocol.
+//!
+//! Note: This module is only functional on Unix platforms. On Windows,
+//! the daemon types exist but attempting to run will return an error.
 
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -9,7 +12,9 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
 use tokio::fs;
+#[cfg(unix)]
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+#[cfg(unix)]
 use tokio::net::{UnixListener, UnixStream};
 use tokio::sync::Mutex;
 
@@ -516,7 +521,7 @@ mod tests {
                 assert!(!vectors[0].is_empty());
             }
             Response::Error { message, .. } => {
-                panic!("unexpected error: {}", message);
+                panic!("unexpected error: {message}");
             }
             _ => panic!("expected Embeddings response"),
         }
@@ -567,6 +572,7 @@ mod tests {
         // Verify shutdown was requested
         let s = state.lock().await;
         assert!(s.shutdown_requested);
+        drop(s);
     }
 
     #[tokio::test]

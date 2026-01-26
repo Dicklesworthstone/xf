@@ -447,7 +447,7 @@ mod tests {
 
     #[test]
     fn test_bootstrap_ci_narrow_for_tight_data() {
-        let values: Vec<f64> = (0..100).map(|i| 50.0 + (i as f64 * 0.01)).collect();
+        let values: Vec<f64> = (0..100).map(|i| f64::from(i).mul_add(0.01, 50.0)).collect();
         let (lo, hi) = bootstrap_ci(&values, 1000, 0.95, 42);
         assert!(
             (hi - lo) < 1.0,
@@ -457,18 +457,18 @@ mod tests {
 
     #[test]
     fn test_bootstrap_ci_deterministic() {
-        let values: Vec<f64> = (0..50).map(|i| i as f64).collect();
+        let values: Vec<f64> = (0..50).map(f64::from).collect();
         let (lo1, hi1) = bootstrap_ci(&values, 100, 0.95, 42);
         let (lo2, hi2) = bootstrap_ci(&values, 100, 0.95, 42);
-        assert_eq!(lo1, lo2);
-        assert_eq!(hi1, hi2);
+        assert!((lo1 - lo2).abs() < f64::EPSILON);
+        assert!((hi1 - hi2).abs() < f64::EPSILON);
     }
 
     #[test]
     fn test_bootstrap_ci_empty() {
         let (lo, hi) = bootstrap_ci(&[], 100, 0.95, 42);
-        assert_eq!(lo, 0.0);
-        assert_eq!(hi, 0.0);
+        assert!(lo.abs() < f64::EPSILON);
+        assert!(hi.abs() < f64::EPSILON);
     }
 
     // === Max latency test ===
@@ -498,13 +498,13 @@ mod tests {
         #[test]
         fn ndcg_bounded(rels in proptest::collection::vec(0u8..3, 1..20)) {
             let score = ndcg_at_k(&rels, 10);
-            prop_assert!(score >= 0.0 && score <= 1.0, "NDCG must be in [0,1]: {score}");
+            prop_assert!((0.0..=1.0).contains(&score), "NDCG must be in [0,1]: {score}");
         }
 
         #[test]
         fn map_bounded(rels in proptest::collection::vec(0u8..2, 1..20)) {
             let score = map_at_k(&rels, 10);
-            prop_assert!(score >= 0.0 && score <= 1.0, "MAP must be in [0,1]: {score}");
+            prop_assert!((0.0..=1.0).contains(&score), "MAP must be in [0,1]: {score}");
         }
 
         #[test]
