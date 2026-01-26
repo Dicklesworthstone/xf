@@ -134,6 +134,10 @@ impl ModelDaemon {
     }
 
     /// Run the daemon, accepting connections until shutdown.
+    ///
+    /// # Errors
+    /// Returns an error on Windows as Unix Domain Sockets are not supported.
+    #[cfg(unix)]
     pub async fn run(&self) -> anyhow::Result<()> {
         // Clean up stale socket if it exists
         if self.config.socket_path.exists() {
@@ -144,7 +148,6 @@ impl ModelDaemon {
         let listener = UnixListener::bind(&self.config.socket_path)?;
 
         // Set socket permissions to owner-only (0600)
-        #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
             let perms = std::fs::Permissions::from_mode(0o600);
@@ -211,6 +214,15 @@ impl ModelDaemon {
         Ok(())
     }
 
+    /// Run the daemon, accepting connections until shutdown.
+    ///
+    /// # Errors
+    /// Always returns an error on Windows as Unix Domain Sockets are not supported.
+    #[cfg(not(unix))]
+    pub async fn run(&self) -> anyhow::Result<()> {
+        anyhow::bail!("daemon is not supported on Windows (requires Unix Domain Sockets)")
+    }
+
     /// Clean up socket and PID files.
     async fn cleanup(&self) {
         // Unload models
@@ -234,6 +246,7 @@ impl ModelDaemon {
 }
 
 /// Handle a single client connection.
+#[cfg(unix)]
 #[allow(clippy::cast_possible_truncation)] // Message size is validated < 10MB
 async fn handle_connection(
     mut stream: UnixStream,
