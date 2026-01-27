@@ -775,6 +775,248 @@ pub fn run_performance_benchmarks(
 }
 
 // ============================================================================
+// Styled Rendering (xf-11.4.5)
+// ============================================================================
+
+use crate::output::Output;
+use crate::theme::Theme;
+
+/// Summary of health check results for rendering.
+#[derive(Debug, Clone)]
+pub struct DoctorSummary {
+    pub passed: usize,
+    pub warnings: usize,
+    pub errors: usize,
+    pub total: usize,
+}
+
+impl DoctorSummary {
+    /// Compute summary from a slice of health checks.
+    #[must_use]
+    pub fn from_checks(checks: &[HealthCheck]) -> Self {
+        let mut passed = 0;
+        let mut warnings = 0;
+        let mut errors = 0;
+        for check in checks {
+            match check.status {
+                CheckStatus::Pass => passed += 1,
+                CheckStatus::Warning => warnings += 1,
+                CheckStatus::Error => errors += 1,
+            }
+        }
+        Self {
+            passed,
+            warnings,
+            errors,
+            total: checks.len(),
+        }
+    }
+}
+
+/// Collects doctor data and renders styled output via the Output abstraction.
+pub struct DoctorRenderer<'a> {
+    checks: &'a [HealthCheck],
+    summary: &'a DoctorSummary,
+    suggestions: &'a [String],
+    runtime_ms: u64,
+    output: &'a Output,
+    theme: &'a Theme,
+}
+
+impl<'a> DoctorRenderer<'a> {
+    /// Create a new doctor renderer.
+    #[must_use]
+    pub const fn new(
+        checks: &'a [HealthCheck],
+        summary: &'a DoctorSummary,
+        suggestions: &'a [String],
+        runtime_ms: u64,
+        output: &'a Output,
+        theme: &'a Theme,
+    ) -> Self {
+        Self {
+            checks,
+            summary,
+            suggestions,
+            runtime_ms,
+            output,
+            theme,
+        }
+    }
+
+    /// Render the full doctor report.
+    pub fn render(&self) {
+        if self.output.is_styled() {
+            self.render_styled();
+        } else {
+            self.render_plain();
+        }
+    }
+
+    /// Render styled output with markup and theme colors.
+    fn render_styled(&self) {
+        let width = self.output.width().min(80);
+
+        // Title banner
+        let rule = "\u{2550}".repeat(width);
+        self.output
+            .print(&format!("[{}]{rule}[/]", self.theme.primary));
+        self.output.print(&format!(
+            "[{} bold]  \u{1fa7a} XF HEALTH CHECK[/]",
+            self.theme.heading
+        ));
+        self.output
+            .print(&format!("[{}]{rule}[/]", self.theme.primary));
+        self.output.print("");
+
+        // Group by category
+        let mut current_category: Option<CheckCategory> = None;
+        for check in self.checks {
+            if current_category != Some(check.category) {
+                current_category = Some(check.category);
+                let icon = category_icon(check.category);
+                let name = category_name(check.category);
+                self.output.print("");
+                self.output.print(&format!(
+                    "[{} bold]{icon} {name}[/]",
+                    self.theme.info
+                ));
+                let sep = "\u{2500}".repeat(width.min(60));
+                self.output
+                    .print(&format!("[{}]{sep}[/]", self.theme.border));
+            }
+
+            self.render_check_styled(check);
+        }
+
+        // Summary footer
+        self.output.print("");
+        self.output
+            .print(&format!("[{}]{rule}[/]", self.theme.primary));
+        self.output.print(&format!(
+            "  [{}]{} \u{2713}[/] passed  [{}]{} \u{26a0}[/] warnings  [{}]{} \u{2717}[/] errors  [{}]({} total, {}ms)[/]",
+            self.theme.success,
+            self.summary.passed,
+            self.theme.warning,
+            self.summary.warnings,
+            self.theme.error,
+            self.summary.errors,
+            self.theme.muted,
+            self.summary.total,
+            self.runtime_ms,
+        ));
+
+        // Suggestions
+        if !self.suggestions.is_empty() {
+            self.output.print("");
+            self.output
+                .print(&format!("[{} bold]\u{1f4a1} Suggestions:[/]", self.theme.info));
+            for (i, suggestion) in self.suggestions.iter().enumerate() {
+                self.output.print(&format!(
+                    "  [{}]{}.[/] {suggestion}",
+                    self.theme.muted,
+                    i + 1
+                ));
+            }
+        }
+    }
+
+    /// Render a single check in styled mode.
+    fn render_check_styled(&self, check: &HealthCheck) {
+        let (icon, color) = status_icon_and_color(check.status, self.theme);
+        self.output.print(&format!(
+            "  [{color}]{icon}[/] {}: {}",
+            check.name, check.message
+        ));
+    }
+
+    /// Render plain text output for non-TTY contexts.
+    fn render_plain(&self) {
+        self.output.print("XF HEALTH CHECK");
+        self.output
+            .print(&"=".repeat(60));
+        self.output.print("");
+
+        let mut current_category: Option<CheckCategory> = None;
+        for check in self.checks {
+            if current_category != Some(check.category) {
+                current_category = Some(check.category);
+                self.output.print("");
+                self.output
+                    .print(&format!("[{}]", category_name(check.category)));
+                self.output
+                    .print(&"-".repeat(40));
+            }
+
+            let tag = status_tag(check.status);
+            self.output
+                .print(&format!("  {tag} {}: {}", check.name, check.message));
+        }
+
+        // Summary
+        self.output.print("");
+        self.output.print(&format!(
+            "{} passed, {} warnings, {} errors ({} total, {}ms)",
+            self.summary.passed,
+            self.summary.warnings,
+            self.summary.errors,
+            self.summary.total,
+            self.runtime_ms,
+        ));
+
+        if !self.suggestions.is_empty() {
+            self.output.print("");
+            self.output.print("Suggestions:");
+            for suggestion in self.suggestions {
+                self.output.print(&format!("  * {suggestion}"));
+            }
+        }
+    }
+}
+
+/// Get display name for a check category.
+#[must_use]
+pub const fn category_name(cat: CheckCategory) -> &'static str {
+    match cat {
+        CheckCategory::Archive => "Archive",
+        CheckCategory::Database => "Database",
+        CheckCategory::Index => "Index",
+        CheckCategory::Performance => "Performance",
+    }
+}
+
+/// Get icon for a check category.
+#[must_use]
+pub const fn category_icon(cat: CheckCategory) -> &'static str {
+    match cat {
+        CheckCategory::Archive => "\u{1f4c1}",
+        CheckCategory::Database => "\u{1f5c4}\u{fe0f}",
+        CheckCategory::Index => "\u{1f50d}",
+        CheckCategory::Performance => "\u{26a1}",
+    }
+}
+
+/// Get status icon and theme color key for a check status.
+#[must_use]
+pub fn status_icon_and_color<'a>(status: CheckStatus, theme: &'a Theme) -> (&'static str, &'a str) {
+    match status {
+        CheckStatus::Pass => ("\u{2713}", theme.success),
+        CheckStatus::Warning => ("\u{26a0}", theme.warning),
+        CheckStatus::Error => ("\u{2717}", theme.error),
+    }
+}
+
+/// Get plain text status tag (for non-TTY output).
+#[must_use]
+pub const fn status_tag(status: CheckStatus) -> &'static str {
+    match status {
+        CheckStatus::Pass => "[OK]",
+        CheckStatus::Warning => "[WARN]",
+        CheckStatus::Error => "[FAIL]",
+    }
+}
+
+// ============================================================================
 // Tests (xf-11.4.6)
 // ============================================================================
 
@@ -1074,5 +1316,179 @@ mod tests {
 
         // Empty but valid structure
         assert!(!checks.is_empty());
+    }
+
+    // ======================== Rendering Tests ========================
+
+    #[test]
+    fn test_doctor_summary_from_checks() {
+        let checks = vec![
+            HealthCheck {
+                category: CheckCategory::Archive,
+                name: "Test 1".into(),
+                status: CheckStatus::Pass,
+                message: "OK".into(),
+                suggestion: None,
+            },
+            HealthCheck {
+                category: CheckCategory::Database,
+                name: "Test 2".into(),
+                status: CheckStatus::Warning,
+                message: "Warn".into(),
+                suggestion: Some("Fix it".into()),
+            },
+            HealthCheck {
+                category: CheckCategory::Index,
+                name: "Test 3".into(),
+                status: CheckStatus::Error,
+                message: "Fail".into(),
+                suggestion: Some("Rebuild".into()),
+            },
+        ];
+
+        let summary = DoctorSummary::from_checks(&checks);
+        assert_eq!(summary.passed, 1);
+        assert_eq!(summary.warnings, 1);
+        assert_eq!(summary.errors, 1);
+        assert_eq!(summary.total, 3);
+    }
+
+    #[test]
+    fn test_doctor_summary_all_passing() {
+        let checks = vec![
+            HealthCheck {
+                category: CheckCategory::Archive,
+                name: "A".into(),
+                status: CheckStatus::Pass,
+                message: "OK".into(),
+                suggestion: None,
+            },
+            HealthCheck {
+                category: CheckCategory::Database,
+                name: "B".into(),
+                status: CheckStatus::Pass,
+                message: "OK".into(),
+                suggestion: None,
+            },
+        ];
+
+        let summary = DoctorSummary::from_checks(&checks);
+        assert_eq!(summary.passed, 2);
+        assert_eq!(summary.warnings, 0);
+        assert_eq!(summary.errors, 0);
+    }
+
+    #[test]
+    fn test_doctor_summary_empty() {
+        let summary = DoctorSummary::from_checks(&[]);
+        assert_eq!(summary.passed, 0);
+        assert_eq!(summary.warnings, 0);
+        assert_eq!(summary.errors, 0);
+        assert_eq!(summary.total, 0);
+    }
+
+    #[test]
+    fn test_category_name_all() {
+        assert_eq!(category_name(CheckCategory::Archive), "Archive");
+        assert_eq!(category_name(CheckCategory::Database), "Database");
+        assert_eq!(category_name(CheckCategory::Index), "Index");
+        assert_eq!(category_name(CheckCategory::Performance), "Performance");
+    }
+
+    #[test]
+    fn test_category_icon_all() {
+        // Each category should have a non-empty icon
+        for cat in [
+            CheckCategory::Archive,
+            CheckCategory::Database,
+            CheckCategory::Index,
+            CheckCategory::Performance,
+        ] {
+            assert!(!category_icon(cat).is_empty());
+        }
+    }
+
+    #[test]
+    fn test_status_icon_and_color() {
+        let theme = Theme::dark();
+
+        let (icon, color) = status_icon_and_color(CheckStatus::Pass, &theme);
+        assert_eq!(icon, "\u{2713}");
+        assert_eq!(color, theme.success);
+
+        let (icon, color) = status_icon_and_color(CheckStatus::Warning, &theme);
+        assert_eq!(icon, "\u{26a0}");
+        assert_eq!(color, theme.warning);
+
+        let (icon, color) = status_icon_and_color(CheckStatus::Error, &theme);
+        assert_eq!(icon, "\u{2717}");
+        assert_eq!(color, theme.error);
+    }
+
+    #[test]
+    fn test_status_tag() {
+        assert_eq!(status_tag(CheckStatus::Pass), "[OK]");
+        assert_eq!(status_tag(CheckStatus::Warning), "[WARN]");
+        assert_eq!(status_tag(CheckStatus::Error), "[FAIL]");
+    }
+
+    #[test]
+    fn test_renderer_plain_no_panic() {
+        let checks = vec![
+            HealthCheck {
+                category: CheckCategory::Archive,
+                name: "Test".into(),
+                status: CheckStatus::Pass,
+                message: "OK".into(),
+                suggestion: None,
+            },
+            HealthCheck {
+                category: CheckCategory::Database,
+                name: "DB Test".into(),
+                status: CheckStatus::Warning,
+                message: "Slow".into(),
+                suggestion: Some("Optimize".into()),
+            },
+        ];
+        let summary = DoctorSummary::from_checks(&checks);
+        let suggestions = vec!["Optimize".to_string()];
+        let output = Output::new_piped();
+        let theme = Theme::dark();
+
+        let renderer = DoctorRenderer::new(&checks, &summary, &suggestions, 42, &output, &theme);
+        // Should not panic
+        renderer.render();
+    }
+
+    #[test]
+    fn test_renderer_styled_no_panic() {
+        let checks = vec![HealthCheck {
+            category: CheckCategory::Performance,
+            name: "Speed".into(),
+            status: CheckStatus::Error,
+            message: "Slow".into(),
+            suggestion: Some("Upgrade".into()),
+        }];
+        let summary = DoctorSummary::from_checks(&checks);
+        let suggestions = vec!["Upgrade".to_string()];
+        let output = Output::new_tty();
+        let theme = Theme::dark();
+
+        let renderer = DoctorRenderer::new(&checks, &summary, &suggestions, 100, &output, &theme);
+        // Should not panic
+        renderer.render();
+    }
+
+    #[test]
+    fn test_renderer_empty_checks() {
+        let checks: Vec<HealthCheck> = vec![];
+        let summary = DoctorSummary::from_checks(&checks);
+        let suggestions: Vec<String> = vec![];
+        let output = Output::new_piped();
+        let theme = Theme::dark();
+
+        let renderer = DoctorRenderer::new(&checks, &summary, &suggestions, 0, &output, &theme);
+        // Should not panic on empty
+        renderer.render();
     }
 }
