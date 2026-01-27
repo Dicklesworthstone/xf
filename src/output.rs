@@ -262,6 +262,18 @@ impl Output {
         self.verbosity
     }
 
+    /// Check if stdout is a TTY (for progress bars that need cursor control)
+    #[must_use]
+    pub const fn stdout_is_tty(&self) -> bool {
+        self.stdout_is_tty
+    }
+
+    /// Check if stderr is a TTY
+    #[must_use]
+    pub const fn stderr_is_tty(&self) -> bool {
+        self.stderr_is_tty
+    }
+
     /// Check verbosity level - quiet mode
     #[must_use]
     pub fn is_quiet(&self) -> bool {

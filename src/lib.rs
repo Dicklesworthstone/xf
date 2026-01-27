@@ -34,6 +34,7 @@ pub mod mxbai_reranker;
 pub mod output;
 pub mod parser;
 pub mod perf;
+pub mod progress;
 pub mod repl;
 pub mod rerank_step;
 pub mod reranker;
