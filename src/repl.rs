@@ -102,6 +102,7 @@ impl IndexStatus {
 /// Styled REPL prompt with mode badge and arrow.
 #[derive(Clone, Debug, Default)]
 pub struct ReplPrompt {
+    #[allow(dead_code)] // Reserved for future use when REPL is fully styled
     theme: Theme,
 }
 
@@ -139,7 +140,12 @@ impl ReplPrompt {
 
     /// Render the prompt with conversation context.
     #[must_use]
-    pub fn render_in_conversation(&self, output: &Output, mode: SearchMode, conv_id: &str) -> String {
+    pub fn render_in_conversation(
+        &self,
+        output: &Output,
+        mode: SearchMode,
+        conv_id: &str,
+    ) -> String {
         let snippet = conv_id.get(..8.min(conv_id.len())).unwrap_or(conv_id);
         if !output.is_styled() {
             return format!("xf ({mode}) [dm:{snippet}]> ");
@@ -200,7 +206,10 @@ impl ReplHistory {
             for (i, entry) in self.entries.iter().enumerate() {
                 println!(
                     "{}: {} ({} results, {:.1}ms)",
-                    i + 1, entry.query, entry.result_count, entry.duration_ms
+                    i + 1,
+                    entry.query,
+                    entry.result_count,
+                    entry.duration_ms
                 );
             }
             return;
@@ -211,13 +220,16 @@ impl ReplHistory {
         {
             use rich_rust::prelude::*;
 
-            let mut table = Table::new()
-                .title("📜 Search History");
+            let mut table = Table::new().title("📜 Search History");
 
             table = table
                 .with_column(Column::new("#").width(4))
                 .with_column(Column::new("Query"))
-                .with_column(Column::new("Results").justify(JustifyMethod::Right).width(8))
+                .with_column(
+                    Column::new("Results")
+                        .justify(JustifyMethod::Right)
+                        .width(8),
+                )
                 .with_column(Column::new("Time").justify(JustifyMethod::Right).width(10));
 
             for (i, entry) in self.entries.iter().enumerate() {
@@ -275,6 +287,7 @@ pub struct ReplStatusLine {
     archive_path: PathBuf,
     doc_count: usize,
     index_status: IndexStatus,
+    #[allow(dead_code)] // Reserved for future use when REPL is fully styled
     theme: Theme,
 }
 
@@ -298,7 +311,8 @@ impl ReplStatusLine {
     /// Render the status line as a string.
     #[must_use]
     pub fn render(&self, output: &Output) -> String {
-        let archive_name = self.archive_path
+        let archive_name = self
+            .archive_path
             .file_name()
             .unwrap_or_default()
             .to_string_lossy();
@@ -359,8 +373,7 @@ pub fn render_repl_help(output: &Output) {
     {
         use rich_rust::prelude::*;
 
-        let mut table = Table::new()
-            .title("🔧 REPL Commands");
+        let mut table = Table::new().title("🔧 REPL Commands");
 
         table = table
             .with_column(Column::new("Command").style(Style::new().bold()))
@@ -368,7 +381,10 @@ pub fn render_repl_help(output: &Output) {
 
         let commands = [
             (":help", "Show this help message"),
-            (":mode <mode>", "Switch search mode (hybrid|lexical|semantic)"),
+            (
+                ":mode <mode>",
+                "Switch search mode (hybrid|lexical|semantic)",
+            ),
             (":history", "Show search history"),
             (":clear", "Clear screen"),
             (":limit <n>", "Set result limit"),
@@ -390,7 +406,10 @@ pub fn render_repl_help(output: &Output) {
         println!("{}", "─".repeat(60).dimmed());
         let commands = [
             (":help", "Show this help message"),
-            (":mode <mode>", "Switch search mode (hybrid|lexical|semantic)"),
+            (
+                ":mode <mode>",
+                "Switch search mode (hybrid|lexical|semantic)",
+            ),
             (":history", "Show search history"),
             (":clear", "Clear screen"),
             (":limit <n>", "Set result limit"),
@@ -2661,10 +2680,16 @@ mod tests {
     fn test_search_mode_from_str() {
         assert_eq!("hybrid".parse::<SearchMode>().unwrap(), SearchMode::Hybrid);
         assert_eq!("h".parse::<SearchMode>().unwrap(), SearchMode::Hybrid);
-        assert_eq!("lexical".parse::<SearchMode>().unwrap(), SearchMode::Lexical);
+        assert_eq!(
+            "lexical".parse::<SearchMode>().unwrap(),
+            SearchMode::Lexical
+        );
         assert_eq!("l".parse::<SearchMode>().unwrap(), SearchMode::Lexical);
         assert_eq!("lex".parse::<SearchMode>().unwrap(), SearchMode::Lexical);
-        assert_eq!("semantic".parse::<SearchMode>().unwrap(), SearchMode::Semantic);
+        assert_eq!(
+            "semantic".parse::<SearchMode>().unwrap(),
+            SearchMode::Semantic
+        );
         assert_eq!("s".parse::<SearchMode>().unwrap(), SearchMode::Semantic);
         assert_eq!("sem".parse::<SearchMode>().unwrap(), SearchMode::Semantic);
     }
@@ -2672,8 +2697,14 @@ mod tests {
     #[test]
     fn test_search_mode_from_str_case_insensitive() {
         assert_eq!("HYBRID".parse::<SearchMode>().unwrap(), SearchMode::Hybrid);
-        assert_eq!("Lexical".parse::<SearchMode>().unwrap(), SearchMode::Lexical);
-        assert_eq!("SEMANTIC".parse::<SearchMode>().unwrap(), SearchMode::Semantic);
+        assert_eq!(
+            "Lexical".parse::<SearchMode>().unwrap(),
+            SearchMode::Lexical
+        );
+        assert_eq!(
+            "SEMANTIC".parse::<SearchMode>().unwrap(),
+            SearchMode::Semantic
+        );
     }
 
     #[test]
@@ -2704,7 +2735,10 @@ mod tests {
         let prompt = ReplPrompt::default();
         let rendered = prompt.render(&output, SearchMode::Hybrid);
 
-        assert!(!rendered.contains('['), "Plain prompt should not have markup");
+        assert!(
+            !rendered.contains('['),
+            "Plain prompt should not have markup"
+        );
         assert!(rendered.contains("xf"));
         assert!(rendered.contains("hybrid"));
     }
@@ -2714,7 +2748,11 @@ mod tests {
         let output = Output::new_piped();
         let prompt = ReplPrompt::default();
 
-        for mode in [SearchMode::Hybrid, SearchMode::Lexical, SearchMode::Semantic] {
+        for mode in [
+            SearchMode::Hybrid,
+            SearchMode::Lexical,
+            SearchMode::Semantic,
+        ] {
             let rendered = prompt.render(&output, mode);
             assert!(rendered.contains(&mode.to_string()));
         }
@@ -2805,12 +2843,8 @@ mod tests {
         let output = Output::new_tty();
 
         for status in [IndexStatus::Ready, IndexStatus::Stale, IndexStatus::Missing] {
-            let status_line = ReplStatusLine::new(
-                PathBuf::from("/test/archive"),
-                1000,
-                status,
-                &theme,
-            );
+            let status_line =
+                ReplStatusLine::new(PathBuf::from("/test/archive"), 1000, status, &theme);
             let rendered = status_line.render(&output);
             assert!(rendered.contains('●'), "Status line should have indicator");
         }

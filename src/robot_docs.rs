@@ -273,44 +273,64 @@ fn commands() -> Vec<CommandDoc> {
                     required: false,
                 },
             ],
-            output_formats: Some(vec!["text".into(), "json".into(), "json-pretty".into(), "csv".into(), "toon".into()]),
+            output_formats: Some(vec![
+                "text".into(),
+                "json".into(),
+                "json-pretty".into(),
+                "csv".into(),
+                "toon".into(),
+            ]),
         },
         CommandDoc {
             name: "stats".into(),
             description: "Show archive statistics and analytics".into(),
             usage: "xf stats [OPTIONS]".into(),
-            flags: vec![
-                FlagDoc {
-                    name: "--section".into(),
-                    short: Some("-s".into()),
-                    description: "Show specific section (overview, timeline, hashtags, mentions, engagement)".into(),
-                    default: None,
-                    required: false,
-                },
-            ],
-            output_formats: Some(vec!["text".into(), "json".into(), "json-pretty".into(), "toon".into()]),
+            flags: vec![FlagDoc {
+                name: "--section".into(),
+                short: Some("-s".into()),
+                description:
+                    "Show specific section (overview, timeline, hashtags, mentions, engagement)"
+                        .into(),
+                default: None,
+                required: false,
+            }],
+            output_formats: Some(vec![
+                "text".into(),
+                "json".into(),
+                "json-pretty".into(),
+                "toon".into(),
+            ]),
         },
         CommandDoc {
             name: "tweet".into(),
             description: "Show detailed information about a specific tweet".into(),
             usage: "xf tweet <ID> [OPTIONS]".into(),
             flags: vec![],
-            output_formats: Some(vec!["text".into(), "json".into(), "json-pretty".into(), "toon".into()]),
+            output_formats: Some(vec![
+                "text".into(),
+                "json".into(),
+                "json-pretty".into(),
+                "toon".into(),
+            ]),
         },
         CommandDoc {
             name: "list".into(),
             description: "List data from the archive (tweets, likes, dms, etc.)".into(),
             usage: "xf list <TARGET> [OPTIONS]".into(),
-            flags: vec![
-                FlagDoc {
-                    name: "--limit".into(),
-                    short: Some("-n".into()),
-                    description: "Maximum items to list".into(),
-                    default: Some("20".into()),
-                    required: false,
-                },
-            ],
-            output_formats: Some(vec!["text".into(), "json".into(), "json-pretty".into(), "csv".into(), "toon".into()]),
+            flags: vec![FlagDoc {
+                name: "--limit".into(),
+                short: Some("-n".into()),
+                description: "Maximum items to list".into(),
+                default: Some("20".into()),
+                required: false,
+            }],
+            output_formats: Some(vec![
+                "text".into(),
+                "json".into(),
+                "json-pretty".into(),
+                "csv".into(),
+                "toon".into(),
+            ]),
         },
         CommandDoc {
             name: "doctor".into(),
@@ -332,7 +352,12 @@ fn commands() -> Vec<CommandDoc> {
                     required: false,
                 },
             ],
-            output_formats: Some(vec!["text".into(), "json".into(), "json-pretty".into(), "toon".into()]),
+            output_formats: Some(vec![
+                "text".into(),
+                "json".into(),
+                "json-pretty".into(),
+                "toon".into(),
+            ]),
         },
         CommandDoc {
             name: "shell".into(),
@@ -360,15 +385,13 @@ fn commands() -> Vec<CommandDoc> {
             name: "export".into(),
             description: "Export data in various formats".into(),
             usage: "xf export <TARGET> [OPTIONS]".into(),
-            flags: vec![
-                FlagDoc {
-                    name: "--format".into(),
-                    short: Some("-f".into()),
-                    description: "Export format (json, csv, markdown)".into(),
-                    default: Some("json".into()),
-                    required: false,
-                },
-            ],
+            flags: vec![FlagDoc {
+                name: "--format".into(),
+                short: Some("-f".into()),
+                description: "Export format (json, csv, markdown)".into(),
+                default: Some("json".into()),
+                required: false,
+            }],
             output_formats: None,
         },
         CommandDoc {
@@ -1024,8 +1047,16 @@ mod tests {
             assert!(!schema_doc.description.is_empty());
             // Each schema should have a $schema key and a type
             let schema = &schema_doc.schema;
-            assert!(schema.get("$schema").is_some(), "Missing $schema in {}", schema_doc.name);
-            assert!(schema.get("type").is_some(), "Missing type in {}", schema_doc.name);
+            assert!(
+                schema.get("$schema").is_some(),
+                "Missing $schema in {}",
+                schema_doc.name
+            );
+            assert!(
+                schema.get("type").is_some(),
+                "Missing type in {}",
+                schema_doc.name
+            );
         }
     }
 

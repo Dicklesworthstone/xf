@@ -877,10 +877,8 @@ impl<'a> DoctorRenderer<'a> {
                 let icon = category_icon(check.category);
                 let name = category_name(check.category);
                 self.output.print("");
-                self.output.print(&format!(
-                    "[{} bold]{icon} {name}[/]",
-                    self.theme.info
-                ));
+                self.output
+                    .print(&format!("[{} bold]{icon} {name}[/]", self.theme.info));
                 let sep = "\u{2500}".repeat(width.min(60));
                 self.output
                     .print(&format!("[{}]{sep}[/]", self.theme.border));
@@ -909,8 +907,10 @@ impl<'a> DoctorRenderer<'a> {
         // Suggestions
         if !self.suggestions.is_empty() {
             self.output.print("");
-            self.output
-                .print(&format!("[{} bold]\u{1f4a1} Suggestions:[/]", self.theme.info));
+            self.output.print(&format!(
+                "[{} bold]\u{1f4a1} Suggestions:[/]",
+                self.theme.info
+            ));
             for (i, suggestion) in self.suggestions.iter().enumerate() {
                 self.output.print(&format!(
                     "  [{}]{}.[/] {suggestion}",
@@ -933,8 +933,7 @@ impl<'a> DoctorRenderer<'a> {
     /// Render plain text output for non-TTY contexts.
     fn render_plain(&self) {
         self.output.print("XF HEALTH CHECK");
-        self.output
-            .print(&"=".repeat(60));
+        self.output.print(&"=".repeat(60));
         self.output.print("");
 
         let mut current_category: Option<CheckCategory> = None;
@@ -942,10 +941,8 @@ impl<'a> DoctorRenderer<'a> {
             if current_category != Some(check.category) {
                 current_category = Some(check.category);
                 self.output.print("");
-                self.output
-                    .print(category_name(check.category));
-                self.output
-                    .print(&"-".repeat(40));
+                self.output.print(category_name(check.category));
+                self.output.print(&"-".repeat(40));
             }
 
             let tag = status_tag(check.status);

@@ -24,6 +24,7 @@ use xf::benchmark::runner::{BenchmarkConfig, run_embedding_benchmark};
 use xf::canonicalize::canonicalize_for_embedding;
 use xf::cli;
 use xf::config::Config;
+use xf::output::{Output, OutputFormat as OutFmt, Verbosity};
 use xf::date_parser;
 use xf::embedder::Embedder;
 use xf::fastembed_embedder::FastEmbedder;
@@ -183,6 +184,19 @@ impl CacheMeta {
     }
 }
 
+/// Convert CLI output format to the output module's format enum.
+///
+/// The output module uses a simplified format enum (Text, Json, Csv) while
+/// the CLI has additional variants (JsonPretty, Compact, Toon). Non-text
+/// formats are mapped to Json/Csv to disable styling.
+const fn cli_format_to_output(format: OutputFormat) -> OutFmt {
+    match format {
+        OutputFormat::Text | OutputFormat::Compact => OutFmt::Text,
+        OutputFormat::Json | OutputFormat::JsonPretty | OutputFormat::Toon => OutFmt::Json,
+        OutputFormat::Csv => OutFmt::Csv,
+    }
+}
+
 fn main() -> Result<()> {
     let mut cli = Cli::parse();
 
@@ -202,7 +216,7 @@ fn main() -> Result<()> {
     );
     // For machine-readable formats, force quiet unless user explicitly asked for verbose
     let effective_quiet = cli.quiet || (machine_output && cli.verbose == 0);
-    let verbosity = xf::output::Verbosity::from_flags(effective_quiet, cli.verbose);
+    let verbosity = Verbosity::from_flags(effective_quiet, cli.verbose);
     let env_filter = if std::env::var("RUST_LOG").is_ok() {
         EnvFilter::from_default_env()
     } else {
@@ -216,6 +230,9 @@ fn main() -> Result<()> {
         .with_writer(std::io::stderr)
         .init();
 
+    // Create output abstraction for styled terminal output
+    let output = Output::new(cli_format_to_output(cli.format.clone())).with_verbosity(verbosity);
+
     // Run the appropriate command
     match &cli.command {
         None => {
@@ -225,7 +242,7 @@ fn main() -> Result<()> {
         Some(Commands::Import(args)) => cmd_import(&cli, args),
         Some(Commands::Index(args)) => cmd_index(&cli, args),
         Some(Commands::Search(args)) => cmd_search(&cli, args),
-        Some(Commands::Stats(args)) => cmd_stats(&cli, args),
+        Some(Commands::Stats(args)) => cmd_stats(&cli, args, &output),
         Some(Commands::Tweet(args)) => cmd_tweet(&cli, args),
         Some(Commands::List(args)) => cmd_list(&cli, args),
         Some(Commands::Export(args)) => cmd_export(&cli, args),
@@ -2075,7 +2092,7 @@ fn filter_results_fields(
 }
 
 #[allow(clippy::too_many_lines)]
-fn cmd_stats(cli: &Cli, args: &cli::StatsArgs) -> Result<()> {
+fn cmd_stats(cli: &Cli, args: &cli::StatsArgs, output: &Output) -> Result<()> {
     let db_path = get_db_path(cli);
 
     if !db_path.exists() {
@@ -2098,8 +2115,8 @@ fn cmd_stats(cli: &Cli, args: &cli::StatsArgs) -> Result<()> {
     let show_content = args.content || args.detailed;
 
     // Show progress for large archives when computing detailed analytics
-    if args.detailed && stats.tweets_count > 10_000 && !cli.quiet {
-        eprintln!("Computing detailed analytics...");
+    if args.detailed && stats.tweets_count > 10_000 {
+        output.eprint("Computing detailed analytics...");
     }
 
     // Temporal analytics uses efficient SQL aggregations

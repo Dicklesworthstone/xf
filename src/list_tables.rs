@@ -155,11 +155,7 @@ impl<T: Clone> ListTable<T> {
     #[allow(clippy::cast_possible_truncation)]
     fn render_styled(&self, items: &[T], output: &Output) {
         // Compute column widths
-        let mut widths: Vec<usize> = self
-            .columns
-            .iter()
-            .map(|col| col.name.len())
-            .collect();
+        let mut widths: Vec<usize> = self.columns.iter().map(|col| col.name.len()).collect();
 
         // Measure all cells
         let rows: Vec<Vec<String>> = items
@@ -210,7 +206,11 @@ impl<T: Clone> ListTable<T> {
         output.print(&format!("  {header}"));
 
         // Separator
-        let sep: String = widths.iter().map(|&w| "-".repeat(w)).collect::<Vec<_>>().join("-+-");
+        let sep: String = widths
+            .iter()
+            .map(|&w| "-".repeat(w))
+            .collect::<Vec<_>>()
+            .join("-+-");
         output.print(&format!("  {sep}"));
 
         // Rows
@@ -260,7 +260,12 @@ impl<T: Clone> ListTable<T> {
 }
 
 /// Render a hashtag frequency list.
-#[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation, clippy::cast_possible_wrap, clippy::cast_sign_loss)]
+#[allow(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
 pub fn render_hashtag_list(hashtags: &[(String, usize)], output: &Output) {
     let max_count = hashtags.iter().map(|(_, c)| *c).max().unwrap_or(1);
 
@@ -319,8 +324,12 @@ mod tests {
     fn test_list_table_basic() {
         let items: Vec<(&str, i32)> = vec![("apple", 10), ("banana", 20), ("cherry", 15)];
         let table = ListTable::new("Fruits", items)
-            .add_column(TableColumn::new("Name", |item: &(&str, i32)| item.0.to_string()))
-            .add_column(TableColumn::new("Count", |item: &(&str, i32)| item.1.to_string()));
+            .add_column(TableColumn::new("Name", |item: &(&str, i32)| {
+                item.0.to_string()
+            }))
+            .add_column(TableColumn::new("Count", |item: &(&str, i32)| {
+                item.1.to_string()
+            }));
 
         assert_eq!(table.total(), 3);
     }
@@ -329,7 +338,9 @@ mod tests {
     fn test_list_table_sorting_descending() {
         let items: Vec<(&str, i64)> = vec![("a", 10), ("b", 30), ("c", 20)];
         let table = ListTable::new("Test", items)
-            .add_column(TableColumn::new("Name", |item: &(&str, i64)| item.0.to_string()))
+            .add_column(TableColumn::new("Name", |item: &(&str, i64)| {
+                item.0.to_string()
+            }))
             .add_column(
                 TableColumn::new("Count", |item: &(&str, i64)| item.1.to_string())
                     .sortable(|item: &(&str, i64)| item.1),
@@ -346,7 +357,9 @@ mod tests {
     fn test_list_table_sorting_ascending() {
         let items: Vec<(&str, i64)> = vec![("a", 30), ("b", 10), ("c", 20)];
         let table = ListTable::new("Test", items)
-            .add_column(TableColumn::new("Name", |item: &(&str, i64)| item.0.to_string()))
+            .add_column(TableColumn::new("Name", |item: &(&str, i64)| {
+                item.0.to_string()
+            }))
             .add_column(
                 TableColumn::new("Count", |item: &(&str, i64)| item.1.to_string())
                     .sortable(|item: &(&str, i64)| item.1),
@@ -370,7 +383,9 @@ mod tests {
     fn test_page_size() {
         let items: Vec<(String, i32)> = (0..100).map(|i| (format!("item{i}"), i)).collect();
         let table = ListTable::new("Test", items)
-            .add_column(TableColumn::new("Name", |item: &(String, i32)| item.0.clone()))
+            .add_column(TableColumn::new("Name", |item: &(String, i32)| {
+                item.0.clone()
+            }))
             .page_size(10);
 
         assert_eq!(table.page_size, Some(10));
@@ -386,9 +401,8 @@ mod tests {
 
     #[test]
     fn test_column_right_align() {
-        let col =
-            TableColumn::<(String, i32)>::new("Test", |item: &(String, i32)| item.0.clone())
-                .right();
+        let col = TableColumn::<(String, i32)>::new("Test", |item: &(String, i32)| item.0.clone())
+            .right();
         assert!(col.right_align);
     }
 
