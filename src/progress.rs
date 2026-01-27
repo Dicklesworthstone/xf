@@ -51,11 +51,11 @@ pub struct ProgressIndicator {
 impl ProgressIndicator {
     /// Create a determinate progress bar with known total.
     ///
-    /// The progress bar is only visible if output is styled AND stdout is TTY.
+    /// The progress bar is only visible if output is not quiet, is styled, AND stdout is TTY.
     #[must_use]
     #[allow(clippy::missing_panics_doc)] // Template is static and valid
     pub fn new_bar(total: u64, message: &str, output: &Output) -> Self {
-        let visible = output.is_styled() && output.stdout_is_tty();
+        let visible = !output.is_quiet() && output.is_styled() && output.stdout_is_tty();
 
         let inner = if visible {
             let pb = ProgressBar::new(total);
@@ -84,11 +84,11 @@ impl ProgressIndicator {
 
     /// Create an indeterminate spinner.
     ///
-    /// The spinner is only visible if output is styled AND stdout is TTY.
+    /// The spinner is only visible if output is not quiet, is styled, AND stdout is TTY.
     #[must_use]
     #[allow(clippy::missing_panics_doc)] // Template is static and valid
     pub fn new_spinner(message: &str, output: &Output) -> Self {
-        let visible = output.is_styled() && output.stdout_is_tty();
+        let visible = !output.is_quiet() && output.is_styled() && output.stdout_is_tty();
 
         let inner = if visible {
             let pb = ProgressBar::new_spinner();
@@ -259,7 +259,7 @@ impl MultiProgressTracker {
     /// Create a new multi-progress tracker.
     #[must_use]
     pub fn new(output: &Output) -> Self {
-        let visible = output.is_styled() && output.stdout_is_tty();
+        let visible = !output.is_quiet() && output.is_styled() && output.stdout_is_tty();
 
         Self {
             multi: if visible {

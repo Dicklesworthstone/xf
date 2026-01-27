@@ -15,7 +15,7 @@ use std::io::{self, BufReader, IsTerminal};
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant, SystemTime};
-use tracing::{Level, info, warn};
+use tracing::{info, warn};
 use tracing_subscriber::EnvFilter;
 
 use xf::benchmark::datasets::BenchmarkCorpus;
@@ -200,24 +200,13 @@ fn main() -> Result<()> {
         cli.format,
         OutputFormat::Json | OutputFormat::JsonPretty | OutputFormat::Csv | OutputFormat::Toon
     );
-    let log_level = if cli.verbose {
-        Level::DEBUG
-    } else if cli.quiet || machine_output {
-        Level::ERROR
-    } else {
-        Level::INFO
-    };
+    // For machine-readable formats, force quiet unless user explicitly asked for verbose
+    let effective_quiet = cli.quiet || (machine_output && cli.verbose == 0);
+    let verbosity = xf::output::Verbosity::from_flags(effective_quiet, cli.verbose);
     let env_filter = if std::env::var("RUST_LOG").is_ok() {
         EnvFilter::from_default_env()
     } else {
-        let level = match log_level {
-            Level::ERROR => "error",
-            Level::WARN => "warn",
-            Level::INFO => "info",
-            Level::DEBUG => "debug",
-            Level::TRACE => "trace",
-        };
-        EnvFilter::new(format!("xf={level}"))
+        EnvFilter::new(format!("xf={}", verbosity.log_filter()))
     };
 
     tracing_subscriber::fmt()
@@ -1254,11 +1243,11 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs) -> Result<()> {
     };
 
     let since = match args.since.as_deref() {
-        Some(value) => Some(parse_date_arg("--since", value, false, cli.verbose)?),
+        Some(value) => Some(parse_date_arg("--since", value, false, cli.verbose > 0)?),
         None => None,
     };
     let until = match args.until.as_deref() {
-        Some(value) => Some(parse_date_arg("--until", value, true, cli.verbose)?),
+        Some(value) => Some(parse_date_arg("--until", value, true, cli.verbose > 0)?),
         None => None,
     };
 

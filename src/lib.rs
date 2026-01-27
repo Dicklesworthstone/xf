@@ -26,6 +26,7 @@ pub mod fastembed_embedder;
 pub mod flashrank_reranker;
 pub mod hash_embedder;
 pub mod hybrid;
+pub mod list_tables;
 pub mod logging;
 pub mod messages;
 pub mod model;

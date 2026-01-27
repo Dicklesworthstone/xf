@@ -62,13 +62,43 @@ pub enum OutputFormat {
 }
 
 /// Verbosity level for output control
-#[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Default)]
 pub enum Verbosity {
     Quiet,
     #[default]
     Normal,
     Verbose,
     Debug,
+}
+
+impl Verbosity {
+    /// Create verbosity from CLI flags.
+    ///
+    /// `quiet` takes precedence over `verbose_count`.
+    /// `verbose_count` of 1 => Verbose, 2+ => Debug.
+    #[must_use]
+    pub const fn from_flags(quiet: bool, verbose_count: u8) -> Self {
+        if quiet {
+            Self::Quiet
+        } else {
+            match verbose_count {
+                0 => Self::Normal,
+                1 => Self::Verbose,
+                _ => Self::Debug,
+            }
+        }
+    }
+
+    /// Returns the tracing log filter directive string
+    #[must_use]
+    pub const fn log_filter(&self) -> &'static str {
+        match self {
+            Self::Quiet => "error",
+            Self::Normal => "warn",
+            Self::Verbose => "info",
+            Self::Debug => "debug",
+        }
+    }
 }
 
 /// Color support level detection
@@ -543,6 +573,36 @@ mod tests {
     fn test_verbosity_default() {
         let verbosity = Verbosity::default();
         assert_eq!(verbosity, Verbosity::Normal);
+    }
+
+    #[test]
+    fn test_verbosity_from_flags() {
+        assert_eq!(Verbosity::from_flags(true, 0), Verbosity::Quiet);
+        assert_eq!(Verbosity::from_flags(false, 0), Verbosity::Normal);
+        assert_eq!(Verbosity::from_flags(false, 1), Verbosity::Verbose);
+        assert_eq!(Verbosity::from_flags(false, 2), Verbosity::Debug);
+        assert_eq!(Verbosity::from_flags(false, 5), Verbosity::Debug); // Caps at Debug
+    }
+
+    #[test]
+    fn test_quiet_flag_wins_over_verbose() {
+        // -q takes precedence over -v
+        assert_eq!(Verbosity::from_flags(true, 2), Verbosity::Quiet);
+    }
+
+    #[test]
+    fn test_verbosity_ordering() {
+        assert!(Verbosity::Quiet < Verbosity::Normal);
+        assert!(Verbosity::Normal < Verbosity::Verbose);
+        assert!(Verbosity::Verbose < Verbosity::Debug);
+    }
+
+    #[test]
+    fn test_log_filter_strings() {
+        assert_eq!(Verbosity::Quiet.log_filter(), "error");
+        assert_eq!(Verbosity::Normal.log_filter(), "warn");
+        assert_eq!(Verbosity::Verbose.log_filter(), "info");
+        assert_eq!(Verbosity::Debug.log_filter(), "debug");
     }
 
     #[test]

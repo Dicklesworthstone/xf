@@ -52,9 +52,9 @@ pub struct Cli {
     #[arg(long, short = 'f', default_value = "text", global = true)]
     pub format: OutputFormat,
 
-    /// Be verbose (show debug info)
-    #[arg(long, short = 'v', global = true)]
-    pub verbose: bool,
+    /// Increase verbosity (-v for verbose, -vv for debug)
+    #[arg(long, short = 'v', global = true, action = clap::ArgAction::Count)]
+    pub verbose: u8,
 
     /// Be quiet (suppress non-error output)
     #[arg(long, short = 'q', global = true)]
