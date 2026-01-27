@@ -60,15 +60,15 @@ impl Shell {
     pub const fn install_instructions(&self) -> &'static str {
         match self {
             Self::Bash => {
-                r#"Add to ~/.bashrc:
+                r"Add to ~/.bashrc:
   source <(xf completions bash)
 
 Or save to a file:
-  xf completions bash > ~/.local/share/bash-completion/completions/xf"#
+  xf completions bash > ~/.local/share/bash-completion/completions/xf"
             }
 
             Self::Zsh => {
-                r#"Add to ~/.zshrc:
+                r"Add to ~/.zshrc:
   source <(xf completions zsh)
 
 Or for oh-my-zsh:
@@ -76,29 +76,29 @@ Or for oh-my-zsh:
 
 Or for general zsh:
   xf completions zsh > ~/.zfunc/_xf
-  # Ensure ~/.zfunc is in your fpath"#
+  # Ensure ~/.zfunc is in your fpath"
             }
 
             Self::Fish => {
-                r#"Run once:
+                r"Run once:
   xf completions fish | source
 
 Or persist:
-  xf completions fish > ~/.config/fish/completions/xf.fish"#
+  xf completions fish > ~/.config/fish/completions/xf.fish"
             }
 
             Self::PowerShell => {
-                r#"Add to $PROFILE:
+                r"Add to $PROFILE:
   xf completions powershell | Out-String | Invoke-Expression
 
 Or save to a file:
   xf completions powershell > xf.ps1
-  # Then source it in your profile"#
+  # Then source it in your profile"
             }
 
             Self::Elvish => {
-                r#"Add to ~/.elvish/rc.elv:
-  eval (xf completions elvish | slurp)"#
+                r"Add to ~/.elvish/rc.elv:
+  eval (xf completions elvish | slurp)"
             }
         }
     }

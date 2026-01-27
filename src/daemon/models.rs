@@ -87,8 +87,7 @@ impl ModelManager {
 
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .map(|d| d.as_secs())
-            .unwrap_or(0);
+            .map_or(0, |d| d.as_secs());
 
         let entry = EmbedderEntry {
             embedder,
@@ -150,8 +149,7 @@ impl ModelManager {
 
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .map(|d| d.as_secs())
-            .unwrap_or(0);
+            .map_or(0, |d| d.as_secs());
 
         let entry = RerankerEntry {
             reranker,
@@ -182,8 +180,7 @@ impl ModelManager {
     pub fn loaded_models(&self) -> Vec<LoadedModelInfo> {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .map(|d| d.as_secs())
-            .unwrap_or(0);
+            .map_or(0, |d| d.as_secs());
 
         let mut models = Vec::with_capacity(self.embedders.len() + self.rerankers.len());
 

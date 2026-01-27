@@ -456,10 +456,7 @@ pub fn validate_archive(archive_path: &Path) -> crate::Result<Vec<HealthCheck>> 
         "tweets-part*.js"
     );
 
-    let has_tweets = tweets_path.exists()
-        || glob(&pattern)
-            .map(|mut g| g.next().is_some())
-            .unwrap_or(false);
+    let has_tweets = tweets_path.exists() || glob(&pattern).is_ok_and(|mut g| g.next().is_some());
 
     if has_tweets {
         let parser = ArchiveParser::new(archive_path);

@@ -154,12 +154,8 @@ impl Output {
     /// Create with explicit TTY state (for testing)
     #[must_use]
     pub fn new_with_tty(format: OutputFormat, stdout_tty: bool, stderr_tty: bool) -> Self {
-        let force_color = std::env::var("FORCE_COLOR")
-            .map(|v| !v.is_empty() && v != "0")
-            .unwrap_or(false)
-            || std::env::var("CLICOLOR_FORCE")
-                .map(|v| !v.is_empty() && v != "0")
-                .unwrap_or(false);
+        let force_color = std::env::var("FORCE_COLOR").is_ok_and(|v| !v.is_empty() && v != "0")
+            || std::env::var("CLICOLOR_FORCE").is_ok_and(|v| !v.is_empty() && v != "0");
         let no_color = std::env::var("NO_COLOR").is_ok();
         let clicolor = std::env::var("CLICOLOR").ok().map(|v| v != "0");
 

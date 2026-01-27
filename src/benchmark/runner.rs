@@ -160,9 +160,7 @@ impl Default for SystemInfo {
     fn default() -> Self {
         Self {
             cpu_model: "unknown".into(),
-            cores: std::thread::available_parallelism()
-                .map(std::num::NonZero::get)
-                .unwrap_or(1),
+            cores: std::thread::available_parallelism().map_or(1, std::num::NonZero::get),
             ram_gb: 0.0,
             avx_features: vec![],
         }
