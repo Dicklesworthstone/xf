@@ -399,14 +399,14 @@ mod tests {
 
     #[test]
     fn test_percentile_median() {
-        let values: Vec<f64> = (1..=100).map(|i| f64::from(i)).collect();
+        let values: Vec<f64> = (1..=100).map(f64::from).collect();
         let p50 = percentile(&values, 0.50).unwrap();
         assert!((p50 - 50.0).abs() < 1.5, "p50 should be ~50: {p50}");
     }
 
     #[test]
     fn test_percentile_p99() {
-        let values: Vec<f64> = (1..=100).map(|i| f64::from(i)).collect();
+        let values: Vec<f64> = (1..=100).map(f64::from).collect();
         let p99 = percentile(&values, 0.99).unwrap();
         assert!(p99 >= 99.0, "p99 should be >=99: {p99}");
     }
@@ -428,7 +428,7 @@ mod tests {
 
     #[test]
     fn test_cv_empty() {
-        assert_eq!(coefficient_of_variation(&[]), 0.0);
+        assert!(coefficient_of_variation(&[]).abs() < f64::EPSILON);
     }
 
     #[test]

@@ -189,6 +189,7 @@ impl CacheMeta {
 /// The output module uses a simplified format enum (Text, Json, Csv) while
 /// the CLI has additional variants (JsonPretty, Compact, Toon). Non-text
 /// formats are mapped to Json/Csv to disable styling.
+#[allow(clippy::needless_pass_by_value)] // const fn requires owned value
 const fn cli_format_to_output(format: OutputFormat) -> OutFmt {
     match format {
         OutputFormat::Text | OutputFormat::Compact => OutFmt::Text,

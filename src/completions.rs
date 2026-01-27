@@ -329,13 +329,11 @@ mod tests {
             let instructions = shell.install_instructions();
             assert!(
                 !instructions.is_empty(),
-                "{:?} should have instructions",
-                shell
+                "{shell:?} should have instructions"
             );
             assert!(
                 instructions.contains("xf completions"),
-                "{:?} instructions should mention xf completions",
-                shell
+                "{shell:?} instructions should mention xf completions"
             );
         }
     }

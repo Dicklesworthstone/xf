@@ -494,7 +494,7 @@ mod tests {
     fn test_search_card_default() {
         let card = SearchResultCard::default();
         assert!(card.doc_id.is_empty());
-        assert_eq!(card.score, 0.0);
+        assert!(card.score.abs() < f32::EPSILON);
         assert_eq!(card.max_content_length, 280);
     }
 
@@ -658,7 +658,7 @@ mod tests {
         let data = SearchResultData::default();
         assert!(data.doc_id.is_empty());
         assert!(data.content.is_empty());
-        assert_eq!(data.score, 0.0);
+        assert!(data.score.abs() < f32::EPSILON);
         assert!(data.timestamp.is_none());
     }
 }

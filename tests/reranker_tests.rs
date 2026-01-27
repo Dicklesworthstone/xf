@@ -669,7 +669,7 @@ mod pipeline {
             created_at: Utc::now(),
             score: 0.7,
             highlights: vec![],
-            metadata: metadata.clone(),
+            metadata,
             rerank_score: None,
         }];
 
@@ -751,7 +751,7 @@ mod thread_safety {
         for i in 0..4 {
             let rr = Arc::clone(&reranker);
             handles.push(thread::spawn(move || {
-                let query = format!("thread {} query", i);
+                let query = format!("thread {i} query");
                 let docs = vec!["doc one", "doc two", "doc three"];
                 for _ in 0..5 {
                     let scores = rr.rerank(&query, &docs).expect("rerank should succeed");
@@ -774,7 +774,7 @@ mod thread_safety {
         for i in 0..4 {
             let rr = Arc::clone(&reranker);
             handles.push(thread::spawn(move || {
-                let query = format!("thread {} query", i);
+                let query = format!("thread {i} query");
                 let docs = vec!["doc one", "doc two", "doc three"];
                 for _ in 0..5 {
                     let scores = rr.rerank(&query, &docs).expect("rerank should succeed");
