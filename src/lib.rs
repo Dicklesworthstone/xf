@@ -15,6 +15,7 @@
 pub mod benchmark;
 pub mod canonicalize;
 pub mod cli;
+pub mod completions;
 pub mod config;
 pub mod daemon;
 pub mod date_parser;

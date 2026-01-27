@@ -4,8 +4,7 @@
 
 use anyhow::{Context, Result};
 use chrono::{DateTime, Datelike, NaiveDate, TimeZone, Utc};
-use clap::{CommandFactory, Parser};
-use clap_complete::generate;
+use clap::Parser;
 use colored::{Colorize, control};
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::ThreadPoolBuilder;
@@ -247,7 +246,7 @@ fn main() -> Result<()> {
             Ok(())
         }
         Some(Commands::Completions(args)) => {
-            cmd_completions(args);
+            cmd_completions(&cli, args);
             Ok(())
         }
         Some(Commands::Doctor(args)) => cmd_doctor(&cli, args),
@@ -3298,9 +3297,12 @@ fn cmd_update() {
     );
 }
 
-fn cmd_completions(args: &cli::CompletionsArgs) {
-    let mut cmd = Cli::command();
-    generate(args.shell, &mut cmd, "xf", &mut io::stdout());
+fn cmd_completions(_cli: &Cli, args: &cli::CompletionsArgs) {
+    use xf::output::{Output, OutputFormat as OutFmt};
+
+    // Create output - no_color is handled by Output's env detection
+    let output = Output::new(OutFmt::Text);
+    xf::completions::generate_completions(args.shell, &output);
 }
 
 // ============================================================================

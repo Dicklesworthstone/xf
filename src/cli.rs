@@ -349,8 +349,8 @@ pub struct ConfigArgs {
 
 #[derive(Args, Debug, Clone)]
 pub struct CompletionsArgs {
-    /// Shell to generate completions for
-    pub shell: clap_complete::Shell,
+    /// Shell to generate completions for (bash, zsh, fish, powershell, elvish)
+    pub shell: crate::completions::Shell,
 }
 
 #[derive(Args, Debug)]
