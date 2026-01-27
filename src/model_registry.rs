@@ -11,6 +11,7 @@ use crate::embedder::{Embedder, EmbedderError, EmbedderResult, ModelCategory};
 use crate::fastembed_embedder::FastEmbedModelEmbedder;
 use crate::flashrank_reranker::FlashRankReranker;
 use crate::hash_embedder::{DEFAULT_DIMENSION as HASH_DEFAULT_DIM, HashEmbedder};
+use crate::model2vec_embedder::Model2VecEmbedder;
 use crate::mxbai_reranker::MxbaiReranker;
 use crate::reranker::{Reranker, RerankerError, RerankerResult};
 use crate::static_mrl_embedder::StaticMrlEmbedder;
@@ -230,8 +231,8 @@ impl ModelRegistry {
                 supports_mrl: false,
                 native_dims: 256,
                 size_mb: Some(32.0),
-                downloaded: false,
-                available: false, // Not implemented yet
+                downloaded: Model2VecEmbedder::is_available(EMBEDDER_POTION_RETRIEVAL_32M),
+                available: Model2VecEmbedder::is_available(EMBEDDER_POTION_RETRIEVAL_32M),
             },
             ModelInfo {
                 name: EMBEDDER_POTION_MULTI_128M.to_string(),
@@ -240,8 +241,8 @@ impl ModelRegistry {
                 supports_mrl: false,
                 native_dims: 256,
                 size_mb: Some(128.0),
-                downloaded: false,
-                available: false, // Not implemented yet
+                downloaded: Model2VecEmbedder::is_available(EMBEDDER_POTION_MULTI_128M),
+                available: Model2VecEmbedder::is_available(EMBEDDER_POTION_MULTI_128M),
             },
             ModelInfo {
                 name: EMBEDDER_EMBEDDINGGEMMA_300M.to_string(),
@@ -298,16 +299,14 @@ impl ModelRegistry {
                         .map_err(|e| EmbedderError::Unavailable(format!("{e}")))?,
                 )
             }
-            EMBEDDER_POTION_RETRIEVAL_32M => {
-                return Err(EmbedderError::Unavailable(
-                    "model2vec potion-retrieval-32M backend not implemented yet".to_string(),
-                ));
-            }
-            EMBEDDER_POTION_MULTI_128M => {
-                return Err(EmbedderError::Unavailable(
-                    "model2vec potion-multilingual-128M backend not implemented yet".to_string(),
-                ));
-            }
+            EMBEDDER_POTION_RETRIEVAL_32M => Box::new(
+                Model2VecEmbedder::try_load(EMBEDDER_POTION_RETRIEVAL_32M)
+                    .map_err(|e| EmbedderError::Unavailable(format!("{e}")))?,
+            ),
+            EMBEDDER_POTION_MULTI_128M => Box::new(
+                Model2VecEmbedder::try_load(EMBEDDER_POTION_MULTI_128M)
+                    .map_err(|e| EmbedderError::Unavailable(format!("{e}")))?,
+            ),
             EMBEDDER_EMBEDDINGGEMMA_300M => {
                 return Err(EmbedderError::Unavailable(
                     "embeddinggemma-300m backend not implemented yet".to_string(),

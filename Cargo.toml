@@ -74,6 +74,7 @@ fastembed = { version = "4.9", default-features = false, features = ["ort-downlo
 ort = { version = "2.0.0-rc.9", features = ["download-binaries"] }  # ONNX Runtime for static embedding models
 tokenizers = "0.21"     # HuggingFace tokenizers
 ndarray = "0.16"        # N-dimensional arrays for ONNX tensors
+safetensors = "0.5"     # Read Model2Vec embedding weights from safetensors format
 
 # Parallelism
 rayon = "1.10"

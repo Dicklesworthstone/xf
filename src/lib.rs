@@ -30,6 +30,7 @@ pub mod list_tables;
 pub mod logging;
 pub mod messages;
 pub mod model;
+pub mod model2vec_embedder;
 pub mod model_registry;
 pub mod mxbai_reranker;
 pub mod output;
