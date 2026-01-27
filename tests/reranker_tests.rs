@@ -549,7 +549,10 @@ mod performance {
         // Verify roughly linear scaling (100 docs should be <20x of 10 docs)
         let ratio = timings[3].1 / timings[0].1.max(0.1);
         println!("Scaling ratio (100/10 docs): {ratio:.1}x");
-        assert!(ratio < 20.0, "Should scale roughly linearly, got {ratio:.1}x");
+        assert!(
+            ratio < 20.0,
+            "Should scale roughly linearly, got {ratio:.1}x"
+        );
     }
 }
 
