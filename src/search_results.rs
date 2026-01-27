@@ -59,7 +59,7 @@ pub fn extract_terms(query: &str) -> Vec<String> {
         .captures_iter(query)
         .filter_map(|cap| {
             cap.get(1) // Quoted phrase
-                .or(cap.get(2)) // Single word
+                .or_else(|| cap.get(2)) // Single word
                 .map(|m| m.as_str().to_lowercase())
         })
         .filter(|term| {
@@ -190,12 +190,18 @@ impl SearchResultCard {
             let pattern_key = format!(r"(?i)\b{}\b", regex::escape(term));
             let regex = {
                 let mut cache = HIGHLIGHT_REGEX_CACHE.lock().unwrap();
-                cache
-                    .entry(pattern_key.clone())
-                    .or_insert_with(|| {
-                        Regex::new(&pattern_key).unwrap_or_else(|_| Regex::new(r"(?!)").unwrap())
-                    })
-                    .clone()
+                if let Some(existing) = cache.get(&pattern_key) {
+                    let result = existing.clone();
+                    drop(cache);
+                    result
+                } else if let Ok(new_regex) = Regex::new(&pattern_key) {
+                    cache.insert(pattern_key.clone(), new_regex.clone());
+                    drop(cache);
+                    new_regex
+                } else {
+                    // Skip terms that can't be compiled to regex
+                    continue;
+                }
             };
 
             // Replace with highlighted version
@@ -222,8 +228,9 @@ impl SearchResultCard {
     fn render_styled(&self, output: &Output) {
         let theme = Theme::for_terminal();
 
-        // Score badge
-        let score_pct = (self.score * 100.0) as u32;
+        // Score badge (clamp to valid range)
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        let score_pct = (self.score.clamp(0.0, 1.0) * 100.0) as u32;
         let score_style = theme.score_style(self.score);
         let score_badge = format!("[{score_style}]{score_pct}%[/]");
 
@@ -263,7 +270,8 @@ impl SearchResultCard {
 
     /// Render as plain text for piped output.
     fn render_plain(&self, output: &Output) {
-        let score_pct = (self.score * 100.0) as u32;
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        let score_pct = (self.score.clamp(0.0, 1.0) * 100.0) as u32;
         let time_str = self.timestamp.map_or_else(
             || "—".to_string(),
             |ts| ts.format("%Y-%m-%d %H:%M").to_string(),

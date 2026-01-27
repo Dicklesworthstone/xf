@@ -42,6 +42,7 @@ pub mod static_mrl_embedder;
 pub mod stats_analytics;
 pub mod storage;
 pub mod theme;
+pub mod tweet_card;
 pub mod vector;
 
 pub use cli::*;
