@@ -37,6 +37,7 @@ pub mod repl;
 pub mod rerank_step;
 pub mod reranker;
 pub mod search;
+pub mod search_results;
 pub mod static_mrl_embedder;
 pub mod stats_analytics;
 pub mod storage;
