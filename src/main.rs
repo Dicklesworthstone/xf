@@ -240,14 +240,14 @@ fn main() -> Result<()> {
             print_quickstart();
             Ok(())
         }
-        Some(Commands::Import(args)) => cmd_import(&cli, args),
-        Some(Commands::Index(args)) => cmd_index(&cli, args),
-        Some(Commands::Search(args)) => cmd_search(&cli, args),
+        Some(Commands::Import(args)) => cmd_import(&cli, args, &output),
+        Some(Commands::Index(args)) => cmd_index(&cli, args, &output),
+        Some(Commands::Search(args)) => cmd_search(&cli, args, &output),
         Some(Commands::Stats(args)) => cmd_stats(&cli, args, &output),
-        Some(Commands::Tweet(args)) => cmd_tweet(&cli, args),
-        Some(Commands::List(args)) => cmd_list(&cli, args),
-        Some(Commands::Export(args)) => cmd_export(&cli, args),
-        Some(Commands::Config(args)) => cmd_config(&cli, args),
+        Some(Commands::Tweet(args)) => cmd_tweet(&cli, args, &output),
+        Some(Commands::List(args)) => cmd_list(&cli, args, &output),
+        Some(Commands::Export(args)) => cmd_export(&cli, args, &output),
+        Some(Commands::Config(args)) => cmd_config(&cli, args, &output),
         Some(Commands::Update) => {
             cmd_update();
             Ok(())
@@ -256,9 +256,9 @@ fn main() -> Result<()> {
             cmd_completions(&cli, args);
             Ok(())
         }
-        Some(Commands::Doctor(args)) => cmd_doctor(&cli, args),
-        Some(Commands::Shell(args)) => cmd_shell(&cli, args),
-        Some(Commands::Benchmark(args)) => cmd_benchmark(&cli, args),
+        Some(Commands::Doctor(args)) => cmd_doctor(&cli, args, &output),
+        Some(Commands::Shell(args)) => cmd_shell(&cli, args, &output),
+        Some(Commands::Benchmark(args)) => cmd_benchmark(&cli, args, &output),
         Some(Commands::RobotDocs(args)) => cmd_robot_docs(args),
     }
 }
@@ -565,7 +565,7 @@ fn get_index_path(cli: &Cli) -> PathBuf {
 ///
 /// Extracts the archive to a standard location and optionally indexes it.
 #[allow(clippy::too_many_lines)]
-fn cmd_import(cli: &Cli, args: &cli::ImportArgs) -> Result<()> {
+fn cmd_import(cli: &Cli, args: &cli::ImportArgs, output: &Output) -> Result<()> {
     // Validate zip file exists
     if !args.zip_file.exists() {
         anyhow::bail!(
@@ -702,7 +702,7 @@ fn cmd_import(cli: &Cli, args: &cli::ImportArgs) -> Result<()> {
             semantic: false, // Don't use semantic embeddings by default for import
         };
 
-        cmd_index(cli, &index_args)?;
+        cmd_index(cli, &index_args, output)?;
 
         // Print welcome box with stats
         print_import_welcome(&output_dir, cli)?;
@@ -818,7 +818,7 @@ fn print_import_welcome(_archive_path: &PathBuf, cli: &Cli) -> Result<()> {
 }
 
 #[allow(clippy::too_many_lines)]
-fn cmd_index(cli: &Cli, args: &cli::IndexArgs) -> Result<()> {
+fn cmd_index(cli: &Cli, args: &cli::IndexArgs, _output: &Output) -> Result<()> {
     // Use provided path or fall back to config/default
     let config = Config::load();
     let default_path = config
@@ -1140,7 +1140,7 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs) -> Result<()> {
 }
 
 #[allow(clippy::too_many_lines)]
-fn cmd_search(cli: &Cli, args: &cli::SearchArgs) -> Result<()> {
+fn cmd_search(cli: &Cli, args: &cli::SearchArgs, _output: &Output) -> Result<()> {
     let db_path = get_db_path(cli);
     let index_path = get_index_path(cli);
     let config = Config::load();
@@ -2623,7 +2623,7 @@ fn format_naive_date(date: NaiveDate) -> String {
         )
 }
 
-fn cmd_tweet(cli: &Cli, args: &cli::TweetArgs) -> Result<()> {
+fn cmd_tweet(cli: &Cli, args: &cli::TweetArgs, _output: &Output) -> Result<()> {
     let db_path = get_db_path(cli);
     let storage = Storage::open(&db_path)?;
 
@@ -2680,7 +2680,7 @@ fn cmd_tweet(cli: &Cli, args: &cli::TweetArgs) -> Result<()> {
 }
 
 #[allow(clippy::too_many_lines)]
-fn cmd_list(cli: &Cli, args: &cli::ListArgs) -> Result<()> {
+fn cmd_list(cli: &Cli, args: &cli::ListArgs, _output: &Output) -> Result<()> {
     let db_path = get_db_path(cli);
 
     if matches!(args.what, ListTarget::Files) {
@@ -2905,7 +2905,7 @@ fn truncate_text(text: &str, max_len: usize) -> String {
 }
 
 #[allow(clippy::too_many_lines)]
-fn cmd_export(cli: &Cli, args: &cli::ExportArgs) -> Result<()> {
+fn cmd_export(cli: &Cli, args: &cli::ExportArgs, _output: &Output) -> Result<()> {
     let db_path = get_db_path(cli);
 
     if !db_path.exists() {
@@ -3089,7 +3089,7 @@ fn csv_escape(value: &serde_json::Value) -> String {
     }
 }
 
-fn cmd_config(cli: &Cli, args: &cli::ConfigArgs) -> Result<()> {
+fn cmd_config(cli: &Cli, args: &cli::ConfigArgs, _output: &Output) -> Result<()> {
     let mut config = Config::load();
     let set_present = args.set.is_some();
     let archive_present = args.archive.is_some();
@@ -3329,7 +3329,7 @@ struct DoctorOutput {
 }
 
 #[allow(clippy::too_many_lines)]
-fn cmd_doctor(cli: &Cli, args: &cli::DoctorArgs) -> Result<()> {
+fn cmd_doctor(cli: &Cli, args: &cli::DoctorArgs, output: &Output) -> Result<()> {
     let start = Instant::now();
     let mut all_checks: Vec<HealthCheck> = Vec::new();
 
@@ -3641,17 +3641,15 @@ fn cmd_doctor(cli: &Cli, args: &cli::DoctorArgs) -> Result<()> {
         }
         _ => {
             // Styled text output via DoctorRenderer
-            use xf::output::{Output, OutputFormat as OutFmt};
             use xf::theme::Theme;
 
-            let out = Output::new(OutFmt::Text);
             let theme = Theme::for_terminal();
             let renderer = DoctorRenderer::new(
                 &all_checks,
                 &summary,
                 &suggestions,
                 runtime_ms,
-                &out,
+                output,
                 &theme,
             );
             renderer.render();
@@ -3666,7 +3664,7 @@ fn cmd_doctor(cli: &Cli, args: &cli::DoctorArgs) -> Result<()> {
 }
 
 /// Launch interactive REPL shell.
-fn cmd_shell(cli: &Cli, args: &cli::ShellArgs) -> Result<()> {
+fn cmd_shell(cli: &Cli, args: &cli::ShellArgs, _output: &Output) -> Result<()> {
     let db_path = get_db_path(cli);
     let index_path = get_index_path(cli);
 
@@ -3720,7 +3718,7 @@ fn cmd_shell(cli: &Cli, args: &cli::ShellArgs) -> Result<()> {
     repl::run(storage, search, config)
 }
 
-fn cmd_benchmark(_cli: &Cli, args: &cli::BenchmarkArgs) -> Result<()> {
+fn cmd_benchmark(_cli: &Cli, args: &cli::BenchmarkArgs, _output: &Output) -> Result<()> {
     let corpus = BenchmarkCorpus::load(&args.corpus)
         .with_context(|| format!("Failed to load corpus: {}", args.corpus.display()))?;
     corpus
