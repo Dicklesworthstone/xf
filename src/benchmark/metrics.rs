@@ -331,20 +331,20 @@ mod tests {
     fn test_map_alternating() {
         // Relevant at positions 1, 3: AP = (1/1 + 2/3) / 2 = 0.833...
         let relevance = vec![1, 0, 1, 0];
-        let expected = (1.0 / 1.0 + 2.0 / 3.0) / 2.0;
+        let expected = f64::midpoint(1.0 / 1.0, 2.0 / 3.0);
         assert!((map_at_k(&relevance, 4) - expected).abs() < 1e-6);
     }
 
     #[test]
     fn test_map_no_relevant() {
         let relevance = vec![0, 0, 0];
-        assert_eq!(map_at_k(&relevance, 3), 0.0);
+        assert!(map_at_k(&relevance, 3).abs() < f64::EPSILON);
     }
 
     #[test]
     fn test_map_empty() {
         let relevance: Vec<u8> = vec![];
-        assert_eq!(map_at_k(&relevance, 10), 0.0);
+        assert!(map_at_k(&relevance, 10).abs() < f64::EPSILON);
     }
 
     // === NDCG edge cases ===
@@ -360,13 +360,13 @@ mod tests {
     #[test]
     fn test_ndcg_empty() {
         let relevance: Vec<u8> = vec![];
-        assert_eq!(ndcg_at_k(&relevance, 10), 0.0);
+        assert!(ndcg_at_k(&relevance, 10).abs() < f64::EPSILON);
     }
 
     #[test]
     fn test_ndcg_no_relevant() {
         let relevance = vec![0, 0, 0];
-        assert_eq!(ndcg_at_k(&relevance, 3), 0.0);
+        assert!(ndcg_at_k(&relevance, 3).abs() < f64::EPSILON);
     }
 
     // === MRR edge cases ===
@@ -374,7 +374,7 @@ mod tests {
     #[test]
     fn test_mrr_first_position() {
         let relevance = vec![1, 0, 0];
-        assert_eq!(compute_mrr(&relevance), 1.0);
+        assert!((compute_mrr(&relevance) - 1.0).abs() < f64::EPSILON);
     }
 
     #[test]
@@ -386,7 +386,7 @@ mod tests {
     #[test]
     fn test_mrr_no_relevant() {
         let relevance = vec![0, 0, 0];
-        assert_eq!(compute_mrr(&relevance), 0.0);
+        assert!(compute_mrr(&relevance).abs() < f64::EPSILON);
     }
 
     // === Percentile edge cases ===
@@ -394,19 +394,19 @@ mod tests {
     #[test]
     fn test_percentile_single_value() {
         let values = vec![42.0];
-        assert_eq!(percentile(&values, 0.5), Some(42.0));
+        assert!((percentile(&values, 0.5).unwrap() - 42.0).abs() < f64::EPSILON);
     }
 
     #[test]
     fn test_percentile_median() {
-        let values: Vec<f64> = (1..=100).map(|i| i as f64).collect();
+        let values: Vec<f64> = (1..=100).map(|i| f64::from(i)).collect();
         let p50 = percentile(&values, 0.50).unwrap();
         assert!((p50 - 50.0).abs() < 1.5, "p50 should be ~50: {p50}");
     }
 
     #[test]
     fn test_percentile_p99() {
-        let values: Vec<f64> = (1..=100).map(|i| i as f64).collect();
+        let values: Vec<f64> = (1..=100).map(|i| f64::from(i)).collect();
         let p99 = percentile(&values, 0.99).unwrap();
         assert!(p99 >= 99.0, "p99 should be >=99: {p99}");
     }
@@ -416,7 +416,7 @@ mod tests {
     #[test]
     fn test_cv_constant_values() {
         let values: Vec<f64> = (0..10).map(|_| 50.0).collect();
-        assert_eq!(coefficient_of_variation(&values), 0.0);
+        assert!(coefficient_of_variation(&values).abs() < f64::EPSILON);
     }
 
     #[test]

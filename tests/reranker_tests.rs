@@ -98,8 +98,7 @@ mod loading {
         let err_str = result.err().unwrap().to_string();
         assert!(
             err_str.contains("missing") || err_str.contains("unavailable"),
-            "Error should mention missing files: {}",
-            err_str
+            "Error should mention missing files: {err_str}"
         );
     }
 
@@ -111,8 +110,7 @@ mod loading {
         let err_str = result.err().unwrap().to_string();
         assert!(
             err_str.contains("missing") || err_str.contains("unavailable"),
-            "Error should mention missing files: {}",
-            err_str
+            "Error should mention missing files: {err_str}"
         );
     }
 
@@ -143,11 +141,10 @@ mod loading {
         let registry = ModelRegistry::new();
         let result = registry.reranker_by_name("nonexistent-model");
         // Unknown models should return Ok(None) or an error, not panic
-        match result {
-            Ok(None) => { /* expected for unknown model */ }
-            Ok(Some(_)) => panic!("Should not find unknown model"),
-            Err(_) => { /* also acceptable */ }
+        if let Ok(Some(_)) = result {
+            panic!("Should not find unknown model");
         }
+        // Ok(None) or Err(_) are expected for unknown model
     }
 }
 
@@ -184,28 +181,25 @@ mod relevance {
         let scores = reranker
             .rerank(query, &docs)
             .expect("rerank should succeed");
-        println!("{} scores: {:?}", name, scores);
+        println!("{name} scores: {scores:?}");
 
         // Rust doc (index 0) should score highest (most relevant to query)
         assert!(
             scores[0] > scores[2],
-            "{}: Systems lang doc should beat weather: {} vs {}",
-            name,
+            "{name}: Systems lang doc should beat weather: {} vs {}",
             scores[0],
             scores[2]
         );
         assert!(
             scores[0] > scores[3],
-            "{}: Systems lang doc should beat recipe: {} vs {}",
-            name,
+            "{name}: Systems lang doc should beat recipe: {} vs {}",
             scores[0],
             scores[3]
         );
         // Programming doc should beat non-programming
         assert!(
             scores[1] > scores[3],
-            "{}: Programming doc should beat recipe: {} vs {}",
-            name,
+            "{name}: Programming doc should beat recipe: {} vs {}",
             scores[1],
             scores[3]
         );
@@ -247,8 +241,8 @@ mod relevance {
             .rerank("machine learning deep learning", &docs)
             .expect("rerank should succeed");
 
-        println!("Rust query scores: {:?}", rust_scores);
-        println!("ML query scores: {:?}", ml_scores);
+        println!("Rust query scores: {rust_scores:?}");
+        println!("ML query scores: {ml_scores:?}");
 
         assert!(
             rust_scores[0] > rust_scores[1],
@@ -296,18 +290,12 @@ mod calibration {
         for (i, score) in scores.iter().enumerate() {
             assert!(
                 score.is_finite(),
-                "{}: Score {} should be finite, got {}",
-                name,
-                i,
-                score
+                "{name}: Score {i} should be finite, got {score}"
             );
             // After sigmoid, scores should be in [0, 1]
             assert!(
                 *score >= 0.0 && *score <= 1.0,
-                "{}: Score {} should be in [0,1], got {}",
-                name,
-                i,
-                score
+                "{name}: Score {i} should be in [0,1], got {score}"
             );
         }
     }

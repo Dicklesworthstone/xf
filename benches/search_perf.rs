@@ -213,6 +213,7 @@ fn make_rrf_inputs(size: usize) -> (Vec<SearchResult>, Vec<VectorSearchResult>) 
             score: usize_to_f32(size.saturating_sub(i) + 1),
             highlights: Vec::new(),
             metadata: serde_json::Value::Null,
+            rerank_score: None,
         });
 
         semantic.push(VectorSearchResult {
