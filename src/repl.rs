@@ -1,8 +1,10 @@
 //! Interactive REPL for xf.
 //!
 //! Provides a command-driven shell with history, basic search, and help.
+//! Supports styled prompts, history display, and status line when running in TTY.
 
 use anyhow::{Context, Result};
+use chrono::{DateTime, Utc};
 use colored::Colorize;
 use rustyline::completion::{Completer, Pair};
 use rustyline::error::ReadlineError;
@@ -13,13 +15,413 @@ use rustyline::validate::Validator;
 use rustyline::{CompletionType, Config, EditMode, Editor, Helper};
 use std::borrow::Cow;
 use std::collections::HashMap;
+use std::io::Write;
 use std::path::PathBuf;
 use tracing::{debug, info, trace, warn};
 
+use crate::output::Output;
+use crate::theme::Theme;
 use crate::{
     CONTENT_DIVIDER_WIDTH, SearchEngine, SearchResult, Storage, csv_escape_text, format_number,
     format_number_usize, format_relative_date, format_short_id,
 };
+
+// =============================================================================
+// Search Mode Enum
+// =============================================================================
+
+/// Search mode for the REPL (mirrors CLI search modes).
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
+pub enum SearchMode {
+    /// Hybrid search combining lexical and semantic
+    #[default]
+    Hybrid,
+    /// Lexical search only (BM25)
+    Lexical,
+    /// Semantic search only (vector similarity)
+    Semantic,
+}
+
+impl std::fmt::Display for SearchMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Hybrid => write!(f, "hybrid"),
+            Self::Lexical => write!(f, "lexical"),
+            Self::Semantic => write!(f, "semantic"),
+        }
+    }
+}
+
+impl std::str::FromStr for SearchMode {
+    type Err = String;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "hybrid" | "h" => Ok(Self::Hybrid),
+            "lexical" | "l" | "lex" => Ok(Self::Lexical),
+            "semantic" | "s" | "sem" => Ok(Self::Semantic),
+            _ => Err(format!(
+                "Unknown search mode: '{}'. Use 'hybrid', 'lexical', or 'semantic'.",
+                s
+            )),
+        }
+    }
+}
+
+// =============================================================================
+// Index Status Enum
+// =============================================================================
+
+/// Status of the search index for display in the REPL.
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
+pub enum IndexStatus {
+    /// Index is ready and up to date
+    #[default]
+    Ready,
+    /// Index exists but may be stale
+    Stale,
+    /// Index is missing or not initialized
+    Missing,
+}
+
+impl IndexStatus {
+    /// Get a short label for the status.
+    #[must_use]
+    pub const fn label(&self) -> &'static str {
+        match self {
+            Self::Ready => "ready",
+            Self::Stale => "stale",
+            Self::Missing => "missing",
+        }
+    }
+}
+
+// =============================================================================
+// REPL Prompt
+// =============================================================================
+
+/// Styled REPL prompt with mode badge and arrow.
+#[derive(Clone, Debug)]
+pub struct ReplPrompt {
+    theme: Theme,
+}
+
+impl Default for ReplPrompt {
+    fn default() -> Self {
+        Self {
+            theme: Theme::default(),
+        }
+    }
+}
+
+impl ReplPrompt {
+    /// Create a new styled prompt with the given theme.
+    #[must_use]
+    pub fn new(theme: &Theme) -> Self {
+        Self {
+            theme: theme.clone(),
+        }
+    }
+
+    /// Render the prompt string, styled if output supports it.
+    #[must_use]
+    pub fn render(&self, output: &Output, mode: SearchMode) -> String {
+        if !output.is_styled() {
+            return format!("xf ({})> ", mode);
+        }
+
+        // Return plain string for rustyline (it doesn't support rich markup)
+        // The actual styling happens via colored crate in the banner
+        format!("xf ({})❯ ", mode)
+    }
+
+    /// Render the prompt with result count context.
+    #[must_use]
+    pub fn render_with_results(&self, output: &Output, mode: SearchMode, count: usize) -> String {
+        if !output.is_styled() {
+            return format!("xf ({}) [{}]> ", mode, format_number_usize(count));
+        }
+
+        format!(
+            "xf ({}) [{}]❯ ",
+            mode,
+            format_number_usize(count)
+        )
+    }
+
+    /// Render the prompt with conversation context.
+    #[must_use]
+    pub fn render_in_conversation(&self, output: &Output, mode: SearchMode, conv_id: &str) -> String {
+        let snippet = conv_id.get(..8.min(conv_id.len())).unwrap_or(conv_id);
+        if !output.is_styled() {
+            return format!("xf ({}) [dm:{}]> ", mode, snippet);
+        }
+
+        format!("xf ({}) [dm:{}]❯ ", mode, snippet)
+    }
+}
+
+// =============================================================================
+// History Entry and Display
+// =============================================================================
+
+/// A single entry in the REPL search history.
+#[derive(Clone, Debug)]
+pub struct HistoryEntry {
+    /// The search query
+    pub query: String,
+    /// When the search was executed
+    pub timestamp: DateTime<Utc>,
+    /// Number of results returned
+    pub result_count: usize,
+    /// Search duration in milliseconds
+    pub duration_ms: f64,
+}
+
+/// REPL history display renderer.
+#[derive(Clone, Debug)]
+pub struct ReplHistory {
+    entries: Vec<HistoryEntry>,
+    theme: Theme,
+}
+
+impl ReplHistory {
+    /// Create a new history display with entries and theme.
+    #[must_use]
+    pub fn new(entries: &[HistoryEntry], theme: &Theme) -> Self {
+        Self {
+            entries: entries.to_vec(),
+            theme: theme.clone(),
+        }
+    }
+
+    /// Render the history display.
+    pub fn render(&self, output: &Output) {
+        if self.entries.is_empty() {
+            if output.is_styled() {
+                output.print(&self.theme.format_muted("No search history"));
+            } else {
+                println!("No search history");
+            }
+            return;
+        }
+
+        if !output.is_styled() {
+            println!("# | Query | Results | Time");
+            println!("--|-------|---------|-----");
+            for (i, entry) in self.entries.iter().enumerate() {
+                println!(
+                    "{}: {} ({} results, {:.1}ms)",
+                    i + 1, entry.query, entry.result_count, entry.duration_ms
+                );
+            }
+            return;
+        }
+
+        // Styled output using rich_rust Table if available
+        #[cfg(feature = "rich")]
+        {
+            use rich_rust::prelude::*;
+
+            let mut table = Table::new()
+                .title("📜 Search History");
+
+            table = table
+                .with_column(Column::new("#").width(4))
+                .with_column(Column::new("Query"))
+                .with_column(Column::new("Results").justify(JustifyMethod::Right).width(8))
+                .with_column(Column::new("Time").justify(JustifyMethod::Right).width(10));
+
+            for (i, entry) in self.entries.iter().enumerate() {
+                table.add_row_cells([
+                    &(i + 1).to_string(),
+                    &entry.query,
+                    &entry.result_count.to_string(),
+                    &format!("{:.1}ms", entry.duration_ms),
+                ]);
+            }
+
+            output.print_renderable(&table);
+            return;
+        }
+
+        // Fallback: simple styled output using colored crate
+        #[cfg(not(feature = "rich"))]
+        {
+            println!("{}", "📜 Search History".bold().cyan());
+            println!("{}", "─".repeat(60).dimmed());
+            println!(
+                "{:>4} {} {:>8} {:>10}",
+                "#".dimmed(),
+                "Query".dimmed(),
+                "Results".dimmed(),
+                "Time".dimmed()
+            );
+            for (i, entry) in self.entries.iter().enumerate() {
+                let query_display = if entry.query.len() > 40 {
+                    format!("{}...", &entry.query[..37])
+                } else {
+                    entry.query.clone()
+                };
+                println!(
+                    "{:>4} {} {:>8} {:>10}",
+                    (i + 1).to_string().cyan(),
+                    query_display,
+                    entry.result_count.to_string().green(),
+                    format!("{:.1}ms", entry.duration_ms).dimmed()
+                );
+            }
+        }
+    }
+}
+
+// =============================================================================
+// Status Line
+// =============================================================================
+
+/// Status line display for the REPL showing archive and index info.
+#[derive(Clone, Debug)]
+pub struct ReplStatusLine {
+    archive_path: PathBuf,
+    doc_count: usize,
+    index_status: IndexStatus,
+    theme: Theme,
+}
+
+impl ReplStatusLine {
+    /// Create a new status line.
+    #[must_use]
+    pub fn new(
+        archive_path: PathBuf,
+        doc_count: usize,
+        index_status: IndexStatus,
+        theme: &Theme,
+    ) -> Self {
+        Self {
+            archive_path,
+            doc_count,
+            index_status,
+            theme: theme.clone(),
+        }
+    }
+
+    /// Render the status line as a string.
+    #[must_use]
+    pub fn render(&self, output: &Output) -> String {
+        let archive_name = self.archive_path
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy();
+
+        if !output.is_styled() {
+            return format!(
+                "Archive: {} | {} docs | Index: {}",
+                archive_name,
+                self.doc_count,
+                self.index_status.label()
+            );
+        }
+
+        let status_icon = match self.index_status {
+            IndexStatus::Ready => "●".green().to_string(),
+            IndexStatus::Stale => "●".yellow().to_string(),
+            IndexStatus::Missing => "●".red().to_string(),
+        };
+
+        format!(
+            "{} {} | {} docs",
+            status_icon,
+            archive_name.dimmed(),
+            format_number_usize(self.doc_count).cyan()
+        )
+    }
+}
+
+// =============================================================================
+// Help Display
+// =============================================================================
+
+/// Render styled help for REPL commands.
+pub fn render_repl_help(output: &Output) {
+    if !output.is_styled() {
+        println!("REPL Commands:");
+        println!("  :help       - Show this help");
+        println!("  :mode MODE  - Switch mode (hybrid|lexical|semantic)");
+        println!("  :history    - Show search history");
+        println!("  :clear      - Clear screen");
+        println!("  :limit N    - Set result limit");
+        println!("  :type TYPE  - Filter by type (tweet|like|dm|grok)");
+        println!("  :quit       - Exit REPL");
+        println!();
+        println!("Search Commands:");
+        println!("  search <query>  - Search indexed content (s)");
+        println!("  list [target]   - List tweets, likes, dms, etc (l)");
+        println!("  refine <filter> - Filter current results (r)");
+        println!("  more            - Show next page of results (m)");
+        println!("  show <number>   - Show full result details");
+        println!("  export [format] - Export results as json/csv (e)");
+        println!("  stats           - Show archive statistics");
+        return;
+    }
+
+    // Styled output
+    #[cfg(feature = "rich")]
+    {
+        use rich_rust::prelude::*;
+
+        let mut table = Table::new()
+            .title("🔧 REPL Commands");
+
+        table = table
+            .with_column(Column::new("Command").style(Style::new().bold()))
+            .with_column(Column::new("Description"));
+
+        let commands = [
+            (":help", "Show this help message"),
+            (":mode <mode>", "Switch search mode (hybrid|lexical|semantic)"),
+            (":history", "Show search history"),
+            (":clear", "Clear screen"),
+            (":limit <n>", "Set result limit"),
+            (":type <type>", "Filter by doc type (tweet|like|dm|grok)"),
+            (":quit", "Exit REPL"),
+        ];
+
+        for (cmd, desc) in commands {
+            table.add_row_cells([cmd, desc]);
+        }
+
+        output.print_renderable(&table);
+        return;
+    }
+
+    // Fallback: colored crate styling
+    #[cfg(not(feature = "rich"))]
+    {
+        println!("{}", "🔧 REPL Commands".bold().cyan());
+        println!("{}", "─".repeat(60).dimmed());
+        let commands = [
+            (":help", "Show this help message"),
+            (":mode <mode>", "Switch search mode (hybrid|lexical|semantic)"),
+            (":history", "Show search history"),
+            (":clear", "Clear screen"),
+            (":limit <n>", "Set result limit"),
+            (":type <type>", "Filter by doc type (tweet|like|dm|grok)"),
+            (":quit", "Exit REPL"),
+        ];
+
+        for (cmd, desc) in commands {
+            println!("  {} {}", cmd.cyan().bold(), desc.dimmed());
+        }
+    }
+}
+
+/// Clear the terminal screen.
+pub fn clear_screen(output: &Output) {
+    if output.stdout_is_tty() {
+        print!("\x1B[2J\x1B[1;1H");
+        std::io::stdout().flush().ok();
+    }
+}
 
 /// Configuration for the REPL session.
 #[derive(Debug, Clone)]
@@ -2250,5 +2652,178 @@ mod tests {
         assert_eq!(segments[0], "search rust");
         assert_eq!(segments[1], "refine async");
         assert_eq!(segments[2], "more");
+    }
+
+    // ======================== SearchMode Tests ========================
+
+    #[test]
+    fn test_search_mode_display() {
+        assert_eq!(SearchMode::Hybrid.to_string(), "hybrid");
+        assert_eq!(SearchMode::Lexical.to_string(), "lexical");
+        assert_eq!(SearchMode::Semantic.to_string(), "semantic");
+    }
+
+    #[test]
+    fn test_search_mode_default() {
+        assert_eq!(SearchMode::default(), SearchMode::Hybrid);
+    }
+
+    #[test]
+    fn test_search_mode_from_str() {
+        assert_eq!("hybrid".parse::<SearchMode>().unwrap(), SearchMode::Hybrid);
+        assert_eq!("h".parse::<SearchMode>().unwrap(), SearchMode::Hybrid);
+        assert_eq!("lexical".parse::<SearchMode>().unwrap(), SearchMode::Lexical);
+        assert_eq!("l".parse::<SearchMode>().unwrap(), SearchMode::Lexical);
+        assert_eq!("lex".parse::<SearchMode>().unwrap(), SearchMode::Lexical);
+        assert_eq!("semantic".parse::<SearchMode>().unwrap(), SearchMode::Semantic);
+        assert_eq!("s".parse::<SearchMode>().unwrap(), SearchMode::Semantic);
+        assert_eq!("sem".parse::<SearchMode>().unwrap(), SearchMode::Semantic);
+    }
+
+    #[test]
+    fn test_search_mode_from_str_case_insensitive() {
+        assert_eq!("HYBRID".parse::<SearchMode>().unwrap(), SearchMode::Hybrid);
+        assert_eq!("Lexical".parse::<SearchMode>().unwrap(), SearchMode::Lexical);
+        assert_eq!("SEMANTIC".parse::<SearchMode>().unwrap(), SearchMode::Semantic);
+    }
+
+    #[test]
+    fn test_search_mode_from_str_invalid() {
+        assert!("unknown".parse::<SearchMode>().is_err());
+        assert!("".parse::<SearchMode>().is_err());
+    }
+
+    // ======================== IndexStatus Tests ========================
+
+    #[test]
+    fn test_index_status_default() {
+        assert_eq!(IndexStatus::default(), IndexStatus::Ready);
+    }
+
+    #[test]
+    fn test_index_status_label() {
+        assert_eq!(IndexStatus::Ready.label(), "ready");
+        assert_eq!(IndexStatus::Stale.label(), "stale");
+        assert_eq!(IndexStatus::Missing.label(), "missing");
+    }
+
+    // ======================== ReplPrompt Tests ========================
+
+    #[test]
+    fn test_repl_prompt_render_plain() {
+        let output = Output::new_piped();
+        let prompt = ReplPrompt::default();
+        let rendered = prompt.render(&output, SearchMode::Hybrid);
+
+        assert!(!rendered.contains('['), "Plain prompt should not have markup");
+        assert!(rendered.contains("xf"));
+        assert!(rendered.contains("hybrid"));
+    }
+
+    #[test]
+    fn test_repl_prompt_render_modes() {
+        let output = Output::new_piped();
+        let prompt = ReplPrompt::default();
+
+        for mode in [SearchMode::Hybrid, SearchMode::Lexical, SearchMode::Semantic] {
+            let rendered = prompt.render(&output, mode);
+            assert!(rendered.contains(&mode.to_string()));
+        }
+    }
+
+    #[test]
+    fn test_repl_prompt_with_results() {
+        let output = Output::new_piped();
+        let prompt = ReplPrompt::default();
+        let rendered = prompt.render_with_results(&output, SearchMode::Hybrid, 42);
+
+        assert!(rendered.contains("42"));
+        assert!(rendered.contains("hybrid"));
+    }
+
+    #[test]
+    fn test_repl_prompt_in_conversation() {
+        let output = Output::new_piped();
+        let prompt = ReplPrompt::default();
+        let rendered = prompt.render_in_conversation(&output, SearchMode::Hybrid, "conv_123456789");
+
+        assert!(rendered.contains("dm:"));
+        assert!(rendered.contains("conv_123")); // Truncated to 8 chars
+    }
+
+    // ======================== HistoryEntry Tests ========================
+
+    #[test]
+    fn test_history_entry_creation() {
+        let entry = HistoryEntry {
+            query: "test query".into(),
+            timestamp: chrono::Utc::now(),
+            result_count: 10,
+            duration_ms: 5.5,
+        };
+        assert_eq!(entry.query, "test query");
+        assert_eq!(entry.result_count, 10);
+        assert!((entry.duration_ms - 5.5).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn test_repl_history_empty() {
+        let history = ReplHistory::new(&[], &Theme::default());
+        assert!(history.entries.is_empty());
+    }
+
+    #[test]
+    fn test_repl_history_with_entries() {
+        let entries = vec![
+            HistoryEntry {
+                query: "first".into(),
+                timestamp: chrono::Utc::now(),
+                result_count: 10,
+                duration_ms: 5.5,
+            },
+            HistoryEntry {
+                query: "second".into(),
+                timestamp: chrono::Utc::now(),
+                result_count: 20,
+                duration_ms: 7.2,
+            },
+        ];
+        let history = ReplHistory::new(&entries, &Theme::default());
+        assert_eq!(history.entries.len(), 2);
+    }
+
+    // ======================== ReplStatusLine Tests ========================
+
+    #[test]
+    fn test_status_line_render_plain() {
+        let status_line = ReplStatusLine::new(
+            PathBuf::from("/test/archive"),
+            1000,
+            IndexStatus::Ready,
+            &Theme::default(),
+        );
+        let output = Output::new_piped();
+        let rendered = status_line.render(&output);
+
+        assert!(rendered.contains("1000"));
+        assert!(rendered.contains("ready"));
+        assert!(rendered.contains("archive"));
+    }
+
+    #[test]
+    fn test_status_line_render_variants() {
+        let theme = Theme::default();
+        let output = Output::new_tty();
+
+        for status in [IndexStatus::Ready, IndexStatus::Stale, IndexStatus::Missing] {
+            let status_line = ReplStatusLine::new(
+                PathBuf::from("/test/archive"),
+                1000,
+                status,
+                &theme,
+            );
+            let rendered = status_line.render(&output);
+            assert!(rendered.contains('●'), "Status line should have indicator");
+        }
     }
 }
