@@ -291,6 +291,7 @@ impl MessagePanel {
     }
 
     /// Render with styling.
+    #[allow(clippy::option_if_let_else)]
     fn render_styled(&self, output: &Output) {
         let theme = Theme::for_terminal();
 
@@ -349,15 +350,15 @@ impl MessagePanel {
         output.print(&format!("[{border_color}]┌{}┐[/]", "─".repeat(60)));
         for line in &lines {
             output.print(&format!(
-                "[{border_color}]│[/] {:<58} [{border_color}]│[/]",
-                line
+                "[{border_color}]│[/] {line:<58} [{border_color}]│[/]"
             ));
         }
         output.print(&format!("[{border_color}]└{}┘[/]", "─".repeat(60)));
     }
 
     /// Render with styling to stderr.
-    fn render_styled_stderr(&self, _output: &Output) {
+    #[allow(clippy::option_if_let_else)]
+    fn render_styled_stderr(&self, output: &Output) {
         let theme = Theme::for_terminal();
 
         let (icon_color, border_color) = match self.level {
@@ -377,49 +378,66 @@ impl MessagePanel {
             format!("[{icon_color} bold]{icon}[/] [bold]{}[/]", self.title)
         };
 
-        eprintln!("[{border_color}]┌{}┐[/]", "─".repeat(60));
-        eprintln!("[{border_color}]│[/] {header:<58} [{border_color}]│[/]");
+        // Use output.eprint() to get proper styled stderr output
+        output.eprint(&format!("[{border_color}]┌{}┐[/]", "─".repeat(60)));
+        output.eprint(&format!(
+            "[{border_color}]│[/] {header:<58} [{border_color}]│[/]"
+        ));
 
         if !self.message.is_empty() {
-            eprintln!("[{border_color}]│[/] {:<58} [{border_color}]│[/]", "");
-            eprintln!(
+            output.eprint(&format!(
+                "[{border_color}]│[/] {:<58} [{border_color}]│[/]",
+                ""
+            ));
+            output.eprint(&format!(
                 "[{border_color}]│[/] {:<58} [{border_color}]│[/]",
                 &self.message
-            );
+            ));
         }
 
         if let Some(ref details) = self.details {
-            eprintln!("[{border_color}]│[/] {:<58} [{border_color}]│[/]", "");
-            eprintln!(
-                "[{border_color}]│[/] [{} ]{:<56}[/] [{border_color}]│[/]",
+            output.eprint(&format!(
+                "[{border_color}]│[/] {:<58} [{border_color}]│[/]",
+                ""
+            ));
+            output.eprint(&format!(
+                "[{border_color}]│[/] [{}]{:<56}[/] [{border_color}]│[/]",
                 theme.muted, details
-            );
+            ));
         }
 
         if !self.suggestions.is_empty() {
-            eprintln!("[{border_color}]│[/] {:<58} [{border_color}]│[/]", "");
-            eprintln!(
+            output.eprint(&format!(
+                "[{border_color}]│[/] {:<58} [{border_color}]│[/]",
+                ""
+            ));
+            output.eprint(&format!(
                 "[{border_color}]│[/] [{}]Suggestions:[/]{:<47} [{border_color}]│[/]",
                 theme.info, ""
-            );
+            ));
             for (i, suggestion) in self.suggestions.iter().enumerate() {
                 let line = format!("  {}. {suggestion}", i + 1);
-                eprintln!("[{border_color}]│[/] {line:<58} [{border_color}]│[/]");
+                output.eprint(&format!(
+                    "[{border_color}]│[/] {line:<58} [{border_color}]│[/]"
+                ));
             }
         }
 
         if self.show_docs_link {
             if let Some(code) = &self.code {
-                eprintln!("[{border_color}]│[/] {:<58} [{border_color}]│[/]", "");
-                eprintln!(
+                output.eprint(&format!(
+                    "[{border_color}]│[/] {:<58} [{border_color}]│[/]",
+                    ""
+                ));
+                output.eprint(&format!(
                     "[{border_color}]│[/] [{} underline]{:<56}[/] [{border_color}]│[/]",
                     theme.link,
                     code.docs_url()
-                );
+                ));
             }
         }
 
-        eprintln!("[{border_color}]└{}┘[/]", "─".repeat(60));
+        output.eprint(&format!("[{border_color}]└{}┘[/]", "─".repeat(60)));
     }
 
     /// Render as plain text.

@@ -53,6 +53,7 @@ impl ProgressIndicator {
     ///
     /// The progress bar is only visible if output is styled AND stdout is TTY.
     #[must_use]
+    #[allow(clippy::missing_panics_doc)] // Template is static and valid
     pub fn new_bar(total: u64, message: &str, output: &Output) -> Self {
         let visible = output.is_styled() && output.stdout_is_tty();
 
@@ -85,6 +86,7 @@ impl ProgressIndicator {
     ///
     /// The spinner is only visible if output is styled AND stdout is TTY.
     #[must_use]
+    #[allow(clippy::missing_panics_doc)] // Template is static and valid
     pub fn new_spinner(message: &str, output: &Output) -> Self {
         let visible = output.is_styled() && output.stdout_is_tty();
 
@@ -148,6 +150,7 @@ impl ProgressIndicator {
     ///
     /// Returns `None` for indeterminate progress or if no progress has been made.
     #[must_use]
+    #[allow(clippy::cast_precision_loss)]
     pub fn eta(&self) -> Option<Duration> {
         if self.current == 0 || self.progress_type == ProgressType::Indeterminate {
             return None;
@@ -276,6 +279,7 @@ impl MultiProgressTracker {
     }
 
     /// Add a new progress bar and return its index.
+    #[allow(clippy::missing_panics_doc)] // Template is static and valid
     pub fn add_bar(&mut self, total: u64, message: &str) -> usize {
         let idx = self.bars.len();
 
@@ -381,7 +385,7 @@ impl IndexingProgress {
 
     /// Check if progress is visible.
     #[must_use]
-    pub fn is_visible(&self) -> bool {
+    pub const fn is_visible(&self) -> bool {
         self.progress.is_visible()
     }
 
