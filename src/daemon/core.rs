@@ -252,19 +252,22 @@ async fn handle_connection(
     mut stream: UnixStream,
     state: Arc<Mutex<DaemonState>>,
 ) -> anyhow::Result<()> {
-    // Check in-flight limit and increment counter atomically
-    let in_flight = state.lock().await.in_flight.load(Ordering::Relaxed);
-    if in_flight >= MAX_IN_FLIGHT as u64 {
-        let response = Response::error(error_codes::OVERLOADED, "server overloaded");
-        let envelope = Envelope::from_response(0, &response)?;
-        let bytes = rmp_serde::to_vec(&envelope)?;
-        stream.write_u32(bytes.len() as u32).await?;
-        stream.write_all(&bytes).await?;
-        return Ok(());
+    // Check in-flight limit and increment counter atomically (single lock acquisition)
+    {
+        let s = state.lock().await;
+        let in_flight = s.in_flight.load(Ordering::Relaxed);
+        if in_flight >= MAX_IN_FLIGHT as u64 {
+            drop(s); // Release lock before I/O
+            let response = Response::error(error_codes::OVERLOADED, "server overloaded");
+            let envelope = Envelope::from_response(0, &response)?;
+            let bytes = rmp_serde::to_vec(&envelope)?;
+            stream.write_u32(bytes.len() as u32).await?;
+            stream.write_all(&bytes).await?;
+            return Ok(());
+        }
+        // Increment while still holding the lock to prevent race condition
+        s.in_flight.fetch_add(1, Ordering::Relaxed);
     }
-
-    // Increment in-flight counter
-    state.lock().await.in_flight.fetch_add(1, Ordering::Relaxed);
 
     // Read length-prefixed message
     let len = stream.read_u32().await?;

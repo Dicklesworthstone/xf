@@ -267,6 +267,7 @@ impl MxbaiReranker {
                 .collect()
         } else {
             // Try first output by index
+            #[allow(clippy::len_zero)] // SessionOutputs doesn't have is_empty()
             if outputs.len() > 0 {
                 let output = &outputs[0];
                 let tensor = output.try_extract_tensor::<f32>().map_err(|e| {
