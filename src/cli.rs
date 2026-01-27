@@ -108,6 +108,9 @@ pub enum Commands {
 
     /// Run embedding/reranker benchmarks
     Benchmark(BenchmarkArgs),
+
+    /// Show machine-readable CLI documentation (JSON)
+    RobotDocs(RobotDocsArgs),
 }
 
 #[derive(Args, Debug)]
@@ -417,6 +420,13 @@ pub struct BenchmarkArgs {
     /// Output directory for reports
     #[arg(long, default_value = "results")]
     pub output_dir: PathBuf,
+}
+
+#[derive(Args, Debug)]
+pub struct RobotDocsArgs {
+    /// Documentation topic (default: all)
+    #[arg(default_value = "all")]
+    pub topic: String,
 }
 
 #[derive(ValueEnum, Clone, Debug, PartialEq, Eq)]

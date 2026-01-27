@@ -781,8 +781,8 @@ pub fn run_performance_benchmarks(
 use crate::output::Output;
 use crate::theme::Theme;
 
-/// Summary of health check results for rendering.
-#[derive(Debug, Clone)]
+/// Summary of health check results for rendering and serialization.
+#[derive(Debug, Clone, Serialize)]
 pub struct DoctorSummary {
     pub passed: usize,
     pub warnings: usize,
@@ -943,7 +943,7 @@ impl<'a> DoctorRenderer<'a> {
                 current_category = Some(check.category);
                 self.output.print("");
                 self.output
-                    .print(&format!("[{}]", category_name(check.category)));
+                    .print(category_name(check.category));
                 self.output
                     .print(&"-".repeat(40));
             }
@@ -998,7 +998,7 @@ pub const fn category_icon(cat: CheckCategory) -> &'static str {
 
 /// Get status icon and theme color key for a check status.
 #[must_use]
-pub fn status_icon_and_color<'a>(status: CheckStatus, theme: &'a Theme) -> (&'static str, &'a str) {
+pub const fn status_icon_and_color(status: CheckStatus, theme: &Theme) -> (&'static str, &str) {
     match status {
         CheckStatus::Pass => ("\u{2713}", theme.success),
         CheckStatus::Warning => ("\u{26a0}", theme.warning),

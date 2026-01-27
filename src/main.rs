@@ -241,6 +241,7 @@ fn main() -> Result<()> {
         Some(Commands::Doctor(args)) => cmd_doctor(&cli, args),
         Some(Commands::Shell(args)) => cmd_shell(&cli, args),
         Some(Commands::Benchmark(args)) => cmd_benchmark(&cli, args),
+        Some(Commands::RobotDocs(args)) => cmd_robot_docs(args),
     }
 }
 
@@ -3298,16 +3299,7 @@ fn cmd_completions(_cli: &Cli, args: &cli::CompletionsArgs) {
 // Doctor Command (xf-11.4.5)
 // ============================================================================
 
-use xf::doctor::{self, CheckCategory, CheckStatus, HealthCheck};
-
-/// Summary of health check results.
-#[derive(Debug, Serialize)]
-struct DoctorSummary {
-    passed: usize,
-    warnings: usize,
-    errors: usize,
-    total: usize,
-}
+use xf::doctor::{self, CheckCategory, CheckStatus, DoctorRenderer, DoctorSummary, HealthCheck};
 
 /// Full doctor output for JSON format.
 #[derive(Debug, Serialize)]
@@ -3584,24 +3576,8 @@ fn cmd_doctor(cli: &Cli, args: &cli::DoctorArgs) -> Result<()> {
     });
 
     // ========== Build Summary ==========
-    let mut passed = 0;
-    let mut warnings = 0;
-    let mut errors = 0;
-
-    for check in &all_checks {
-        match check.status {
-            CheckStatus::Pass => passed += 1,
-            CheckStatus::Warning => warnings += 1,
-            CheckStatus::Error => errors += 1,
-        }
-    }
-
-    let summary = DoctorSummary {
-        passed,
-        warnings,
-        errors,
-        total: all_checks.len(),
-    };
+    let summary = DoctorSummary::from_checks(&all_checks);
+    let has_errors = summary.errors > 0;
 
     // Collect unique suggestions (sorted for deterministic output)
     let mut suggestions: Vec<String> = all_checks
@@ -3646,70 +3622,26 @@ fn cmd_doctor(cli: &Cli, args: &cli::DoctorArgs) -> Result<()> {
             println!("{}", toon_rust::encode(json, None));
         }
         _ => {
-            // Text output with colors
-            println!("{}", "═".repeat(HEADER_DIVIDER_WIDTH).bright_blue());
-            println!(
-                "{}",
-                "                    XF HEALTH CHECK                    "
-                    .bold()
-                    .on_bright_blue()
+            // Styled text output via DoctorRenderer
+            use xf::output::{Output, OutputFormat as OutFmt};
+            use xf::theme::Theme;
+
+            let out = Output::new(OutFmt::Text);
+            let theme = Theme::for_terminal();
+            let renderer = DoctorRenderer::new(
+                &all_checks,
+                &summary,
+                &suggestions,
+                runtime_ms,
+                &out,
+                &theme,
             );
-            println!("{}", "═".repeat(HEADER_DIVIDER_WIDTH).bright_blue());
-            println!();
-
-            // Group by category
-            let mut current_category: Option<CheckCategory> = None;
-            for check in &all_checks {
-                if current_category != Some(check.category) {
-                    current_category = Some(check.category);
-                    let category_name = match check.category {
-                        CheckCategory::Archive => "Archive",
-                        CheckCategory::Database => "Database",
-                        CheckCategory::Index => "Index",
-                        CheckCategory::Performance => "Performance",
-                    };
-                    println!();
-                    println!("{}", category_name.bold().cyan());
-                    println!("{}", "─".repeat(CONTENT_DIVIDER_WIDTH));
-                }
-
-                let status_icon = match check.status {
-                    CheckStatus::Pass => "✓".green(),
-                    CheckStatus::Warning => "⚠".yellow(),
-                    CheckStatus::Error => "✗".red(),
-                };
-
-                println!("  {} {}: {}", status_icon, check.name, check.message);
-            }
-
-            // Summary
-            println!();
-            println!("{}", "═".repeat(HEADER_DIVIDER_WIDTH).bright_blue());
-            println!(
-                "  {} {} passed  {} {} warnings  {} {} errors  ({} total, {}ms)",
-                passed.to_string().green(),
-                "✓".green(),
-                warnings.to_string().yellow(),
-                "⚠".yellow(),
-                errors.to_string().red(),
-                "✗".red(),
-                summary.total,
-                runtime_ms
-            );
-
-            // Suggestions
-            if !suggestions.is_empty() {
-                println!();
-                println!("{}", "Suggestions:".bold());
-                for suggestion in &suggestions {
-                    println!("  • {suggestion}");
-                }
-            }
+            renderer.render();
         }
     }
 
     // Exit code based on severity
-    if errors > 0 {
+    if has_errors {
         std::process::exit(1);
     }
     Ok(())
@@ -3826,6 +3758,25 @@ fn cmd_benchmark(_cli: &Cli, args: &cli::BenchmarkArgs) -> Result<()> {
         csv_path.display()
     );
 
+    Ok(())
+}
+
+// ============================================================================
+// Robot Docs Command
+// ============================================================================
+
+fn cmd_robot_docs(args: &cli::RobotDocsArgs) -> Result<()> {
+    if !xf::robot_docs::is_valid_topic(&args.topic) {
+        eprintln!(
+            "Unknown topic: '{}'. Available topics: {}",
+            args.topic,
+            xf::robot_docs::TOPICS.join(", ")
+        );
+        std::process::exit(2);
+    }
+
+    let docs = xf::robot_docs::generate(&args.topic);
+    println!("{}", serde_json::to_string_pretty(&docs)?);
     Ok(())
 }
 
