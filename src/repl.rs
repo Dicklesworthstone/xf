@@ -61,8 +61,7 @@ impl std::str::FromStr for SearchMode {
             "lexical" | "l" | "lex" => Ok(Self::Lexical),
             "semantic" | "s" | "sem" => Ok(Self::Semantic),
             _ => Err(format!(
-                "Unknown search mode: '{}'. Use 'hybrid', 'lexical', or 'semantic'.",
-                s
+                "Unknown search mode: '{s}'. Use 'hybrid', 'lexical', or 'semantic'."
             )),
         }
     }
@@ -101,17 +100,9 @@ impl IndexStatus {
 // =============================================================================
 
 /// Styled REPL prompt with mode badge and arrow.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct ReplPrompt {
     theme: Theme,
-}
-
-impl Default for ReplPrompt {
-    fn default() -> Self {
-        Self {
-            theme: Theme::default(),
-        }
-    }
 }
 
 impl ReplPrompt {
@@ -127,26 +118,23 @@ impl ReplPrompt {
     #[must_use]
     pub fn render(&self, output: &Output, mode: SearchMode) -> String {
         if !output.is_styled() {
-            return format!("xf ({})> ", mode);
+            return format!("xf ({mode})> ");
         }
 
         // Return plain string for rustyline (it doesn't support rich markup)
         // The actual styling happens via colored crate in the banner
-        format!("xf ({})❯ ", mode)
+        format!("xf ({mode})❯ ")
     }
 
     /// Render the prompt with result count context.
     #[must_use]
     pub fn render_with_results(&self, output: &Output, mode: SearchMode, count: usize) -> String {
+        let count_str = format_number_usize(count);
         if !output.is_styled() {
-            return format!("xf ({}) [{}]> ", mode, format_number_usize(count));
+            return format!("xf ({mode}) [{count_str}]> ");
         }
 
-        format!(
-            "xf ({}) [{}]❯ ",
-            mode,
-            format_number_usize(count)
-        )
+        format!("xf ({mode}) [{count_str}]❯ ")
     }
 
     /// Render the prompt with conversation context.
@@ -154,10 +142,10 @@ impl ReplPrompt {
     pub fn render_in_conversation(&self, output: &Output, mode: SearchMode, conv_id: &str) -> String {
         let snippet = conv_id.get(..8.min(conv_id.len())).unwrap_or(conv_id);
         if !output.is_styled() {
-            return format!("xf ({}) [dm:{}]> ", mode, snippet);
+            return format!("xf ({mode}) [dm:{snippet}]> ");
         }
 
-        format!("xf ({}) [dm:{}]❯ ", mode, snippet)
+        format!("xf ({mode}) [dm:{snippet}]❯ ")
     }
 }
 
@@ -233,16 +221,18 @@ impl ReplHistory {
                 .with_column(Column::new("Time").justify(JustifyMethod::Right).width(10));
 
             for (i, entry) in self.entries.iter().enumerate() {
+                let num = (i + 1).to_string();
+                let results = entry.result_count.to_string();
+                let time = format!("{:.1}ms", entry.duration_ms);
                 table.add_row_cells([
-                    &(i + 1).to_string(),
-                    &entry.query,
-                    &entry.result_count.to_string(),
-                    &format!("{:.1}ms", entry.duration_ms),
+                    num.as_str(),
+                    entry.query.as_str(),
+                    results.as_str(),
+                    time.as_str(),
                 ]);
             }
 
             output.print_renderable(&table);
-            return;
         }
 
         // Fallback: simple styled output using colored crate
@@ -391,7 +381,6 @@ pub fn render_repl_help(output: &Output) {
         }
 
         output.print_renderable(&table);
-        return;
     }
 
     // Fallback: colored crate styling
