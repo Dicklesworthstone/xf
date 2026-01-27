@@ -27,6 +27,7 @@ pub mod flashrank_reranker;
 pub mod hash_embedder;
 pub mod hybrid;
 pub mod logging;
+pub mod messages;
 pub mod model;
 pub mod model_registry;
 pub mod mxbai_reranker;
