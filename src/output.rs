@@ -28,6 +28,8 @@ use std::sync::LazyLock;
 
 #[cfg(feature = "rich")]
 pub use rich_rust::prelude::*;
+#[cfg(feature = "rich")]
+use rich_rust::renderables::Renderable;
 
 /// Regex for stripping markup tags - compiled once at startup
 static MARKUP_REGEX: LazyLock<Regex> =
@@ -329,14 +331,7 @@ impl Output {
 
     /// Print to stderr (styled if stderr TTY)
     pub fn eprint(&self, text: &str) {
-        if self.is_stderr_styled() {
-            #[cfg(feature = "rich")]
-            {
-                let console = Console::stderr();
-                console.print(text);
-                return;
-            }
-        }
+        // rich_rust Console doesn't support stderr, so we always strip markup for stderr
         eprintln!("{}", Self::strip_markup(text));
     }
 
@@ -368,12 +363,9 @@ impl Output {
             }
         }
 
-        // Fallback: render to plain text
-        let segments = renderable.render(self.terminal_width);
-        for segment in segments {
-            print!("{}", segment.text);
-        }
-        println!();
+        // Fallback: use a default console for rendering
+        let fallback_console = Console::new();
+        fallback_console.print_renderable(renderable);
     }
 
     /// Print JSON (always unformatted, no styling)
