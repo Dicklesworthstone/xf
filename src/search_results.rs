@@ -23,20 +23,21 @@
 //! ```
 
 use chrono::{DateTime, Utc};
-use once_cell::sync::Lazy;
 use regex::Regex;
+use std::collections::HashMap;
+use std::sync::{LazyLock, Mutex};
 use std::time::Duration;
 
 use crate::output::Output;
 use crate::theme::Theme;
 
 /// Regex for extracting search terms (words, quoted phrases)
-static TERM_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r#""([^"]+)"|(\S+)"#).expect("Invalid term regex"));
+static TERM_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#""([^"]+)"|(\S+)"#).expect("Invalid term regex"));
 
-/// Regex for matching terms during highlighting (word boundaries, case insensitive)
-static HIGHLIGHT_REGEX_CACHE: Lazy<std::sync::Mutex<std::collections::HashMap<String, Regex>>> =
-    Lazy::new(|| std::sync::Mutex::new(std::collections::HashMap::new()));
+/// Regex cache for highlighting (word boundaries, case insensitive)
+static HIGHLIGHT_REGEX_CACHE: LazyLock<Mutex<HashMap<String, Regex>>> =
+    LazyLock::new(|| Mutex::new(HashMap::new()));
 
 /// Extract search terms from a query string.
 ///
@@ -229,15 +230,12 @@ impl SearchResultCard {
         // Doc type badge with type-specific color
         let type_color = match self.doc_type.as_str() {
             "tweet" => theme.primary,
-            "like" => theme.error,     // Red for hearts
-            "dm" => theme.secondary,   // Purple for DMs
-            "grok" => theme.accent,    // Yellow for Grok
+            "like" => theme.error,   // Red for hearts
+            "dm" => theme.secondary, // Purple for DMs
+            "grok" => theme.accent,  // Yellow for Grok
             _ => theme.muted,
         };
-        let type_badge = format!(
-            "[{type_color} bold]{}[/]",
-            self.doc_type.to_uppercase()
-        );
+        let type_badge = format!("[{type_color} bold]{}[/]", self.doc_type.to_uppercase());
 
         // Timestamp
         let time_str = self
