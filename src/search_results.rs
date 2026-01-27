@@ -93,7 +93,7 @@ impl Default for SearchResultCard {
 impl SearchResultCard {
     /// Create a new empty search result card.
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             doc_id: String::new(),
             doc_type: String::new(),
@@ -128,14 +128,14 @@ impl SearchResultCard {
 
     /// Set the relevance score (0.0 - 1.0).
     #[must_use]
-    pub fn score(mut self, score: f32) -> Self {
+    pub const fn score(mut self, score: f32) -> Self {
         self.score = score;
         self
     }
 
     /// Set the document timestamp.
     #[must_use]
-    pub fn timestamp(mut self, ts: DateTime<Utc>) -> Self {
+    pub const fn timestamp(mut self, ts: DateTime<Utc>) -> Self {
         self.timestamp = Some(ts);
         self
     }
@@ -149,7 +149,7 @@ impl SearchResultCard {
 
     /// Set maximum content length before truncation.
     #[must_use]
-    pub fn max_content_length(mut self, len: usize) -> Self {
+    pub const fn max_content_length(mut self, len: usize) -> Self {
         self.max_content_length = len;
         self
     }
@@ -240,8 +240,7 @@ impl SearchResultCard {
         // Timestamp
         let time_str = self
             .timestamp
-            .map(|ts| crate::format_relative_date(ts))
-            .unwrap_or_else(|| "—".to_string());
+            .map_or_else(|| "—".to_string(), crate::format_relative_date);
         let time_display = format!("[{}]{time_str}[/]", theme.timestamp);
 
         // Short ID display
@@ -265,10 +264,10 @@ impl SearchResultCard {
     /// Render as plain text for piped output.
     fn render_plain(&self, output: &Output) {
         let score_pct = (self.score * 100.0) as u32;
-        let time_str = self
-            .timestamp
-            .map(|ts| ts.format("%Y-%m-%d %H:%M").to_string())
-            .unwrap_or_else(|| "—".to_string());
+        let time_str = self.timestamp.map_or_else(
+            || "—".to_string(),
+            |ts| ts.format("%Y-%m-%d %H:%M").to_string(),
+        );
 
         let short_id = crate::format_short_id(&self.doc_id);
 
@@ -325,7 +324,7 @@ impl SearchResultsRenderer {
 
     /// Set the current page (0-indexed).
     #[must_use]
-    pub fn page(mut self, page: usize) -> Self {
+    pub const fn page(mut self, page: usize) -> Self {
         self.current_page = page;
         self
     }
@@ -336,7 +335,7 @@ impl SearchResultsRenderer {
         if self.results.is_empty() {
             return 0;
         }
-        (self.results.len() + self.page_size - 1) / self.page_size
+        self.results.len().div_ceil(self.page_size)
     }
 
     /// Render the search results to output.
