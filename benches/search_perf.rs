@@ -715,7 +715,7 @@ fn bench_vector_index_load_from_storage(c: &mut Criterion) {
     group.bench_function("from_storage", |b| {
         b.iter(|| {
             let index = VectorIndex::load_from_storage(&state.storage);
-            black_box(index.map(|i| i.len()).unwrap_or(0));
+            black_box(index.map_or(0, |i| i.len()));
         });
     });
 
@@ -777,7 +777,7 @@ fn bench_vector_index_load_from_file(c: &mut Criterion) {
     group.bench_function("from_file", |b| {
         b.iter(|| {
             let index = VectorIndex::load_from_file(&index_path);
-            black_box(index.map(|opt| opt.map(|i| i.len())).unwrap_or(None));
+            black_box(index.map_or(None, |opt| opt.map(|i| i.len())));
         });
     });
 

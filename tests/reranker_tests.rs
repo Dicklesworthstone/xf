@@ -328,11 +328,7 @@ mod calibration {
         for (i, (s1, s2)) in scores1.iter().zip(scores2.iter()).enumerate() {
             assert!(
                 (s1 - s2).abs() < 1e-5,
-                "{}: Scores should be deterministic at index {}: {} vs {}",
-                name,
-                i,
-                s1,
-                s2
+                "{name}: Scores should be deterministic at index {i}: {s1} vs {s2}"
             );
         }
     }
@@ -343,12 +339,12 @@ mod calibration {
         let reranker = try_flashrank().expect("FlashRank required");
 
         for n in [1, 5, 20, 50] {
-            let docs: Vec<String> = (0..n).map(|i| format!("document number {}", i)).collect();
-            let doc_refs: Vec<&str> = docs.iter().map(|s| s.as_str()).collect();
+            let docs: Vec<String> = (0..n).map(|i| format!("document number {i}")).collect();
+            let doc_refs: Vec<&str> = docs.iter().map(String::as_str).collect();
             let scores = reranker
                 .rerank("query", &doc_refs)
                 .expect("rerank should succeed");
-            assert_eq!(scores.len(), n, "Should return exactly {} scores", n);
+            assert_eq!(scores.len(), n, "Should return exactly {n} scores");
         }
     }
 }
@@ -409,8 +405,8 @@ mod edge_cases {
     #[ignore = "requires model files"]
     fn test_many_documents() {
         let reranker = try_flashrank().expect("FlashRank required");
-        let docs: Vec<String> = (0..100).map(|i| format!("document number {}", i)).collect();
-        let doc_refs: Vec<&str> = docs.iter().map(|s| s.as_str()).collect();
+        let docs: Vec<String> = (0..100).map(|i| format!("document number {i}")).collect();
+        let doc_refs: Vec<&str> = docs.iter().map(String::as_str).collect();
         let scores = reranker
             .rerank("find document 42", &doc_refs)
             .expect("many docs should work");
@@ -485,14 +481,14 @@ mod performance {
         for _ in 0..10 {
             reranker.rerank(query, &docs).unwrap();
         }
+        #[allow(clippy::cast_precision_loss)]
         let avg_ms = start.elapsed().as_millis() as f64 / 10.0;
 
-        println!("FlashRank top-20 reranking: {:.1}ms average", avg_ms);
+        println!("FlashRank top-20 reranking: {avg_ms:.1}ms average");
         // FlashRank nano on CPU should rerank 20 docs in <100ms (generous for CI)
         assert!(
             avg_ms < 100.0,
-            "FlashRank top-20 should be <100ms on CPU, got {:.1}ms",
-            avg_ms
+            "FlashRank top-20 should be <100ms on CPU, got {avg_ms:.1}ms"
         );
     }
 
@@ -514,17 +510,14 @@ mod performance {
         for _ in 0..10 {
             reranker.rerank(query, &docs).unwrap();
         }
+        #[allow(clippy::cast_precision_loss)]
         let avg_ms = start.elapsed().as_millis() as f64 / 10.0;
 
-        println!(
-            "mxbai-rerank-xsmall top-20 reranking: {:.1}ms average",
-            avg_ms
-        );
+        println!("mxbai-rerank-xsmall top-20 reranking: {avg_ms:.1}ms average");
         // mxbai-xsmall is larger, allow more headroom
         assert!(
             avg_ms < 300.0,
-            "mxbai top-20 should be <300ms on CPU, got {:.1}ms",
-            avg_ms
+            "mxbai top-20 should be <300ms on CPU, got {avg_ms:.1}ms"
         );
     }
 
@@ -537,8 +530,8 @@ mod performance {
         // Measure at different document counts
         let mut timings = Vec::new();
         for n in [10, 20, 50, 100] {
-            let docs: Vec<String> = (0..n).map(|i| format!("document {}", i)).collect();
-            let doc_refs: Vec<&str> = docs.iter().map(|s| s.as_str()).collect();
+            let docs: Vec<String> = (0..n).map(|i| format!("document {i}")).collect();
+            let doc_refs: Vec<&str> = docs.iter().map(String::as_str).collect();
 
             // Warmup
             reranker.rerank(query, &doc_refs).unwrap();
@@ -547,19 +540,16 @@ mod performance {
             for _ in 0..5 {
                 reranker.rerank(query, &doc_refs).unwrap();
             }
+            #[allow(clippy::cast_precision_loss)]
             let avg_ms = start.elapsed().as_millis() as f64 / 5.0;
             timings.push((n, avg_ms));
-            println!("  n={}: {:.1}ms", n, avg_ms);
+            println!("  n={n}: {avg_ms:.1}ms");
         }
 
         // Verify roughly linear scaling (100 docs should be <20x of 10 docs)
         let ratio = timings[3].1 / timings[0].1.max(0.1);
-        println!("Scaling ratio (100/10 docs): {:.1}x", ratio);
-        assert!(
-            ratio < 20.0,
-            "Should scale roughly linearly, got {:.1}x",
-            ratio
-        );
+        println!("Scaling ratio (100/10 docs): {ratio:.1}x");
+        assert!(ratio < 20.0, "Should scale roughly linearly, got {ratio:.1}x");
     }
 }
 
@@ -587,13 +577,11 @@ mod comparison {
             .expect("rerank should succeed");
 
         // ML docs (indices 0, 2) should outrank non-ML docs (1, 3)
-        let ml_avg = (scores[0] + scores[2]) / 2.0;
-        let non_ml_avg = (scores[1] + scores[3]) / 2.0;
+        let ml_avg = f32::midpoint(scores[0], scores[2]);
+        let non_ml_avg = f32::midpoint(scores[1], scores[3]);
         assert!(
             ml_avg > non_ml_avg,
-            "ML docs should score higher: {:.3} vs {:.3}",
-            ml_avg,
-            non_ml_avg
+            "ML docs should score higher: {ml_avg:.3} vs {non_ml_avg:.3}"
         );
     }
 
@@ -613,8 +601,8 @@ mod comparison {
             .expect("FlashRank should succeed");
         let mx_scores = mxbai.rerank(query, &docs).expect("mxbai should succeed");
 
-        println!("FlashRank scores: {:?}", fr_scores);
-        println!("mxbai scores: {:?}", mx_scores);
+        println!("FlashRank scores: {fr_scores:?}");
+        println!("mxbai scores: {mx_scores:?}");
 
         // Both should agree: doc[0] > doc[1]
         assert!(
