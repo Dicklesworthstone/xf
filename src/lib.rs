@@ -40,6 +40,7 @@ pub mod search;
 pub mod search_results;
 pub mod static_mrl_embedder;
 pub mod stats_analytics;
+pub mod stats_dashboard;
 pub mod storage;
 pub mod theme;
 pub mod tweet_card;
