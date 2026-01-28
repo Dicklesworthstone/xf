@@ -1,0 +1,2 @@
+model,dimension,batch_size,warmup_iters,measure_iters,cold_start_ms,ttfr_ms,warm_p50_ms,warm_p95_ms,warm_p99_ms,throughput_docs_per_sec
+bge-small-en-v1.5,384,32,3,20,3251.93,237.34,229.94,560.02,576.91,120.03

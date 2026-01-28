@@ -1,0 +1,2 @@
+model,dimension,batch_size,warmup_iters,measure_iters,cold_start_ms,ttfr_ms,warm_p50_ms,warm_p95_ms,warm_p99_ms,throughput_docs_per_sec
+fnv1a-384,384,32,5,50,0.00,0.11,0.07,0.10,0.27,398850.12

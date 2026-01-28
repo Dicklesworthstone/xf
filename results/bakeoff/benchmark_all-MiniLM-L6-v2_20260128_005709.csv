@@ -1,0 +1,2 @@
+model,dimension,batch_size,warmup_iters,measure_iters,cold_start_ms,ttfr_ms,warm_p50_ms,warm_p95_ms,warm_p99_ms,throughput_docs_per_sec
+all-MiniLM-L6-v2,384,32,3,20,2552.65,146.60,128.25,211.81,276.20,228.03
