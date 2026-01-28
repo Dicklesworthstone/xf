@@ -694,8 +694,7 @@ impl VectorIndex {
     ///
     /// Returns an error if the file exists but cannot be read or is invalid.
     pub fn load_from_file(index_path: &std::path::Path) -> Result<Option<Self>> {
-        InMemoryVectorIndex::load_from_file(index_path)
-            .map(|opt| opt.map(Self::InMemory))
+        InMemoryVectorIndex::load_from_file(index_path).map(|opt| opt.map(Self::InMemory))
     }
 
     /// Load embeddings directly from storage into memory.

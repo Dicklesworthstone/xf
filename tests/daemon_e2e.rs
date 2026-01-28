@@ -720,7 +720,11 @@ async fn test_pid_file_contains_correct_process_id() {
         "PID file should contain daemon's PID: file={file_pid}, process={process_pid}"
     );
 
-    tracing::info!(file_pid, process_pid, "PID file contains correct process ID");
+    tracing::info!(
+        file_pid,
+        process_pid,
+        "PID file contains correct process ID"
+    );
 }
 
 /// Test that starting a second daemon on the same socket path is handled.
@@ -783,7 +787,11 @@ async fn test_second_daemon_on_same_socket_takes_over() {
     // The second daemon removes the socket, breaking the first daemon's listener.
     // This documents the current "last writer wins" behavior.
     // A proper implementation would use advisory locks to prevent this.
-    tracing::info!(pid1, pid2, "Second daemon spawned (may have taken over socket)");
+    tracing::info!(
+        pid1,
+        pid2,
+        "Second daemon spawned (may have taken over socket)"
+    );
 
     // Verify the socket is still operational (second daemon took over)
     if socket_path.exists() {
@@ -833,7 +841,9 @@ async fn test_stale_pid_file_does_not_block_startup() {
 
     // Daemon should start despite stale PID file
     // (PID file is overwritten, not checked)
-    let daemon = DaemonProcess::spawn().await.expect("spawn daemon with stale PID");
+    let daemon = DaemonProcess::spawn()
+        .await
+        .expect("spawn daemon with stale PID");
 
     // Verify daemon is running and PID file was updated
     let new_pid_content = std::fs::read_to_string(&pid_path).expect("read new PID");
@@ -861,7 +871,7 @@ async fn test_stale_pid_file_does_not_block_startup() {
 #[serial]
 #[cfg(unix)]
 async fn test_pid_file_removed_on_clean_shutdown() {
-    use nix::sys::signal::{kill, Signal};
+    use nix::sys::signal::{Signal, kill};
     use nix::unistd::Pid;
 
     let _ = tracing_subscriber::fmt()
@@ -907,7 +917,7 @@ async fn test_pid_file_removed_on_clean_shutdown() {
 #[serial]
 #[cfg(unix)]
 async fn test_pid_file_persists_after_crash() {
-    use nix::sys::signal::{kill, Signal};
+    use nix::sys::signal::{Signal, kill};
     use nix::unistd::Pid;
 
     let _ = tracing_subscriber::fmt()
@@ -986,7 +996,7 @@ async fn test_socket_removed_on_clean_shutdown() {
 #[serial]
 #[cfg(unix)]
 async fn test_socket_persists_after_crash() {
-    use nix::sys::signal::{kill, Signal};
+    use nix::sys::signal::{Signal, kill};
     use nix::unistd::Pid;
 
     let _ = tracing_subscriber::fmt()
@@ -1074,14 +1084,19 @@ async fn test_protocol_version_mismatch_rejected() {
     match response {
         Response::Error { code, message } => {
             assert_eq!(
-                code, error_codes::VERSION_MISMATCH,
+                code,
+                error_codes::VERSION_MISMATCH,
                 "Expected VERSION_MISMATCH error code"
             );
             assert!(
                 message.contains("version"),
                 "Error message should mention version: {message}"
             );
-            tracing::info!(code, message = message.as_str(), "Version mismatch error received");
+            tracing::info!(
+                code,
+                message = message.as_str(),
+                "Version mismatch error received"
+            );
         }
         _ => panic!("Expected Error response, got {response:?}"),
     }
@@ -1304,7 +1319,8 @@ async fn test_request_id_correlation() {
             .await
             .expect("connect to socket");
 
-        let envelope = Envelope::from_request(request_id, &Request::Health).expect("create envelope");
+        let envelope =
+            Envelope::from_request(request_id, &Request::Health).expect("create envelope");
         let bytes = rmp_serde::to_vec(&envelope).expect("serialize");
 
         stream
