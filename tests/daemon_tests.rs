@@ -5,10 +5,14 @@
 //! - Resource configuration
 //! - Memory monitoring
 //! - Client configuration
+//! - Wire format
+//! - Service files
 
+use std::path::PathBuf;
+use std::time::Duration;
 use xf::daemon::{
-    Envelope, IoPriority, LoadedModelInfo, MemoryMonitor, PROTOCOL_VERSION, Request,
-    ResourceConfig, Response, error_codes, get_process_rss_mb,
+    ClientConfig, DaemonClient, Envelope, IoPriority, LoadedModelInfo, MemoryMonitor,
+    PROTOCOL_VERSION, Request, ResourceConfig, Response, error_codes, get_process_rss_mb,
 };
 
 // =============================================================================
@@ -439,6 +443,157 @@ mod error_tests {
                 _ => panic!("expected Error"),
             }
         }
+    }
+}
+
+// =============================================================================
+// Client Configuration Tests
+// =============================================================================
+
+mod client_config_tests {
+    use super::*;
+
+    #[test]
+    fn test_client_config_defaults() {
+        let config = ClientConfig::default();
+        // Socket path should contain xf-daemon
+        assert!(config.socket_path.to_string_lossy().contains("xf-daemon"));
+        // PID path should contain xf-daemon
+        assert!(config.pid_path.to_string_lossy().contains("xf-daemon"));
+        // Connect timeout should be reasonable
+        assert!(config.connect_timeout >= Duration::from_millis(100));
+        assert!(config.connect_timeout <= Duration::from_secs(10));
+        // Request timeout should be longer than connect timeout
+        assert!(config.request_timeout > config.connect_timeout);
+        // Max retries should be positive
+        assert!(config.max_retries >= 1);
+        // Auto-spawn enabled by default
+        assert!(config.auto_spawn);
+        // Spawn wait should be reasonable
+        assert!(config.spawn_wait >= Duration::from_secs(1));
+    }
+
+    #[test]
+    fn test_client_config_with_socket_path() {
+        let custom_path = PathBuf::from("/custom/path/daemon.sock");
+        let config = ClientConfig::default().with_socket_path(custom_path.clone());
+        assert_eq!(config.socket_path, custom_path);
+        // Other fields should remain default
+        assert!(config.auto_spawn);
+    }
+
+    #[test]
+    fn test_client_config_without_auto_spawn() {
+        let config = ClientConfig::default().without_auto_spawn();
+        assert!(!config.auto_spawn);
+        // Other fields should remain default
+        assert!(config.socket_path.to_string_lossy().contains("xf-daemon"));
+    }
+
+    #[test]
+    fn test_client_config_builder_chaining() {
+        let config = ClientConfig::default()
+            .with_socket_path(PathBuf::from("/tmp/test.sock"))
+            .without_auto_spawn();
+
+        assert_eq!(config.socket_path, PathBuf::from("/tmp/test.sock"));
+        assert!(!config.auto_spawn);
+    }
+
+    #[test]
+    fn test_client_config_debug_impl() {
+        let config = ClientConfig::default();
+        let debug_str = format!("{config:?}");
+        assert!(debug_str.contains("ClientConfig"));
+        assert!(debug_str.contains("socket_path"));
+        assert!(debug_str.contains("auto_spawn"));
+    }
+
+    #[test]
+    fn test_client_config_clone() {
+        let original = ClientConfig::default()
+            .with_socket_path(PathBuf::from("/tmp/clone-test.sock"))
+            .without_auto_spawn();
+
+        let cloned = original.clone();
+
+        assert_eq!(cloned.socket_path, original.socket_path);
+        assert_eq!(cloned.auto_spawn, original.auto_spawn);
+        assert_eq!(cloned.max_retries, original.max_retries);
+    }
+
+    #[test]
+    fn test_socket_path_ends_with_sock() {
+        let config = ClientConfig::default();
+        assert!(
+            config.socket_path.to_string_lossy().ends_with(".sock"),
+            "Default socket path should end with .sock"
+        );
+    }
+
+    #[test]
+    fn test_pid_path_ends_with_pid() {
+        let config = ClientConfig::default();
+        assert!(
+            config.pid_path.to_string_lossy().ends_with(".pid"),
+            "Default pid path should end with .pid"
+        );
+    }
+}
+
+// =============================================================================
+// DaemonClient Tests (no running daemon required)
+// =============================================================================
+
+mod daemon_client_tests {
+    use super::*;
+
+    #[test]
+    fn test_daemon_client_new() {
+        let client = DaemonClient::new();
+        // Should create client without panic
+        // Daemon should not be running in test environment
+        assert!(!client.is_daemon_running());
+    }
+
+    #[test]
+    fn test_daemon_client_with_config() {
+        let config = ClientConfig::default().without_auto_spawn();
+        let client = DaemonClient::with_config(config);
+        assert!(!client.is_daemon_running());
+    }
+
+    #[test]
+    fn test_daemon_client_with_socket_path() {
+        let client = DaemonClient::with_socket_path(PathBuf::from("/tmp/nonexistent.sock"));
+        assert!(!client.is_daemon_running());
+    }
+
+    #[test]
+    fn test_daemon_client_default_trait() {
+        let client = DaemonClient::default();
+        // Should be equivalent to DaemonClient::new()
+        assert!(!client.is_daemon_running());
+    }
+
+    #[test]
+    fn test_daemon_pid_when_not_running() {
+        let client = DaemonClient::with_socket_path(PathBuf::from("/tmp/nonexistent-test.sock"));
+        // PID should be None when daemon isn't running
+        assert!(client.daemon_pid().is_none());
+    }
+
+    #[test]
+    fn test_multiple_clients() {
+        // Multiple clients should be able to coexist
+        let client1 = DaemonClient::new();
+        let client2 = DaemonClient::new();
+        let client3 = DaemonClient::with_socket_path(PathBuf::from("/tmp/other.sock"));
+
+        // All should report daemon not running
+        assert!(!client1.is_daemon_running());
+        assert!(!client2.is_daemon_running());
+        assert!(!client3.is_daemon_running());
     }
 }
 
