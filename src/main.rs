@@ -677,9 +677,7 @@ fn cmd_import(cli: &Cli, args: &cli::ImportArgs, output: &Output) -> Result<()> 
         output_dir.display()
     ));
     output.print(&format!(
-        "    [dim]→[/] [bold]{}[/] in {} files",
-        size_str,
-        total_files
+        "    [dim]→[/] [bold]{size_str}[/] in {total_files} files"
     ));
     output.print("");
 
@@ -1551,7 +1549,12 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
         }
         OutputFormat::Compact => {
             for r in &results {
-                output.print(&format!("[{}] {} | {}", r.result_type, r.id, truncate(&r.text, 100)));
+                output.print(&format!(
+                    "[{}] {} | {}",
+                    r.result_type,
+                    r.id,
+                    truncate(&r.text, 100)
+                ));
             }
         }
         OutputFormat::Text => {
@@ -1748,7 +1751,11 @@ fn output_dm_context(
     Ok(())
 }
 
-fn print_dm_context_text(contexts: &[DmConversationContext], highlight_enabled: bool, output: &Output) {
+fn print_dm_context_text(
+    contexts: &[DmConversationContext],
+    highlight_enabled: bool,
+    output: &Output,
+) {
     for context in contexts {
         output.print(&format!(
             "[bold cyan]Conversation[/] [dim]{}[/]",
@@ -1768,7 +1775,7 @@ fn print_dm_context_text(contexts: &[DmConversationContext], highlight_enabled: 
             let lines = textwrap::wrap(&message.text, 78);
             for line in lines {
                 if highlight_enabled && message.is_match {
-                    output.print(&format!("  [bold yellow]{}[/]", line));
+                    output.print(&format!("  [bold yellow]{line}[/]"));
                 } else {
                     output.print(&format!("  {line}"));
                 }
@@ -1790,7 +1797,9 @@ fn print_result(num: usize, result: &SearchResult, output: &Output) {
     // Score is hidden in text output (kept in JSON for programmatic use)
     output.print(&format!(
         "[bold]{}[/]. {} [dim]{}[/]",
-        num, type_badge, format_short_id(&result.id)
+        num,
+        type_badge,
+        format_short_id(&result.id)
     ));
 
     // Use highlighted text if available, otherwise use plain text
@@ -1809,7 +1818,10 @@ fn print_result(num: usize, result: &SearchResult, output: &Output) {
     }
 
     if result.created_at.timestamp() > 0 {
-        output.print(&format!("   [dim]{}[/]", format_relative_date(result.created_at)));
+        output.print(&format!(
+            "   [dim]{}[/]",
+            format_relative_date(result.created_at)
+        ));
     }
 
     output.print("");
@@ -2203,9 +2215,15 @@ fn cmd_stats(cli: &Cli, args: &cli::StatsArgs, output: &Output) -> Result<()> {
         _ => {
             // Show fancy banner for --detailed mode
             if args.detailed {
-                output.print(&format!("[bright_blue]{}[/]", "═".repeat(HEADER_DIVIDER_WIDTH)));
+                output.print(&format!(
+                    "[bright_blue]{}[/]",
+                    "═".repeat(HEADER_DIVIDER_WIDTH)
+                ));
                 output.print("[bold on bright_blue]              ARCHIVE ANALYTICS DASHBOARD              [/]");
-                output.print(&format!("[bright_blue]{}[/]", "═".repeat(HEADER_DIVIDER_WIDTH)));
+                output.print(&format!(
+                    "[bright_blue]{}[/]",
+                    "═".repeat(HEADER_DIVIDER_WIDTH)
+                ));
                 output.print("");
             }
 
@@ -2213,50 +2231,61 @@ fn cmd_stats(cli: &Cli, args: &cli::StatsArgs, output: &Output) -> Result<()> {
             output.print(&format!("[dim]{}[/]", "─".repeat(CONTENT_DIVIDER_WIDTH)));
             output.print(&format!(
                 "  [dim]{:<20}[/] [bold]{:>10}[/]",
-                "Tweets:", format_number(stats.tweets_count)
+                "Tweets:",
+                format_number(stats.tweets_count)
             ));
             output.print(&format!(
                 "  [dim]{:<20}[/] [bold]{:>10}[/]",
-                "Likes:", format_number(stats.likes_count)
+                "Likes:",
+                format_number(stats.likes_count)
             ));
             output.print(&format!(
                 "  [dim]{:<20}[/] [bold]{:>10}[/]",
-                "DM Conversations:", format_number(stats.dm_conversations_count)
+                "DM Conversations:",
+                format_number(stats.dm_conversations_count)
             ));
             output.print(&format!(
                 "  [dim]{:<20}[/] [bold]{:>10}[/]",
-                "DM Messages:", format_number(stats.dms_count)
+                "DM Messages:",
+                format_number(stats.dms_count)
             ));
             output.print(&format!(
                 "  [dim]{:<20}[/] [bold]{:>10}[/]",
-                "Grok Messages:", format_number(stats.grok_messages_count)
+                "Grok Messages:",
+                format_number(stats.grok_messages_count)
             ));
             output.print(&format!(
                 "  [dim]{:<20}[/] [bold]{:>10}[/]",
-                "Followers:", format_number(stats.followers_count)
+                "Followers:",
+                format_number(stats.followers_count)
             ));
             output.print(&format!(
                 "  [dim]{:<20}[/] [bold]{:>10}[/]",
-                "Following:", format_number(stats.following_count)
+                "Following:",
+                format_number(stats.following_count)
             ));
             output.print(&format!(
                 "  [dim]{:<20}[/] [bold]{:>10}[/]",
-                "Blocks:", format_number(stats.blocks_count)
+                "Blocks:",
+                format_number(stats.blocks_count)
             ));
             output.print(&format!(
                 "  [dim]{:<20}[/] [bold]{:>10}[/]",
-                "Mutes:", format_number(stats.mutes_count)
+                "Mutes:",
+                format_number(stats.mutes_count)
             ));
             output.print(&format!("[dim]{}[/]", "─".repeat(CONTENT_DIVIDER_WIDTH)));
 
             if let (Some(first), Some(last)) = (stats.first_tweet_date, stats.last_tweet_date) {
                 output.print(&format!(
                     "  [dim]{}[/] [bold]{}[/]",
-                    "First tweet:", format_relative_date(first)
+                    "First tweet:",
+                    format_relative_date(first)
                 ));
                 output.print(&format!(
                     "  [dim]{}[/] [bold]{}[/]",
-                    "Last tweet:", format_relative_date(last)
+                    "Last tweet:",
+                    format_relative_date(last)
                 ));
             }
 
@@ -2314,16 +2343,18 @@ fn cmd_stats(cli: &Cli, args: &cli::StatsArgs, output: &Output) -> Result<()> {
 
                 // Activity sparkline
                 let sparkline = stats_analytics::sparkline_from_daily(&temporal.daily_counts, 50);
-                output.print(&format!("  Activity: [dim]{}[/]", sparkline));
+                output.print(&format!("  Activity: [dim]{sparkline}[/]"));
 
                 // Key metrics
                 output.print(&format!(
                     "  [dim]{:<25}[/] [bold]{:>10}[/]",
-                    "Active days:", format_number_u64(temporal.active_days_count)
+                    "Active days:",
+                    format_number_u64(temporal.active_days_count)
                 ));
                 output.print(&format!(
                     "  [dim]{:<25}[/] [bold]{:>10}[/]",
-                    "Total days in range:", format_number_u64(temporal.total_days_in_range)
+                    "Total days in range:",
+                    format_number_u64(temporal.total_days_in_range)
                 ));
                 output.print(&format!(
                     "  [dim]{:<25}[/] [bold]{:>10.1}[/]",
@@ -2363,7 +2394,10 @@ fn cmd_stats(cli: &Cli, args: &cli::StatsArgs, output: &Output) -> Result<()> {
                     } else {
                         format!("{} days", format_number(temporal.longest_gap_days))
                     };
-                    output.print(&format!("  [dim]{:<25}[/] [yellow]{}[/]", "Longest gap:", gap_info));
+                    output.print(&format!(
+                        "  [dim]{:<25}[/] [yellow]{}[/]",
+                        "Longest gap:", gap_info
+                    ));
                 }
 
                 // Hourly distribution
@@ -2457,11 +2491,13 @@ fn cmd_stats(cli: &Cli, args: &cli::StatsArgs, output: &Output) -> Result<()> {
                 ));
                 output.print(&format!(
                     "  [dim]{:<25}[/] [bold]{:>10}[/]",
-                    "Self-threads:", format_number_u64(content.thread_count)
+                    "Self-threads:",
+                    format_number_u64(content.thread_count)
                 ));
                 output.print(&format!(
                     "  [dim]{:<25}[/] [bold]{:>10}[/]",
-                    "Standalone tweets:", format_number_u64(content.standalone_count)
+                    "Standalone tweets:",
+                    format_number_u64(content.standalone_count)
                 ));
 
                 // Tweet length
@@ -2612,7 +2648,7 @@ fn cmd_tweet(cli: &Cli, args: &cli::TweetArgs, output: &Output) -> Result<()> {
                     output.print(&format!("  Hashtags: [blue]{}[/]", t.hashtags.join(", ")));
                 }
                 if let Some(reply_to) = &t.in_reply_to_screen_name {
-                    output.print(&format!("  [dim]Reply to:[/] [bold]@{}[/]", reply_to));
+                    output.print(&format!("  [dim]Reply to:[/] [bold]@{reply_to}[/]"));
                 }
             }
         },
@@ -2655,7 +2691,7 @@ fn cmd_list(cli: &Cli, args: &cli::ListArgs, output: &Output) -> Result<()> {
             format_number_usize(files.len())
         ));
         for file in &files {
-            output.print(&format!("{file}"));
+            output.print(file);
         }
         return Ok(());
     }
@@ -2687,7 +2723,9 @@ fn cmd_list(cli: &Cli, args: &cli::ListArgs, output: &Output) -> Result<()> {
                 let text = truncate_text(&tweet.full_text, 80);
                 output.print(&format!(
                     "[dim]{} {}[/] {}",
-                    date, format_short_id(&tweet.id), text
+                    date,
+                    format_short_id(&tweet.id),
+                    text
                 ));
             }
         }
@@ -2702,7 +2740,11 @@ fn cmd_list(cli: &Cli, args: &cli::ListArgs, output: &Output) -> Result<()> {
                     .full_text
                     .as_ref()
                     .map_or_else(|| "[No text]".to_string(), |t| truncate_text(t, 80));
-                output.print(&format!("[dim]{}[/] {}", format_short_id(&like.tweet_id), text));
+                output.print(&format!(
+                    "[dim]{}[/] {}",
+                    format_short_id(&like.tweet_id),
+                    text
+                ));
             }
         }
         ListTarget::Dms => {
@@ -3047,7 +3089,12 @@ fn cmd_config(cli: &Cli, args: &cli::ConfigArgs, output: &Output) -> Result<()> 
     Ok(())
 }
 
-fn cmd_tweet_thread(cli: &Cli, storage: &Storage, args: &cli::TweetArgs, output: &Output) -> Result<()> {
+fn cmd_tweet_thread(
+    cli: &Cli,
+    storage: &Storage,
+    args: &cli::TweetArgs,
+    output: &Output,
+) -> Result<()> {
     let thread = storage.get_tweet_thread(&args.id)?;
 
     if thread.is_empty() {
@@ -3768,7 +3815,11 @@ fn cmd_models(args: &cli::ModelsArgs, output: &Output) -> Result<()> {
                     output.print("  No embedders found.");
                 } else {
                     for model in &embedders {
-                        let status = if model.available { "[green]✓[/]" } else { "[red]✗[/]" };
+                        let status = if model.available {
+                            "[green]✓[/]"
+                        } else {
+                            "[red]✗[/]"
+                        };
                         let mrl = if model.supports_mrl { " [MRL]" } else { "" };
                         output.print(&format!(
                             "  {} {} ({}, {}d){mrl}",
@@ -3790,7 +3841,11 @@ fn cmd_models(args: &cli::ModelsArgs, output: &Output) -> Result<()> {
                     output.print("  No rerankers found.");
                 } else {
                     for model in &rerankers {
-                        let status = if model.available { "[green]✓[/]" } else { "[red]✗[/]" };
+                        let status = if model.available {
+                            "[green]✓[/]"
+                        } else {
+                            "[red]✗[/]"
+                        };
                         output.print(&format!("  {} {} ({})", status, model.name, model.backend));
                     }
                 }
@@ -3819,8 +3874,14 @@ fn cmd_models(args: &cli::ModelsArgs, output: &Output) -> Result<()> {
                         m.size_mb
                             .map_or_else(|| "unknown".to_string(), |s| format!("{s:.1} MB"))
                     ));
-                    output.print(&format!("  Available:   {}", if m.available { "yes" } else { "no" }));
-                    output.print(&format!("  Downloaded:  {}", if m.downloaded { "yes" } else { "no" }));
+                    output.print(&format!(
+                        "  Available:   {}",
+                        if m.available { "yes" } else { "no" }
+                    ));
+                    output.print(&format!(
+                        "  Downloaded:  {}",
+                        if m.downloaded { "yes" } else { "no" }
+                    ));
                     output.print("");
                 }
             } else {
@@ -3949,9 +4010,7 @@ fn cmd_daemon(args: &cli::DaemonArgs, output: &Output) -> Result<()> {
                             for model in &status.models {
                                 output.print(&format!(
                                     "  [cyan]{}[/] ({}) - {} requests",
-                                    model.name,
-                                    model.model_type,
-                                    model.requests_served
+                                    model.name, model.model_type, model.requests_served
                                 ));
                             }
                         }

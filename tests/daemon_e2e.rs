@@ -189,7 +189,9 @@ impl DaemonProcess {
         tracing::info!(pid = self.child.id(), "stopping daemon");
 
         // Graceful shutdown via SIGINT (daemon handles ctrl_c)
-        let _ = kill(Pid::from_raw(self.child.id() as i32), Signal::SIGINT);
+        #[allow(clippy::cast_possible_wrap)]
+        let pid_i32 = self.child.id() as i32;
+        let _ = kill(Pid::from_raw(pid_i32), Signal::SIGINT);
 
         // Wait for process to exit with timeout
         let start = std::time::Instant::now();
@@ -291,9 +293,8 @@ async fn wait_for_socket(path: &std::path::Path, timeout_duration: Duration) -> 
 
 /// Find the xf binary, checking both debug and release builds.
 fn find_xf_binary() -> anyhow::Result<PathBuf> {
-    let target_dir = std::env::var("CARGO_TARGET_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from("target"));
+    let target_dir =
+        std::env::var("CARGO_TARGET_DIR").map_or_else(|_| PathBuf::from("target"), PathBuf::from);
 
     // Prefer release build if it exists
     let release_path = target_dir.join("release/xf");
@@ -397,8 +398,7 @@ async fn test_socket_permissions_are_0600() {
 
     assert_eq!(
         mode, 0o600,
-        "Socket should be owner-only (0600), got {:o}",
-        mode
+        "Socket should be owner-only (0600), got {mode:o}"
     );
 
     tracing::info!(mode = format!("{:o}", mode), "Socket permissions verified");
@@ -496,7 +496,9 @@ async fn test_sigint_clean_shutdown() {
 
     tracing::info!(pid, "Sending SIGINT");
 
-    kill(Pid::from_raw(pid as i32), Signal::SIGINT).expect("send SIGINT");
+    #[allow(clippy::cast_possible_wrap)]
+    let pid_i32 = pid as i32;
+    kill(Pid::from_raw(pid_i32), Signal::SIGINT).expect("send SIGINT");
 
     let status = daemon
         .wait_with_timeout(Duration::from_secs(5))
@@ -534,7 +536,9 @@ async fn test_sigterm_terminates_daemon() {
 
     tracing::info!(pid, "Sending SIGTERM");
 
-    kill(Pid::from_raw(pid as i32), Signal::SIGTERM).expect("send SIGTERM");
+    #[allow(clippy::cast_possible_wrap)]
+    let pid_i32 = pid as i32;
+    kill(Pid::from_raw(pid_i32), Signal::SIGTERM).expect("send SIGTERM");
 
     let status = daemon
         .wait_with_timeout(Duration::from_secs(5))
@@ -642,8 +646,7 @@ async fn test_rapid_reconnections() {
 
     assert!(
         successes >= 8,
-        "At least 80% of rapid connections should succeed, got {}/10",
-        successes
+        "At least 80% of rapid connections should succeed, got {successes}/10"
     );
 
     tracing::info!(successes, "Rapid reconnections test passed");
