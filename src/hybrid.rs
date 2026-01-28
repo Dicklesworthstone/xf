@@ -51,11 +51,14 @@ pub const CANDIDATE_MULTIPLIER: usize = 3;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, ValueEnum)]
 pub enum SearchMode {
     /// Keyword-only search using BM25.
+    #[value(alias = "keyword", alias = "bm25")]
     Lexical,
     /// Semantic-only search using vector similarity.
+    #[value(alias = "vector", alias = "embedding")]
     Semantic,
     /// Hybrid search combining lexical and semantic with RRF (default).
     #[default]
+    #[value(alias = "rrf", alias = "both")]
     Hybrid,
 }
 

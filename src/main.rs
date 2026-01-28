@@ -5,7 +5,7 @@
 use anyhow::{Context, Result};
 use chrono::{DateTime, Datelike, NaiveDate, TimeZone, Utc};
 use clap::Parser;
-use colored::{Colorize, control};
+use colored::control;
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::ThreadPoolBuilder;
 use serde::Serialize;
@@ -237,7 +237,7 @@ fn main() -> Result<()> {
     // Run the appropriate command
     match &cli.command {
         None => {
-            print_quickstart();
+            print_quickstart(&output);
             Ok(())
         }
         Some(Commands::Import(args)) => cmd_import(&cli, args, &output),
@@ -267,7 +267,7 @@ fn main() -> Result<()> {
 
 /// Print a colorful quickstart guide when xf is run with no arguments.
 #[allow(clippy::too_many_lines)]
-fn print_quickstart() {
+fn print_quickstart(output: &Output) {
     let version = env!("CARGO_PKG_VERSION");
 
     // Box-drawing characters
@@ -285,255 +285,130 @@ fn print_quickstart() {
     let hline =
         |left: &str, right: &str| -> String { format!("{}{}{}", left, h.repeat(inner), right) };
 
-    // Helper to pad a line to fill the box
+    // Helper to pad a line to fill the box - strips markup for width calculation
     let pad = |text: &str| -> String {
-        let visible_len = console::measure_text_width(text);
+        let visible_len = console::measure_text_width(&Output::strip_markup(text));
         let padding = inner.saturating_sub(visible_len);
         format!("{v} {text}{}{v}", " ".repeat(padding.saturating_sub(1)))
     };
 
     // Header
-    println!("{}", hline(tl, tr).bright_cyan());
-    println!("{}", pad(""));
-    println!(
-        "{}",
-        pad(&format!(
-            "{}  {}",
-            "xf".bold().bright_cyan(),
-            format!("v{version}").dimmed()
-        ))
-    );
-    println!(
-        "{}",
-        pad(&"Ultra-fast CLI for searching your X data archive"
-            .italic()
-            .to_string())
-    );
-    println!("{}", pad(""));
-    println!(
-        "{}",
-        format!("{v}{}{v}", h.repeat(inner).dimmed()).bright_cyan()
-    );
+    output.print(&format!("[bright_cyan]{}[/]", hline(tl, tr)));
+    output.print(&pad(""));
+    output.print(&pad(&format!(
+        "[bold bright_cyan]xf[/]  [dim]v{version}[/]"
+    )));
+    output.print(&pad(
+        "[italic]Ultra-fast CLI for searching your X data archive[/]",
+    ));
+    output.print(&pad(""));
+    output.print(&format!(
+        "[bright_cyan]{v}[dim]{}[/]{v}[/]",
+        h.repeat(inner)
+    ));
 
     // Quick Start section
-    println!("{}", pad(""));
-    println!(
-        "{}",
-        pad(&format!("{}  Getting Started", "1.".bold().yellow()))
-    );
-    println!("{}", pad(""));
-    println!(
-        "{}",
-        pad(&format!(
-            "   Download your archive from: {}",
-            "x.com/settings/download_your_data".cyan()
-        ))
-    );
-    println!(
-        "{}",
-        pad("   (X emails you when it's ready, usually 24-48 hours)")
-    );
-    println!("{}", pad(""));
-    println!(
-        "{}",
-        pad(&format!("{}  Extract Your Archive", "2.".bold().yellow()))
-    );
-    println!("{}", pad(""));
-    println!(
-        "{}",
-        pad(&format!(
-            "   {}",
-            "unzip ~/Downloads/twitter-*.zip -d ~/my_twitter_data".bright_green()
-        ))
-    );
-    println!("{}", pad(""));
-    println!(
-        "{}",
-        pad(&format!("{}  Index Your Data", "3.".bold().yellow()))
-    );
-    println!("{}", pad(""));
-    println!(
-        "{}",
-        pad(&format!(
-            "   {}  {}",
-            "xf index".bright_green(),
-            "# Uses default path: /data/projects/my_twitter_data".dimmed()
-        ))
-    );
-    println!(
-        "{}",
-        pad(&format!(
-            "   {}  {}",
-            "xf index ~/other/path".bright_green(),
-            "# Or specify a custom path".dimmed()
-        ))
-    );
-    println!(
-        "{}",
-        pad("   (Takes ~5-30 seconds depending on archive size)")
-    );
-    println!("{}", pad(""));
-    println!(
-        "{}",
-        format!("{v}{}{v}", h.repeat(inner).dimmed()).bright_cyan()
-    );
+    output.print(&pad(""));
+    output.print(&pad("[bold yellow]1.[/]  Getting Started"));
+    output.print(&pad(""));
+    output.print(&pad(
+        "   Download your archive from: [cyan]x.com/settings/download_your_data[/]",
+    ));
+    output.print(&pad(
+        "   (X emails you when it's ready, usually 24-48 hours)",
+    ));
+    output.print(&pad(""));
+    output.print(&pad("[bold yellow]2.[/]  Extract Your Archive"));
+    output.print(&pad(""));
+    output.print(&pad(
+        "   [bright_green]unzip ~/Downloads/twitter-*.zip -d ~/my_twitter_data[/]",
+    ));
+    output.print(&pad(""));
+    output.print(&pad("[bold yellow]3.[/]  Index Your Data"));
+    output.print(&pad(""));
+    output.print(&pad(
+        "   [bright_green]xf index[/]  [dim]# Uses default path: /data/projects/my_twitter_data[/]",
+    ));
+    output.print(&pad(
+        "   [bright_green]xf index ~/other/path[/]  [dim]# Or specify a custom path[/]",
+    ));
+    output.print(&pad("   (Takes ~5-30 seconds depending on archive size)"));
+    output.print(&pad(""));
+    output.print(&format!(
+        "[bright_cyan]{v}[dim]{}[/]{v}[/]",
+        h.repeat(inner)
+    ));
 
     // Example searches section
-    println!("{}", pad(""));
-    println!(
-        "{}",
-        pad(&format!("{}", "Example Searches".bold().bright_magenta()))
-    );
-    println!("{}", pad(""));
-    println!(
-        "{}",
-        pad(&format!(
-            "   {}  {}",
-            "xf search \"machine learning\"".bright_green(),
-            "# Find tweets about ML".dimmed()
-        ))
-    );
-    println!(
-        "{}",
-        pad(&format!(
-            "   {}  {}",
-            "xf search \"dinner plans\" --types dm".bright_green(),
-            "# Search your DMs".dimmed()
-        ))
-    );
-    println!(
-        "{}",
-        pad(&format!(
-            "   {}  {}",
-            "xf search \"conference\" --types dm --context".bright_green(),
-            "# DMs with full convo".dimmed()
-        ))
-    );
-    println!(
-        "{}",
-        pad(&format!(
-            "   {}  {}",
-            "xf search \"interesting article\" --types like".bright_green(),
-            "# Tweets you liked".dimmed()
-        ))
-    );
-    println!(
-        "{}",
-        pad(&format!(
-            "   {}  {}",
-            "xf search \"bug fix\" --since \"last month\"".bright_green(),
-            "# Recent tweets only".dimmed()
-        ))
-    );
-    println!(
-        "{}",
-        pad(&format!(
-            "   {}  {}",
-            "xf search \"project update\" --format json".bright_green(),
-            "# JSON output".dimmed()
-        ))
-    );
-    println!("{}", pad(""));
-    println!(
-        "{}",
-        format!("{v}{}{v}", h.repeat(inner).dimmed()).bright_cyan()
-    );
+    output.print(&pad(""));
+    output.print(&pad("[bold bright_magenta]Example Searches[/]"));
+    output.print(&pad(""));
+    output.print(&pad(
+        "   [bright_green]xf search \"machine learning\"[/]  [dim]# Find tweets about ML[/]",
+    ));
+    output.print(&pad(
+        "   [bright_green]xf search \"dinner plans\" --types dm[/]  [dim]# Search your DMs[/]",
+    ));
+    output.print(&pad(
+        "   [bright_green]xf search \"conference\" --types dm --context[/]  [dim]# DMs with full convo[/]",
+    ));
+    output.print(&pad(
+        "   [bright_green]xf search \"interesting article\" --types like[/]  [dim]# Tweets you liked[/]",
+    ));
+    output.print(&pad(
+        "   [bright_green]xf search \"bug fix\" --since \"last month\"[/]  [dim]# Recent tweets only[/]",
+    ));
+    output.print(&pad(
+        "   [bright_green]xf search \"project update\" --format json[/]  [dim]# JSON output[/]",
+    ));
+    output.print(&pad(""));
+    output.print(&format!(
+        "[bright_cyan]{v}[dim]{}[/]{v}[/]",
+        h.repeat(inner)
+    ));
 
     // More commands section
-    println!("{}", pad(""));
-    println!(
-        "{}",
-        pad(&format!("{}", "More Commands".bold().bright_magenta()))
-    );
-    println!("{}", pad(""));
-    println!(
-        "{}",
-        pad(&format!(
-            "   {}  {}",
-            "xf stats".bright_green(),
-            "# Archive overview (counts, date range)".dimmed()
-        ))
-    );
-    println!(
-        "{}",
-        pad(&format!(
-            "   {}  {}",
-            "xf stats --detailed".bright_green(),
-            "# Full analytics dashboard".dimmed()
-        ))
-    );
-    println!(
-        "{}",
-        pad(&format!(
-            "   {}  {}",
-            "xf list tweets --limit 20".bright_green(),
-            "# Browse recent tweets".dimmed()
-        ))
-    );
-    println!(
-        "{}",
-        pad(&format!(
-            "   {}  {}",
-            "xf list conversations".bright_green(),
-            "# See all DM threads".dimmed()
-        ))
-    );
-    println!(
-        "{}",
-        pad(&format!(
-            "   {}  {}",
-            "xf tweet 1234567890 --thread".bright_green(),
-            "# View a tweet thread".dimmed()
-        ))
-    );
-    println!(
-        "{}",
-        pad(&format!(
-            "   {}  {}",
-            "xf export tweets --format csv -o tweets.csv".bright_green(),
-            "# Export to CSV".dimmed()
-        ))
-    );
-    println!(
-        "{}",
-        pad(&format!(
-            "   {}  {}",
-            "xf shell".bright_green(),
-            "# Interactive REPL mode".dimmed()
-        ))
-    );
-    println!(
-        "{}",
-        pad(&format!(
-            "   {}  {}",
-            "xf doctor".bright_green(),
-            "# Check archive/index health".dimmed()
-        ))
-    );
-    println!("{}", pad(""));
-    println!(
-        "{}",
-        format!("{v}{}{v}", h.repeat(inner).dimmed()).bright_cyan()
-    );
+    output.print(&pad(""));
+    output.print(&pad("[bold bright_magenta]More Commands[/]"));
+    output.print(&pad(""));
+    output.print(&pad(
+        "   [bright_green]xf stats[/]  [dim]# Archive overview (counts, date range)[/]",
+    ));
+    output.print(&pad(
+        "   [bright_green]xf stats --detailed[/]  [dim]# Full analytics dashboard[/]",
+    ));
+    output.print(&pad(
+        "   [bright_green]xf list tweets --limit 20[/]  [dim]# Browse recent tweets[/]",
+    ));
+    output.print(&pad(
+        "   [bright_green]xf list conversations[/]  [dim]# See all DM threads[/]",
+    ));
+    output.print(&pad(
+        "   [bright_green]xf tweet 1234567890 --thread[/]  [dim]# View a tweet thread[/]",
+    ));
+    output.print(&pad(
+        "   [bright_green]xf export tweets --format csv -o tweets.csv[/]  [dim]# Export to CSV[/]",
+    ));
+    output.print(&pad(
+        "   [bright_green]xf shell[/]  [dim]# Interactive REPL mode[/]",
+    ));
+    output.print(&pad(
+        "   [bright_green]xf doctor[/]  [dim]# Check archive/index health[/]",
+    ));
+    output.print(&pad(""));
+    output.print(&format!(
+        "[bright_cyan]{v}[dim]{}[/]{v}[/]",
+        h.repeat(inner)
+    ));
 
     // Footer
-    println!("{}", pad(""));
-    println!(
-        "{}",
-        pad(&format!(
-            "Documentation: {}",
-            "https://github.com/Dicklesworthstone/xf".cyan().underline()
-        ))
-    );
-    println!(
-        "{}",
-        pad(&format!(
-            "Run {} for all options",
-            "xf --help".bright_green()
-        ))
-    );
-    println!("{}", pad(""));
-    println!("{}", hline(bl, br).bright_cyan());
+    output.print(&pad(""));
+    output.print(&pad(
+        "Documentation: [cyan underline]https://github.com/Dicklesworthstone/xf[/]",
+    ));
+    output.print(&pad("Run [bright_green]xf --help[/] for all options"));
+    output.print(&pad(""));
+    output.print(&format!("[bright_cyan]{}[/]", hline(bl, br)));
 }
 
 fn no_color_env_set() -> bool {
@@ -703,7 +578,7 @@ fn cmd_import(cli: &Cli, args: &cli::ImportArgs, output: &Output) -> Result<()> 
         cmd_index(cli, &index_args, output)?;
 
         // Print welcome box with stats
-        print_import_welcome(&output_dir, cli)?;
+        print_import_welcome(&output_dir, cli, output)?;
     }
 
     output.print("");
@@ -711,7 +586,7 @@ fn cmd_import(cli: &Cli, args: &cli::ImportArgs, output: &Output) -> Result<()> 
 }
 
 /// Print a beautiful welcome box after successful import.
-fn print_import_welcome(_archive_path: &PathBuf, cli: &Cli) -> Result<()> {
+fn print_import_welcome(_archive_path: &PathBuf, cli: &Cli, output: &Output) -> Result<()> {
     let db_path = get_db_path(cli);
     let storage = Storage::open(&db_path)?;
 
@@ -723,7 +598,7 @@ fn print_import_welcome(_archive_path: &PathBuf, cli: &Cli) -> Result<()> {
         _ => String::new(),
     };
 
-    println!();
+    output.print("");
 
     // Box drawing
     let h = "─";
@@ -735,82 +610,53 @@ fn print_import_welcome(_archive_path: &PathBuf, cli: &Cli) -> Result<()> {
     let width = 48;
     let inner = width - 2;
 
-    let hline = format!("{}{}{}", tl, h.repeat(inner), tr).bright_cyan();
-    let bline = format!("{}{}{}", bl, h.repeat(inner), br).bright_cyan();
+    let hline = format!("[bright_cyan]{}{}{}[/]", tl, h.repeat(inner), tr);
+    let bline = format!("[bright_cyan]{}{}{}[/]", bl, h.repeat(inner), br);
 
+    // Pad closure - strips markup for width calculation
     let pad = |text: &str| -> String {
-        let visible_len = console::measure_text_width(text);
+        let visible_len = console::measure_text_width(&Output::strip_markup(text));
         // inner = width - 2 (for the two │ chars), minus 1 for the leading space
         let padding = inner.saturating_sub(visible_len).saturating_sub(1);
         format!(
-            "{} {}{}{}",
-            v.bright_cyan(),
-            text,
-            " ".repeat(padding),
-            v.bright_cyan()
+            "[bright_cyan]{v}[/] {text}{}[bright_cyan]{v}[/]",
+            " ".repeat(padding)
         )
     };
 
-    println!("{hline}");
-    println!("{}", pad(""));
-    println!(
-        "{}",
-        pad(&format!(
-            "  {}",
-            "Welcome to your X archive!".bold().bright_magenta()
-        ))
-    );
-    println!("{}", pad(""));
+    output.print(&hline);
+    output.print(&pad(""));
+    output.print(&pad("  [bold bright_magenta]Welcome to your X archive![/]"));
+    output.print(&pad(""));
 
     if stats.tweets_count > 0 {
-        println!(
-            "{}",
-            pad(&format!(
-                "  Tweets:    {:>6}  {}",
-                format_number(stats.tweets_count).bold(),
-                date_range.dimmed()
-            ))
-        );
+        let tweets_str = format_number(stats.tweets_count);
+        output.print(&pad(&format!(
+            "  Tweets:    [bold]{tweets_str:>6}[/]  [dim]{date_range}[/]"
+        )));
     }
     if stats.likes_count > 0 {
-        println!(
-            "{}",
-            pad(&format!(
-                "  Likes:     {:>6}",
-                format_number(stats.likes_count).bold()
-            ))
-        );
+        let likes_str = format_number(stats.likes_count);
+        output.print(&pad(&format!("  Likes:     [bold]{likes_str:>6}[/]")));
     }
     if stats.dms_count > 0 {
-        println!(
-            "{}",
-            pad(&format!(
-                "  DMs:       {:>6}  {}",
-                format_number(stats.dms_count).bold(),
-                format!("in {} conversations", stats.dm_conversations_count).dimmed()
-            ))
-        );
+        let dms_str = format_number(stats.dms_count);
+        let convos = stats.dm_conversations_count;
+        output.print(&pad(&format!(
+            "  DMs:       [bold]{dms_str:>6}[/]  [dim]in {convos} conversations[/]"
+        )));
     }
     if stats.grok_messages_count > 0 {
-        println!(
-            "{}",
-            pad(&format!(
-                "  Grok:      {:>6}",
-                format_number(stats.grok_messages_count).bold()
-            ))
-        );
+        let grok_str = format_number(stats.grok_messages_count);
+        output.print(&pad(&format!("  Grok:      [bold]{grok_str:>6}[/]")));
     }
 
-    println!("{}", pad(""));
-    println!(
-        "{}",
-        pad(&format!(
-            "  Try: {}",
-            "xf search \"your first tweet\"".bright_green()
-        ))
-    );
-    println!("{}", pad(""));
-    println!("{bline}");
+    output.print(&pad(""));
+    output.print(&pad(
+        "  Try: [bright_green]xf search \"your first tweet\"[/]",
+    ));
+    output.print(&pad(""));
+    output.print(&bline);
 
     Ok(())
 }

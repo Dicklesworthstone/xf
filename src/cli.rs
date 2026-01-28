@@ -520,15 +520,13 @@ pub enum ModelType {
     Reranker,
 }
 
-/// Validate MRL dimensions (must be 256, 512, 768, or 1024).
+/// Validate MRL dimensions (must be a positive integer).
 fn validate_mrl_dims(s: &str) -> Result<usize, String> {
     let dims: usize = s.parse().map_err(|_| format!("invalid dimension: {s}"))?;
-    match dims {
-        256 | 512 | 768 | 1024 => Ok(dims),
-        _ => Err(format!(
-            "MRL dimensions must be 256, 512, 768, or 1024; got {dims}"
-        )),
+    if dims == 0 {
+        return Err("dimension must be greater than 0".to_string());
     }
+    Ok(dims)
 }
 
 #[derive(ValueEnum, Clone, Debug, PartialEq, Eq)]

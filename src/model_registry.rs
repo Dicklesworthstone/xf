@@ -273,24 +273,28 @@ impl ModelRegistry {
                 name,
                 config.cache_dir.clone(),
                 config.show_progress,
+                false,
             )?),
             EMBEDDER_BGE_SMALL_EN_V15 => Box::new(FastEmbedModelEmbedder::load_or_download(
                 EmbeddingModel::BGESmallENV15,
                 name,
                 config.cache_dir.clone(),
                 config.show_progress,
+                false,
             )?),
             EMBEDDER_NOMIC_V15 => Box::new(FastEmbedModelEmbedder::load_or_download(
                 EmbeddingModel::NomicEmbedTextV15,
                 name,
                 config.cache_dir.clone(),
                 config.show_progress,
+                true,
             )?),
             EMBEDDER_E5_SMALL => Box::new(FastEmbedModelEmbedder::load_or_download(
                 EmbeddingModel::MultilingualE5Small,
                 name,
                 config.cache_dir.clone(),
                 config.show_progress,
+                false,
             )?),
             EMBEDDER_STATIC_MRL_EN_V1 => {
                 let dims = config.dimensions;

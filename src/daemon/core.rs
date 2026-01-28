@@ -277,6 +277,40 @@ impl ModelDaemon {
     }
 }
 
+/// RAII guard for in-flight request counter.
+struct InFlightGuard {
+    state: Arc<Mutex<DaemonState>>,
+}
+
+impl InFlightGuard {
+    async fn acquire(state: Arc<Mutex<DaemonState>>) -> Option<Self> {
+        let s = state.lock().await;
+        let current = s.in_flight.load(Ordering::Relaxed);
+        if current >= MAX_IN_FLIGHT as u64 {
+            return None;
+        }
+        s.in_flight.fetch_add(1, Ordering::Relaxed);
+        drop(s); // Drop the lock before returning
+        Some(Self {
+            state: state.clone(),
+        })
+    }
+}
+
+impl Drop for InFlightGuard {
+    fn drop(&mut self) {
+        // We need to spawn a task because Drop cannot be async, but we need to lock the mutex.
+        // This is a common pattern for async RAII in tokio.
+        let state = self.state.clone();
+        tokio::spawn(async move {
+            let mut s = state.lock().await;
+            s.in_flight.fetch_sub(1, Ordering::Relaxed);
+            s.requests_served.fetch_add(1, Ordering::Relaxed);
+            s.touch();
+        });
+    }
+}
+
 /// Handle a single client connection.
 #[cfg(unix)]
 #[allow(clippy::cast_possible_truncation)] // Message size is validated < 10MB
@@ -284,22 +318,15 @@ async fn handle_connection(
     mut stream: UnixStream,
     state: Arc<Mutex<DaemonState>>,
 ) -> anyhow::Result<()> {
-    // Check in-flight limit and increment counter atomically (single lock acquisition)
-    {
-        let s = state.lock().await;
-        let in_flight = s.in_flight.load(Ordering::Relaxed);
-        if in_flight >= MAX_IN_FLIGHT as u64 {
-            drop(s); // Release lock before I/O
-            let response = Response::error(error_codes::OVERLOADED, "server overloaded");
-            let envelope = Envelope::from_response(0, &response)?;
-            let bytes = rmp_serde::to_vec(&envelope)?;
-            stream.write_u32(bytes.len() as u32).await?;
-            stream.write_all(&bytes).await?;
-            return Ok(());
-        }
-        // Increment while still holding the lock to prevent race condition
-        s.in_flight.fetch_add(1, Ordering::Relaxed);
-    }
+    // Acquire in-flight guard
+    let Some(_guard) = InFlightGuard::acquire(state.clone()).await else {
+        let response = Response::error(error_codes::OVERLOADED, "server overloaded");
+        let envelope = Envelope::from_response(0, &response)?;
+        let bytes = rmp_serde::to_vec(&envelope)?;
+        stream.write_u32(bytes.len() as u32).await?;
+        stream.write_all(&bytes).await?;
+        return Ok(());
+    };
 
     // Read length-prefixed message
     let len = stream.read_u32().await?;
@@ -327,8 +354,6 @@ async fn handle_connection(
         let bytes = rmp_serde::to_vec(&resp_envelope)?;
         stream.write_u32(bytes.len() as u32).await?;
         stream.write_all(&bytes).await?;
-
-        state.lock().await.in_flight.fetch_sub(1, Ordering::Relaxed);
         return Ok(());
     }
 
@@ -341,14 +366,6 @@ async fn handle_connection(
     let bytes = rmp_serde::to_vec(&resp_envelope)?;
     stream.write_u32(bytes.len() as u32).await?;
     stream.write_all(&bytes).await?;
-
-    // Decrement in-flight and update stats
-    {
-        let mut s = state.lock().await;
-        s.in_flight.fetch_sub(1, Ordering::Relaxed);
-        s.requests_served.fetch_add(1, Ordering::Relaxed);
-        s.touch();
-    }
 
     Ok(())
 }
@@ -388,22 +405,30 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
             };
 
             // Apply MRL truncation if requested
-            let vectors = if let Some(target_dim) = dims {
-                if embedder.supports_mrl() && target_dim < embedder.dimension() {
+            if let Some(target_dim) = dims {
+                if target_dim == embedder.dimension() {
+                    Response::Embeddings {
+                        vectors: embeddings,
+                    }
+                } else if embedder.supports_mrl() {
                     match embedder.truncate_batch(&embeddings, target_dim) {
-                        Ok(t) => t,
-                        Err(e) => {
-                            return Response::error(error_codes::EMBEDDING_FAILED, e.to_string());
-                        }
+                        Ok(t) => Response::Embeddings { vectors: t },
+                        Err(e) => Response::error(error_codes::EMBEDDING_FAILED, e.to_string()),
                     }
                 } else {
-                    embeddings
+                    Response::error(
+                        error_codes::INVALID_REQUEST,
+                        format!(
+                            "model {} does not support MRL truncation",
+                            embedder.model_name()
+                        ),
+                    )
                 }
             } else {
-                embeddings
-            };
-
-            Response::Embeddings { vectors }
+                Response::Embeddings {
+                    vectors: embeddings,
+                }
+            }
         }
 
         Request::Rerank {

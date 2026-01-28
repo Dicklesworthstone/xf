@@ -61,6 +61,7 @@ pub struct FastEmbedModelEmbedder {
     id: String,
     model_name: String,
     dimension: usize,
+    supports_mrl: bool,
 }
 
 impl FastEmbedModelEmbedder {
@@ -74,6 +75,7 @@ impl FastEmbedModelEmbedder {
         model_name: &str,
         cache_dir: Option<std::path::PathBuf>,
         show_progress: bool,
+        supports_mrl: bool,
     ) -> EmbedderResult<Self> {
         let mut init = InitOptions::new(model).with_show_download_progress(show_progress);
         if let Some(dir) = cache_dir {
@@ -102,6 +104,7 @@ impl FastEmbedModelEmbedder {
             id: format!("fastembed-{model_name}"),
             model_name: model_name.to_string(),
             dimension: dim,
+            supports_mrl,
         })
     }
 }
@@ -439,6 +442,10 @@ impl Embedder for FastEmbedModelEmbedder {
 
     fn is_semantic(&self) -> bool {
         true
+    }
+
+    fn supports_mrl(&self) -> bool {
+        self.supports_mrl
     }
 }
 
