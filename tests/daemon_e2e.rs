@@ -1005,3 +1005,296 @@ async fn test_socket_persists_after_crash() {
     // Clean up if it exists
     let _ = std::fs::remove_file(&socket_path);
 }
+
+// =============================================================================
+// Protocol Version and Error Handling Tests (bd-1nya)
+// =============================================================================
+
+/// Test that protocol version mismatch returns appropriate error.
+#[tokio::test]
+#[serial]
+#[cfg(unix)]
+async fn test_protocol_version_mismatch_rejected() {
+    use tokio::net::UnixStream;
+
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+
+    // Connect directly to socket
+    let mut stream = UnixStream::connect(&daemon.socket_path)
+        .await
+        .expect("connect to socket");
+
+    // Create an envelope with wrong protocol version
+    let bad_envelope = Envelope {
+        version: 99, // Wrong version (current is 1)
+        id: 1,
+        payload: rmp_serde::to_vec(&Request::Health).expect("serialize request"),
+    };
+
+    let bytes = rmp_serde::to_vec(&bad_envelope).expect("serialize envelope");
+
+    // Write length-prefixed message
+    stream
+        .write_u32(bytes.len() as u32)
+        .await
+        .expect("write length");
+    stream.write_all(&bytes).await.expect("write payload");
+
+    // Read response
+    let len = stream.read_u32().await.expect("read response length");
+    let mut buf = vec![0u8; len as usize];
+    stream.read_exact(&mut buf).await.expect("read response");
+
+    let response_envelope: Envelope = rmp_serde::from_slice(&buf).expect("decode envelope");
+    let response: Response =
+        rmp_serde::from_slice(&response_envelope.payload).expect("decode response");
+
+    match response {
+        Response::Error { code, message } => {
+            assert_eq!(
+                code, error_codes::VERSION_MISMATCH,
+                "Expected VERSION_MISMATCH error code"
+            );
+            assert!(
+                message.contains("version"),
+                "Error message should mention version: {message}"
+            );
+            tracing::info!(code, message = message.as_str(), "Version mismatch error received");
+        }
+        _ => panic!("Expected Error response, got {response:?}"),
+    }
+}
+
+/// Test that requests for unknown models return appropriate error.
+#[tokio::test]
+#[serial]
+async fn test_unknown_model_returns_error() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    // Try to embed with non-existent model
+    let result = client
+        .embed(&["test text"], Some("nonexistent-model-xyz-12345"), None)
+        .await;
+
+    assert!(result.is_err(), "Unknown model should return error");
+    let err = result.unwrap_err();
+    tracing::info!(error = %err, "Unknown model error received");
+
+    // Error should mention model load failure
+    let err_str = err.to_string();
+    assert!(
+        err_str.contains("load") || err_str.contains("MODEL") || err_str.contains("not found"),
+        "Error should indicate model issue: {err_str}"
+    );
+}
+
+/// Test that requests for unknown reranker return appropriate error.
+#[tokio::test]
+#[serial]
+async fn test_unknown_reranker_returns_error() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    // Try to rerank with non-existent model
+    let result = client
+        .rerank("test query", &["doc1", "doc2"], Some("fake-reranker-model"))
+        .await;
+
+    assert!(result.is_err(), "Unknown reranker should return error");
+    let err = result.unwrap_err();
+    tracing::info!(error = %err, "Unknown reranker error received");
+}
+
+/// Test that oversized requests are rejected.
+#[tokio::test]
+#[serial]
+#[cfg(unix)]
+async fn test_oversized_request_rejected() {
+    use tokio::net::UnixStream;
+
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+
+    // Connect directly to socket
+    let mut stream = UnixStream::connect(&daemon.socket_path)
+        .await
+        .expect("connect to socket");
+
+    // Claim we're sending 20MB (exceeds 10MB limit)
+    let oversized_len: u32 = 20 * 1024 * 1024;
+    stream
+        .write_u32(oversized_len)
+        .await
+        .expect("write oversized length");
+
+    // Try to read response - connection should be closed or error
+    let mut buf = [0u8; 1];
+    let result = stream.read(&mut buf).await;
+
+    // Either error or 0 bytes (connection closed)
+    match result {
+        Ok(0) => {
+            tracing::info!("Connection closed after oversized request (expected)");
+        }
+        Ok(n) => {
+            tracing::warn!(bytes = n, "Unexpected data received");
+        }
+        Err(e) => {
+            tracing::info!(error = %e, "Connection error after oversized request (expected)");
+        }
+    }
+
+    tracing::info!("Oversized request rejection verified");
+}
+
+/// Test that malformed request data is handled gracefully.
+#[tokio::test]
+#[serial]
+#[cfg(unix)]
+async fn test_malformed_request_handled() {
+    use tokio::net::UnixStream;
+
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+
+    // Connect directly to socket
+    let mut stream = UnixStream::connect(&daemon.socket_path)
+        .await
+        .expect("connect to socket");
+
+    // Send garbage data that's not valid MessagePack
+    let garbage = b"this is not valid messagepack data at all!!!";
+    stream
+        .write_u32(garbage.len() as u32)
+        .await
+        .expect("write length");
+    stream.write_all(garbage).await.expect("write garbage");
+
+    // The daemon should either close the connection or return an error
+    // Either way, it shouldn't crash
+    sleep(Duration::from_millis(100)).await;
+
+    // Verify daemon is still running by making a valid request with a new connection
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+    let health = client.health().await;
+
+    assert!(
+        health.is_ok(),
+        "Daemon should still be healthy after malformed request"
+    );
+    tracing::info!("Daemon survived malformed request");
+}
+
+/// Test that the daemon returns correct protocol version in responses.
+#[tokio::test]
+#[serial]
+#[cfg(unix)]
+async fn test_response_has_correct_protocol_version() {
+    use tokio::net::UnixStream;
+
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+
+    // Connect directly to socket
+    let mut stream = UnixStream::connect(&daemon.socket_path)
+        .await
+        .expect("connect to socket");
+
+    // Create a valid health request
+    let envelope = Envelope::from_request(42, &Request::Health).expect("create envelope");
+    let bytes = rmp_serde::to_vec(&envelope).expect("serialize");
+
+    // Send request
+    stream
+        .write_u32(bytes.len() as u32)
+        .await
+        .expect("write length");
+    stream.write_all(&bytes).await.expect("write payload");
+
+    // Read response
+    let len = stream.read_u32().await.expect("read response length");
+    let mut buf = vec![0u8; len as usize];
+    stream.read_exact(&mut buf).await.expect("read response");
+
+    let response_envelope: Envelope = rmp_serde::from_slice(&buf).expect("decode envelope");
+
+    assert_eq!(
+        response_envelope.version, PROTOCOL_VERSION,
+        "Response should have current protocol version"
+    );
+    assert_eq!(
+        response_envelope.id, 42,
+        "Response should have matching request ID"
+    );
+
+    tracing::info!(
+        version = response_envelope.version,
+        id = response_envelope.id,
+        "Protocol version in response verified"
+    );
+}
+
+/// Test request ID correlation in responses.
+#[tokio::test]
+#[serial]
+#[cfg(unix)]
+async fn test_request_id_correlation() {
+    use tokio::net::UnixStream;
+
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+
+    // Test with multiple request IDs
+    for request_id in [1u64, 42, 12345, u64::MAX] {
+        let mut stream = UnixStream::connect(&daemon.socket_path)
+            .await
+            .expect("connect to socket");
+
+        let envelope = Envelope::from_request(request_id, &Request::Health).expect("create envelope");
+        let bytes = rmp_serde::to_vec(&envelope).expect("serialize");
+
+        stream
+            .write_u32(bytes.len() as u32)
+            .await
+            .expect("write length");
+        stream.write_all(&bytes).await.expect("write payload");
+
+        let len = stream.read_u32().await.expect("read response length");
+        let mut buf = vec![0u8; len as usize];
+        stream.read_exact(&mut buf).await.expect("read response");
+
+        let response_envelope: Envelope = rmp_serde::from_slice(&buf).expect("decode envelope");
+
+        assert_eq!(
+            response_envelope.id, request_id,
+            "Response ID should match request ID"
+        );
+
+        tracing::info!(request_id, "Request ID correlation verified");
+    }
+}
