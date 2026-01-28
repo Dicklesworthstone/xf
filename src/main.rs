@@ -3956,24 +3956,22 @@ fn cmd_daemon(args: &cli::DaemonArgs, output: &Output) -> Result<()> {
 
             if start_args.foreground {
                 // Run daemon in foreground
-                println!(
-                    "{} Starting daemon on {} (foreground mode)",
-                    "ℹ".blue(),
+                output.print(&format!(
+                    "[blue]ℹ[/] Starting daemon on {} (foreground mode)",
                     config.socket_path.display()
-                );
-                println!(
-                    "{} Idle timeout: {}s, max models: {}",
-                    "ℹ".blue(),
+                ));
+                output.print(&format!(
+                    "[blue]ℹ[/] Idle timeout: {}s, max models: {}",
                     config.idle_timeout.as_secs(),
                     config.max_models
-                );
+                ));
 
                 let daemon = ModelDaemon::new(config);
                 let runtime = tokio::runtime::Runtime::new()?;
                 runtime.block_on(daemon.run())?;
             } else {
                 // Spawn daemon as background process
-                println!("{} Spawning daemon in background...", "ℹ".blue());
+                output.print("[blue]ℹ[/] Spawning daemon in background...");
 
                 let exe = std::env::current_exe()?;
                 let mut cmd = std::process::Command::new(&exe);
@@ -3990,21 +3988,21 @@ fn cmd_daemon(args: &cli::DaemonArgs, output: &Output) -> Result<()> {
                     .stderr(std::process::Stdio::null())
                     .spawn()?;
 
-                println!("{} Daemon spawned", "✓".green());
+                output.print("[green]✓[/] Daemon spawned");
             }
         }
 
         DaemonCommand::Stop => {
-            println!("{} Stopping daemon...", "ℹ".blue());
+            output.print("[blue]ℹ[/] Stopping daemon...");
 
             let mut client = DaemonClient::new();
             let runtime = tokio::runtime::Runtime::new()?;
 
             match runtime.block_on(client.shutdown()) {
-                Ok(_) => println!("{} Daemon stopped", "✓".green()),
+                Ok(_) => output.print("[green]✓[/] Daemon stopped"),
                 Err(e) => {
                     if e.to_string().contains("not running") {
-                        eprintln!("{} Daemon is not running", "⚠".yellow());
+                        output.eprint("[yellow]⚠[/] Daemon is not running");
                     } else {
                         return Err(e.context("Failed to stop daemon"));
                     }
@@ -4021,27 +4019,27 @@ fn cmd_daemon(args: &cli::DaemonArgs, output: &Output) -> Result<()> {
                     if output.format() == OutFmt::Json {
                         output.print_json_pretty(&status)?;
                     } else {
-                        println!("{}", "Daemon Status".bold().underline());
-                        println!();
-                        println!("  Uptime:          {}s", status.uptime_secs);
-                        println!("  Memory (RSS):    {:.1} MB", status.rss_mb);
-                        println!("  Requests served: {}", status.requests_served);
-                        println!("  In-flight:       {}", status.in_flight);
-                        println!("  Queue length:    {}", status.queue_len);
-                        println!();
-                        println!("{}", "Loaded Models".bold().underline());
-                        println!();
+                        output.print("[bold underline]Daemon Status[/]");
+                        output.print("");
+                        output.print(&format!("  Uptime:          {}s", status.uptime_secs));
+                        output.print(&format!("  Memory (RSS):    {:.1} MB", status.rss_mb));
+                        output.print(&format!("  Requests served: {}", status.requests_served));
+                        output.print(&format!("  In-flight:       {}", status.in_flight));
+                        output.print(&format!("  Queue length:    {}", status.queue_len));
+                        output.print("");
+                        output.print("[bold underline]Loaded Models[/]");
+                        output.print("");
 
                         if status.models.is_empty() {
-                            println!("  No models loaded.");
+                            output.print("  No models loaded.");
                         } else {
                             for model in &status.models {
-                                println!(
-                                    "  {} ({}) - {} requests",
-                                    model.name.cyan(),
+                                output.print(&format!(
+                                    "  [cyan]{}[/] ({}) - {} requests",
+                                    model.name,
                                     model.model_type,
                                     model.requests_served
-                                );
+                                ));
                             }
                         }
                     }
@@ -4050,7 +4048,7 @@ fn cmd_daemon(args: &cli::DaemonArgs, output: &Output) -> Result<()> {
                     if e.to_string().contains("not running")
                         || e.to_string().contains("No such file")
                     {
-                        eprintln!("{} Daemon is not running", "⚠".yellow());
+                        output.eprint("[yellow]⚠[/] Daemon is not running");
                     } else {
                         return Err(e.context("Failed to get daemon status"));
                     }
