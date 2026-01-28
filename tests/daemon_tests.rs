@@ -11,7 +11,7 @@
 use std::path::PathBuf;
 use std::time::Duration;
 use xf::daemon::{
-    ClientConfig, DaemonClient, Envelope, IoPriority, LoadedModelInfo, MemoryMonitor,
+    ClientConfig, DaemonClient, DaemonConfig, Envelope, IoPriority, LoadedModelInfo, MemoryMonitor,
     PROTOCOL_VERSION, Request, ResourceConfig, Response, error_codes, get_process_rss_mb,
 };
 
@@ -594,6 +594,108 @@ mod daemon_client_tests {
         assert!(!client1.is_daemon_running());
         assert!(!client2.is_daemon_running());
         assert!(!client3.is_daemon_running());
+    }
+}
+
+// =============================================================================
+// DaemonConfig Tests
+// =============================================================================
+
+mod daemon_config_tests {
+    use super::*;
+
+    #[test]
+    fn test_daemon_config_defaults() {
+        let config = DaemonConfig::default();
+        // Socket path should contain xf-daemon
+        assert!(config.socket_path.to_string_lossy().contains("xf-daemon"));
+        // PID path should contain xf-daemon
+        assert!(config.pid_path.to_string_lossy().contains("xf-daemon"));
+        // Idle timeout should be reasonable
+        assert!(config.idle_timeout >= Duration::from_secs(60));
+        // Max models should be at least 1
+        assert!(config.max_models >= 1);
+        // Should have resource config
+        assert!(config.resources.nice_level > 0);
+    }
+
+    #[test]
+    fn test_daemon_config_with_paths() {
+        let socket_path = PathBuf::from("/tmp/custom-daemon.sock");
+        let pid_path = PathBuf::from("/tmp/custom-daemon.pid");
+        let config = DaemonConfig::with_paths(socket_path.clone(), pid_path.clone());
+
+        assert_eq!(config.socket_path, socket_path);
+        assert_eq!(config.pid_path, pid_path);
+    }
+
+    #[test]
+    fn test_daemon_config_with_idle_timeout() {
+        let timeout = Duration::from_secs(600);
+        let config = DaemonConfig::default().with_idle_timeout(timeout);
+        assert_eq!(config.idle_timeout, timeout);
+    }
+
+    #[test]
+    fn test_daemon_config_with_max_models() {
+        let config = DaemonConfig::default().with_max_models(8);
+        assert_eq!(config.max_models, 8);
+    }
+
+    #[test]
+    fn test_daemon_config_builder_chaining() {
+        let config = DaemonConfig::default()
+            .with_idle_timeout(Duration::from_secs(120))
+            .with_max_models(2);
+
+        assert_eq!(config.idle_timeout, Duration::from_secs(120));
+        assert_eq!(config.max_models, 2);
+    }
+
+    #[test]
+    fn test_daemon_config_debug_impl() {
+        let config = DaemonConfig::default();
+        let debug_str = format!("{config:?}");
+        assert!(debug_str.contains("DaemonConfig"));
+        assert!(debug_str.contains("socket_path"));
+        assert!(debug_str.contains("idle_timeout"));
+    }
+
+    #[test]
+    fn test_daemon_config_clone() {
+        let original = DaemonConfig::default()
+            .with_idle_timeout(Duration::from_secs(300))
+            .with_max_models(6);
+
+        let cloned = original.clone();
+
+        assert_eq!(cloned.socket_path, original.socket_path);
+        assert_eq!(cloned.idle_timeout, original.idle_timeout);
+        assert_eq!(cloned.max_models, original.max_models);
+    }
+
+    #[test]
+    fn test_socket_path_includes_user() {
+        let config = DaemonConfig::default();
+        let socket_str = config.socket_path.to_string_lossy();
+        // Should be in /tmp and contain xf-daemon
+        assert!(socket_str.starts_with("/tmp/"));
+        assert!(socket_str.contains("xf-daemon"));
+    }
+
+    #[test]
+    fn test_daemon_config_with_resources() {
+        let resources = ResourceConfig {
+            nice_level: 15,
+            max_threads: 4,
+            memory_limit_mb: 1024,
+            ..Default::default()
+        };
+        let config = DaemonConfig::default().with_resources(resources);
+
+        assert_eq!(config.resources.nice_level, 15);
+        assert_eq!(config.resources.max_threads, 4);
+        assert_eq!(config.resources.memory_limit_mb, 1024);
     }
 }
 
