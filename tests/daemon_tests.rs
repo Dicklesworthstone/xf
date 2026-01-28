@@ -11,8 +11,9 @@
 use std::path::PathBuf;
 use std::time::Duration;
 use xf::daemon::{
-    ClientConfig, DaemonClient, DaemonConfig, Envelope, IoPriority, LoadedModelInfo, MemoryMonitor,
-    PROTOCOL_VERSION, Request, ResourceConfig, Response, error_codes, get_process_rss_mb,
+    ClientConfig, DaemonClient, DaemonConfig, Envelope, HealthInfo, IoPriority, LoadedModelInfo,
+    MemoryMonitor, ModelManager, PROTOCOL_VERSION, Request, ResourceConfig, Response, StatusInfo,
+    error_codes, get_process_rss_mb,
 };
 
 // =============================================================================
@@ -696,6 +697,224 @@ mod daemon_config_tests {
         assert_eq!(config.resources.nice_level, 15);
         assert_eq!(config.resources.max_threads, 4);
         assert_eq!(config.resources.memory_limit_mb, 1024);
+    }
+}
+
+// =============================================================================
+// ModelManager Tests
+// =============================================================================
+
+mod model_manager_tests {
+    use super::*;
+
+    #[test]
+    fn test_model_manager_creation() {
+        let manager = ModelManager::new(4);
+        assert_eq!(manager.total_models(), 0);
+    }
+
+    #[test]
+    fn test_model_manager_creation_with_zero() {
+        // Edge case: zero max_models
+        let manager = ModelManager::new(0);
+        assert_eq!(manager.total_models(), 0);
+    }
+
+    #[test]
+    fn test_model_manager_creation_with_large_limit() {
+        let manager = ModelManager::new(1000);
+        assert_eq!(manager.total_models(), 0);
+    }
+
+    #[test]
+    fn test_model_manager_loaded_models_empty() {
+        let manager = ModelManager::new(4);
+        let models = manager.loaded_models();
+        assert!(models.is_empty());
+    }
+
+    #[test]
+    fn test_model_manager_hash_embedder() {
+        let mut manager = ModelManager::new(4);
+        // Hash embedder is always available (no ML model needed)
+        let result = manager.get_embedder("hash");
+        assert!(result.is_ok());
+        assert_eq!(manager.total_models(), 1);
+    }
+
+    #[test]
+    fn test_model_manager_hash_embedder_cached() {
+        let mut manager = ModelManager::new(4);
+        // Load once
+        manager.get_embedder("hash").unwrap();
+        assert_eq!(manager.total_models(), 1);
+
+        // Load again - should reuse cache
+        manager.get_embedder("hash").unwrap();
+        assert_eq!(manager.total_models(), 1);
+    }
+
+    #[test]
+    fn test_model_manager_none_reranker() {
+        let mut manager = ModelManager::new(4);
+        // "none" reranker should return None without loading anything
+        let result = manager.get_reranker("none");
+        assert!(result.is_ok());
+        assert!(result.unwrap().is_none());
+        assert_eq!(manager.total_models(), 0);
+    }
+
+    #[test]
+    fn test_model_manager_empty_reranker() {
+        let mut manager = ModelManager::new(4);
+        // Empty string should return None like "none"
+        let result = manager.get_reranker("");
+        assert!(result.is_ok());
+        assert!(result.unwrap().is_none());
+        assert_eq!(manager.total_models(), 0);
+    }
+
+    #[test]
+    fn test_model_manager_unknown_embedder() {
+        let mut manager = ModelManager::new(4);
+        let result = manager.get_embedder("nonexistent-model-xyz");
+        assert!(result.is_err());
+        assert_eq!(manager.total_models(), 0);
+    }
+
+    #[test]
+    fn test_model_manager_unload_all() {
+        let mut manager = ModelManager::new(4);
+        manager.get_embedder("hash").unwrap();
+        assert_eq!(manager.total_models(), 1);
+
+        manager.unload_all();
+        assert_eq!(manager.total_models(), 0);
+    }
+}
+
+// =============================================================================
+// HealthInfo and StatusInfo Tests
+// =============================================================================
+
+mod info_types_tests {
+    use super::*;
+
+    #[test]
+    fn test_health_info_serialization() {
+        let info = HealthInfo {
+            uptime_secs: 42,
+            models_loaded: 2,
+        };
+        let json = serde_json::to_string(&info).expect("serialize HealthInfo");
+        assert!(json.contains("42"));
+        assert!(json.contains("uptime_secs"));
+        assert!(json.contains("models_loaded"));
+    }
+
+    #[test]
+    fn test_health_info_debug() {
+        let info = HealthInfo {
+            uptime_secs: 100,
+            models_loaded: 3,
+        };
+        let debug_str = format!("{info:?}");
+        assert!(debug_str.contains("HealthInfo"));
+    }
+
+    #[test]
+    fn test_health_info_clone() {
+        let original = HealthInfo {
+            uptime_secs: 50,
+            models_loaded: 1,
+        };
+        let cloned = original.clone();
+        assert_eq!(cloned.uptime_secs, original.uptime_secs);
+        assert_eq!(cloned.models_loaded, original.models_loaded);
+    }
+
+    #[test]
+    fn test_status_info_serialization() {
+        let info = StatusInfo {
+            uptime_secs: 1000,
+            models: vec![LoadedModelInfo {
+                name: "test-model".into(),
+                model_type: "embedder".into(),
+                loaded_at: 1_700_000_000,
+                requests_served: 500,
+                last_used: 1_700_001_000,
+            }],
+            rss_mb: 256.5,
+            requests_served: 10000,
+            in_flight: 5,
+            queue_len: 2,
+        };
+        let json = serde_json::to_string(&info).expect("serialize StatusInfo");
+        assert!(json.contains("1000"));
+        assert!(json.contains("test-model"));
+        assert!(json.contains("256.5"));
+    }
+
+    #[test]
+    fn test_status_info_debug() {
+        let info = StatusInfo {
+            uptime_secs: 200,
+            models: vec![],
+            rss_mb: 128.0,
+            requests_served: 100,
+            in_flight: 0,
+            queue_len: 0,
+        };
+        let debug_str = format!("{info:?}");
+        assert!(debug_str.contains("StatusInfo"));
+    }
+
+    #[test]
+    #[allow(clippy::float_cmp)]
+    fn test_status_info_clone() {
+        let original = StatusInfo {
+            uptime_secs: 300,
+            models: vec![],
+            rss_mb: 64.0,
+            requests_served: 50,
+            in_flight: 1,
+            queue_len: 0,
+        };
+        let cloned = original.clone();
+        assert_eq!(cloned.uptime_secs, original.uptime_secs);
+        assert_eq!(cloned.rss_mb, original.rss_mb);
+        assert_eq!(cloned.in_flight, original.in_flight);
+    }
+
+    #[test]
+    fn test_status_info_with_multiple_models() {
+        let info = StatusInfo {
+            uptime_secs: 500,
+            models: vec![
+                LoadedModelInfo {
+                    name: "embedder1".into(),
+                    model_type: "embedder".into(),
+                    loaded_at: 1_700_000_000,
+                    requests_served: 100,
+                    last_used: 1_700_000_500,
+                },
+                LoadedModelInfo {
+                    name: "reranker1".into(),
+                    model_type: "reranker".into(),
+                    loaded_at: 1_700_000_100,
+                    requests_served: 50,
+                    last_used: 1_700_000_400,
+                },
+            ],
+            rss_mb: 512.0,
+            requests_served: 1000,
+            in_flight: 3,
+            queue_len: 1,
+        };
+        assert_eq!(info.models.len(), 2);
+        let json = serde_json::to_string(&info).expect("serialize");
+        assert!(json.contains("embedder1"));
+        assert!(json.contains("reranker1"));
     }
 }
 
