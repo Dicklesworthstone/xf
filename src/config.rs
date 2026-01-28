@@ -43,6 +43,8 @@ pub struct Config {
     pub indexing: IndexingConfig,
     /// Output formatting configuration.
     pub output: OutputConfig,
+    /// Semantic search configuration.
+    pub semantic: SemanticConfig,
 }
 
 /// Path configuration for database and index locations.
@@ -116,6 +118,32 @@ pub struct OutputConfig {
     pub timings: bool,
 }
 
+/// Semantic search configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct SemanticConfig {
+    /// Default embedding model.
+    /// Environment variable: `XF_MODEL`
+    pub model: Option<String>,
+
+    /// Default MRL dimensions (256, 512, 768, or 1024).
+    /// Environment variable: `XF_DIMS`
+    pub dimensions: Option<usize>,
+
+    /// Default reranker model.
+    /// Environment variable: `XF_RERANKER`
+    pub reranker: Option<String>,
+
+    /// Enable reranking by default.
+    pub rerank: bool,
+
+    /// Use daemon for model inference by default.
+    pub daemon: bool,
+
+    /// Number of candidates to rerank.
+    pub rerank_top: usize,
+}
+
 impl Default for SearchConfig {
     fn default() -> Self {
         Self {
@@ -146,6 +174,19 @@ impl Default for OutputConfig {
             colors: true,
             quiet: false,
             timings: false,
+        }
+    }
+}
+
+impl Default for SemanticConfig {
+    fn default() -> Self {
+        Self {
+            model: None,
+            dimensions: None,
+            reranker: None,
+            rerank: false,
+            daemon: true,
+            rerank_top: 100,
         }
     }
 }
@@ -255,6 +296,25 @@ impl Config {
                 self.indexing.threads = n;
             }
         }
+
+        // Semantic overrides
+        if let Ok(model) = std::env::var("XF_MODEL") {
+            self.semantic.model = Some(model);
+        }
+        if let Ok(dims) = std::env::var("XF_DIMS") {
+            if let Ok(n) = dims.parse() {
+                self.semantic.dimensions = Some(n);
+            }
+        }
+        if let Ok(reranker) = std::env::var("XF_RERANKER") {
+            self.semantic.reranker = Some(reranker);
+        }
+        if std::env::var("XF_RERANK").is_ok() {
+            self.semantic.rerank = true;
+        }
+        if let Ok(val) = std::env::var("XF_DAEMON") {
+            self.semantic.daemon = val != "0" && val.to_lowercase() != "false";
+        }
     }
 
     fn expand_tilde_paths(&mut self) {
@@ -296,6 +356,20 @@ impl Config {
         self.output.colors = other.output.colors;
         self.output.quiet = other.output.quiet;
         self.output.timings = other.output.timings;
+
+        // Semantic
+        if other.semantic.model.is_some() {
+            self.semantic.model = other.semantic.model;
+        }
+        if other.semantic.dimensions.is_some() {
+            self.semantic.dimensions = other.semantic.dimensions;
+        }
+        if other.semantic.reranker.is_some() {
+            self.semantic.reranker = other.semantic.reranker;
+        }
+        self.semantic.rerank = other.semantic.rerank;
+        self.semantic.daemon = other.semantic.daemon;
+        self.semantic.rerank_top = other.semantic.rerank_top;
     }
 
     /// Get the database path, using defaults if not configured.

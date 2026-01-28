@@ -111,6 +111,9 @@ pub enum Commands {
 
     /// Show machine-readable CLI documentation (JSON)
     RobotDocs(RobotDocsArgs),
+
+    /// Manage embedding and reranker models
+    Models(ModelsArgs),
 }
 
 #[derive(Args, Debug)]
@@ -235,8 +238,8 @@ pub struct SearchArgs {
     #[arg(long)]
     pub model: Option<String>,
 
-    /// Optional MRL dimension override (256/512/768/1024)
-    #[arg(long)]
+    /// MRL dimension override (256, 512, 768, or 1024)
+    #[arg(long, value_parser = validate_mrl_dims)]
     pub dimensions: Option<usize>,
 
     /// Enable reranking stage
@@ -427,6 +430,57 @@ pub struct RobotDocsArgs {
     /// Documentation topic (default: all)
     #[arg(default_value = "all")]
     pub topic: String,
+}
+
+#[derive(Args, Debug)]
+pub struct ModelsArgs {
+    #[command(subcommand)]
+    pub command: ModelsCommand,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum ModelsCommand {
+    /// List available embedding and reranker models
+    List(ModelsListArgs),
+
+    /// Show detailed information about a specific model
+    Info(ModelsInfoArgs),
+}
+
+#[derive(Args, Debug)]
+pub struct ModelsListArgs {
+    /// Filter by model type (embedder, reranker)
+    #[arg(long, short = 't')]
+    pub model_type: Option<ModelType>,
+
+    /// Show only available/downloaded models
+    #[arg(long)]
+    pub available: bool,
+}
+
+#[derive(Args, Debug)]
+pub struct ModelsInfoArgs {
+    /// Model name to show info for
+    pub name: String,
+}
+
+#[derive(ValueEnum, Clone, Debug)]
+pub enum ModelType {
+    Embedder,
+    Reranker,
+}
+
+/// Validate MRL dimensions (must be 256, 512, 768, or 1024).
+fn validate_mrl_dims(s: &str) -> Result<usize, String> {
+    let dims: usize = s
+        .parse()
+        .map_err(|_| format!("invalid dimension: {s}"))?;
+    match dims {
+        256 | 512 | 768 | 1024 => Ok(dims),
+        _ => Err(format!(
+            "MRL dimensions must be 256, 512, 768, or 1024; got {dims}"
+        )),
+    }
 }
 
 #[derive(ValueEnum, Clone, Debug, PartialEq, Eq)]
