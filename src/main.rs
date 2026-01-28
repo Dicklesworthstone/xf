@@ -259,7 +259,7 @@ fn main() -> Result<()> {
         Some(Commands::Doctor(args)) => cmd_doctor(&cli, args, &output),
         Some(Commands::Shell(args)) => cmd_shell(&cli, args, &output),
         Some(Commands::Benchmark(args)) => cmd_benchmark(&cli, args, &output),
-        Some(Commands::RobotDocs(args)) => cmd_robot_docs(args),
+        Some(Commands::RobotDocs(args)) => cmd_robot_docs(args, &output),
         Some(Commands::Models(args)) => cmd_models(args, &output),
         Some(Commands::Daemon(args)) => cmd_daemon(args, &output),
     }
@@ -2834,7 +2834,7 @@ fn truncate_text(text: &str, max_len: usize) -> String {
 }
 
 #[allow(clippy::too_many_lines)]
-fn cmd_export(cli: &Cli, args: &cli::ExportArgs, _output: &Output) -> Result<()> {
+fn cmd_export(cli: &Cli, args: &cli::ExportArgs, output: &Output) -> Result<()> {
     let db_path = get_db_path(cli);
 
     if !db_path.exists() {
@@ -2850,8 +2850,8 @@ fn cmd_export(cli: &Cli, args: &cli::ExportArgs, _output: &Output) -> Result<()>
 
     let storage = Storage::open(&db_path)?;
 
-    // Build output based on target
-    let output = match args.what {
+    // Build export data based on target
+    let export_data = match args.what {
         ExportTarget::Tweets => {
             let tweets = storage.get_all_tweets(args.limit)?;
             format_export(&tweets, &args.format)?
@@ -2936,14 +2936,13 @@ fn cmd_export(cli: &Cli, args: &cli::ExportArgs, _output: &Output) -> Result<()>
 
     // Write to file or stdout
     if let Some(path) = &args.output {
-        std::fs::write(path, &output)?;
-        println!(
-            "{} Exported to {}",
-            "✓".green(),
-            path.display().to_string().bold()
-        );
+        std::fs::write(path, &export_data)?;
+        output.print(&format!(
+            "[green]✓[/] Exported to [bold]{}[/]",
+            path.display()
+        ));
     } else {
-        println!("{output}");
+        output.print(&export_data);
     }
 
     Ok(())
@@ -3537,32 +3536,32 @@ fn cmd_doctor(cli: &Cli, args: &cli::DoctorArgs, output: &Output) -> Result<()> 
     // ========== Output ==========
     match cli.format {
         OutputFormat::Json => {
-            let output = DoctorOutput {
+            let doctor_output = DoctorOutput {
                 checks: all_checks,
                 summary,
                 suggestions,
                 runtime_ms,
             };
-            println!("{}", serde_json::to_string(&output)?);
+            output.print(&serde_json::to_string(&doctor_output)?);
         }
         OutputFormat::JsonPretty => {
-            let output = DoctorOutput {
+            let doctor_output = DoctorOutput {
                 checks: all_checks,
                 summary,
                 suggestions,
                 runtime_ms,
             };
-            println!("{}", serde_json::to_string_pretty(&output)?);
+            output.print(&serde_json::to_string_pretty(&doctor_output)?);
         }
         OutputFormat::Toon => {
-            let output = DoctorOutput {
+            let doctor_output = DoctorOutput {
                 checks: all_checks,
                 summary,
                 suggestions,
                 runtime_ms,
             };
-            let json = serde_json::to_value(&output)?;
-            println!("{}", toon_rust::encode(json, None));
+            let json = serde_json::to_value(&doctor_output)?;
+            output.print(&toon_rust::encode(json, None));
         }
         _ => {
             // Styled text output via DoctorRenderer
@@ -3643,7 +3642,7 @@ fn cmd_shell(cli: &Cli, args: &cli::ShellArgs, _output: &Output) -> Result<()> {
     repl::run(storage, search, config)
 }
 
-fn cmd_benchmark(_cli: &Cli, args: &cli::BenchmarkArgs, _output: &Output) -> Result<()> {
+fn cmd_benchmark(_cli: &Cli, args: &cli::BenchmarkArgs, output: &Output) -> Result<()> {
     let corpus = BenchmarkCorpus::load(&args.corpus)
         .with_context(|| format!("Failed to load corpus: {}", args.corpus.display()))?;
     corpus
@@ -3691,13 +3690,12 @@ fn cmd_benchmark(_cli: &Cli, args: &cli::BenchmarkArgs, _output: &Output) -> Res
     reporters::write_markdown(&md_path, &result)?;
     reporters::write_csv(&csv_path, &result)?;
 
-    println!(
-        "{} Wrote benchmark reports:\n  {}\n  {}\n  {}",
-        "✓".green(),
+    output.print(&format!(
+        "[green]✓[/] Wrote benchmark reports:\n  {}\n  {}\n  {}",
         json_path.display(),
         md_path.display(),
         csv_path.display()
-    );
+    ));
 
     Ok(())
 }
@@ -3706,18 +3704,18 @@ fn cmd_benchmark(_cli: &Cli, args: &cli::BenchmarkArgs, _output: &Output) -> Res
 // Robot Docs Command
 // ============================================================================
 
-fn cmd_robot_docs(args: &cli::RobotDocsArgs) -> Result<()> {
+fn cmd_robot_docs(args: &cli::RobotDocsArgs, output: &Output) -> Result<()> {
     if !xf::robot_docs::is_valid_topic(&args.topic) {
-        eprintln!(
+        output.eprint(&format!(
             "Unknown topic: '{}'. Available topics: {}",
             args.topic,
             xf::robot_docs::TOPICS.join(", ")
-        );
+        ));
         std::process::exit(2);
     }
 
     let docs = xf::robot_docs::generate(&args.topic);
-    println!("{}", serde_json::to_string_pretty(&docs)?);
+    output.print(&serde_json::to_string_pretty(&docs)?);
     Ok(())
 }
 
