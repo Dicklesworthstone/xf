@@ -1,0 +1,31 @@
+{
+  "metadata": {
+    "model": "fnv1a-384",
+    "dimension": 384,
+    "batch_size": 32,
+    "warmup_iters": 2,
+    "measure_iters": 10
+  },
+  "speed": {
+    "cold_start_ms": 0.0022340000000000003,
+    "warm_latency_p50_ms": 0.055102000000000005,
+    "warm_latency_p95_ms": 0.121947,
+    "warm_latency_p99_ms": 0.121947,
+    "warm_latency_max_ms": 0.121947,
+    "throughput_docs_per_sec": 517256.15009480336,
+    "time_to_first_result_ms": 0.081171,
+    "jitter_cv": 0.3243768416468009
+  },
+  "latency_ms": [
+    0.055702999999999996,
+    0.055212,
+    0.121947,
+    0.055182,
+    0.054992,
+    0.055102000000000005,
+    0.055071999999999996,
+    0.054792,
+    0.055043,
+    0.055012
+  ]
+}
