@@ -686,6 +686,16 @@ pub enum VectorIndex {
 }
 
 impl VectorIndex {
+    /// Load embeddings directly from storage into memory.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if loading from storage fails.
+    pub fn load_from_storage(storage: &Storage) -> Result<Self> {
+        let index = InMemoryVectorIndex::load_from_storage(storage)?;
+        Ok(Self::InMemory(index))
+    }
+
     /// Try to load from file first (Mmap), fall back to storage (InMemory) if unavailable.
     ///
     /// # Errors
@@ -1229,14 +1239,14 @@ mod tests {
 
     #[test]
     fn test_new_index() {
-        let index = VectorIndex::new(384);
+        let index = InMemoryVectorIndex::new(384);
         assert!(index.is_empty());
         assert_eq!(index.dimension(), 384);
     }
 
     #[test]
     fn test_add_and_len() {
-        let mut index = VectorIndex::new(4);
+        let mut index = InMemoryVectorIndex::new(4);
         assert_eq!(index.len(), 0);
 
         let mut v1 = vec![1.0, 0.0, 0.0, 0.0];
@@ -1249,7 +1259,7 @@ mod tests {
 
     #[test]
     fn test_search_empty() {
-        let index = VectorIndex::new(4);
+        let index = InMemoryVectorIndex::new(4);
         let query = vec![1.0, 0.0, 0.0, 0.0];
         let results = index.search_top_k(&query, 10, None);
         assert!(results.is_empty());
@@ -1257,7 +1267,7 @@ mod tests {
 
     #[test]
     fn test_search_basic() {
-        let mut index = VectorIndex::new(4);
+        let mut index = InMemoryVectorIndex::new(4);
 
         // Add some test vectors
         let mut v1 = vec![1.0, 0.0, 0.0, 0.0];
@@ -1285,7 +1295,7 @@ mod tests {
 
     #[test]
     fn test_search_with_type_filter() {
-        let mut index = VectorIndex::new(4);
+        let mut index = InMemoryVectorIndex::new(4);
 
         let mut v1 = vec![1.0, 0.0, 0.0, 0.0];
         let mut v2 = vec![0.9, 0.1, 0.0, 0.0];
@@ -1312,7 +1322,7 @@ mod tests {
     #[test]
     #[allow(clippy::cast_precision_loss)]
     fn test_search_limit() {
-        let mut index = VectorIndex::new(4);
+        let mut index = InMemoryVectorIndex::new(4);
 
         // Add 10 vectors
         for i in 0..10 {
@@ -1328,7 +1338,7 @@ mod tests {
 
     #[test]
     fn test_search_deterministic() {
-        let mut index = VectorIndex::new(8);
+        let mut index = InMemoryVectorIndex::new(8);
 
         // Add vectors with varying similarities
         for i in 0..20 {
@@ -1351,7 +1361,7 @@ mod tests {
 
     #[test]
     fn test_search_deterministic_with_same_id_types() {
-        let mut index = VectorIndex::new(4);
+        let mut index = InMemoryVectorIndex::new(4);
         let mut v = vec![1.0, 0.0, 0.0, 0.0];
         l2_normalize(&mut v);
 
@@ -1368,7 +1378,7 @@ mod tests {
 
     #[test]
     fn test_search_scores_descending() {
-        let mut index = VectorIndex::new(4);
+        let mut index = InMemoryVectorIndex::new(4);
 
         let mut v1 = vec![1.0, 0.0, 0.0, 0.0];
         let mut v2 = vec![0.7, 0.3, 0.0, 0.0];
@@ -1395,7 +1405,7 @@ mod tests {
 
     #[test]
     fn test_zero_k() {
-        let mut index = VectorIndex::new(4);
+        let mut index = InMemoryVectorIndex::new(4);
         let mut v = vec![1.0, 0.0, 0.0, 0.0];
         l2_normalize(&mut v);
         index.add("doc1".to_string(), "tweet", v.clone());
@@ -1406,7 +1416,7 @@ mod tests {
 
     #[test]
     fn test_dimension_mismatch() {
-        let mut index = VectorIndex::new(4);
+        let mut index = InMemoryVectorIndex::new(4);
         let mut v = vec![1.0, 0.0, 0.0, 0.0];
         l2_normalize(&mut v);
         index.add("doc1".to_string(), "tweet", v);
@@ -1597,7 +1607,7 @@ mod tests {
     #[test]
     fn test_load_from_file_nonexistent() {
         let temp_dir = tempfile::tempdir().unwrap();
-        let result = VectorIndex::load_from_file(temp_dir.path()).unwrap();
+        let result = InMemoryVectorIndex::load_from_file(temp_dir.path()).unwrap();
         assert!(result.is_none(), "Should return None for missing file");
     }
 
@@ -1622,7 +1632,7 @@ mod tests {
         assert_eq!(stats.record_count, 2);
 
         // Load from file
-        let index = VectorIndex::load_from_file(temp_dir.path())
+        let index = InMemoryVectorIndex::load_from_file(temp_dir.path())
             .unwrap()
             .expect("Should load successfully");
 
@@ -1646,10 +1656,10 @@ mod tests {
         write_vector_index(temp_dir.path(), &storage).unwrap();
 
         // Load from both sources
-        let from_file = VectorIndex::load_from_file(temp_dir.path())
+        let from_file = InMemoryVectorIndex::load_from_file(temp_dir.path())
             .unwrap()
             .expect("Should load from file");
-        let from_storage = VectorIndex::load_from_storage(&storage).unwrap();
+        let from_storage = InMemoryVectorIndex::load_from_storage(&storage).unwrap();
 
         // Should have same data
         assert_eq!(from_file.len(), from_storage.len());
@@ -1685,7 +1695,7 @@ mod tests {
         std::fs::write(&file_path, &bytes).unwrap();
 
         // Should return None (fall back to DB)
-        let result = VectorIndex::load_from_file(temp_dir.path()).unwrap();
+        let result = InMemoryVectorIndex::load_from_file(temp_dir.path()).unwrap();
         assert!(result.is_none(), "Should return None for invalid magic");
     }
 
@@ -1750,7 +1760,7 @@ mod tests {
         std::fs::write(&file_path, &bytes).unwrap();
 
         // Should return None (invalid file)
-        let result = VectorIndex::load_from_file(temp_dir.path()).unwrap();
+        let result = InMemoryVectorIndex::load_from_file(temp_dir.path()).unwrap();
         assert!(result.is_none(), "Should return None for truncated header");
     }
 
@@ -1772,7 +1782,7 @@ mod tests {
         std::fs::write(&file_path, &bytes).unwrap();
 
         // Should return None (unsupported version)
-        let result = VectorIndex::load_from_file(temp_dir.path()).unwrap();
+        let result = InMemoryVectorIndex::load_from_file(temp_dir.path()).unwrap();
         assert!(result.is_none(), "Should return None for version mismatch");
     }
 
@@ -1800,7 +1810,7 @@ mod tests {
         std::fs::write(&file_path, truncated).unwrap();
 
         // Should return None (truncated record data)
-        let result = VectorIndex::load_from_file(temp_dir.path()).unwrap();
+        let result = InMemoryVectorIndex::load_from_file(temp_dir.path()).unwrap();
         assert!(result.is_none(), "Should return None for truncated record");
     }
 
@@ -1832,7 +1842,7 @@ mod tests {
         std::fs::write(&file_path, &bytes).unwrap();
 
         // Should return None (corrupted offset)
-        let result = VectorIndex::load_from_file(temp_dir.path()).unwrap();
+        let result = InMemoryVectorIndex::load_from_file(temp_dir.path()).unwrap();
         assert!(result.is_none(), "Should return None for corrupted offset");
     }
 
@@ -1875,10 +1885,10 @@ mod tests {
         write_vector_index(temp_dir.path(), &storage).unwrap();
 
         // Load both ways
-        let file_index = VectorIndex::load_from_file(temp_dir.path())
+        let file_index = InMemoryVectorIndex::load_from_file(temp_dir.path())
             .unwrap()
             .expect("Should load from file");
-        let storage_index = VectorIndex::load_from_storage(&storage).unwrap();
+        let storage_index = InMemoryVectorIndex::load_from_storage(&storage).unwrap();
 
         // Use first embedding as query
         let query = &embeddings[0];
@@ -1934,10 +1944,10 @@ mod tests {
         write_vector_index(temp_dir.path(), &storage).unwrap();
 
         // Load both ways
-        let file_index = VectorIndex::load_from_file(temp_dir.path())
+        let file_index = InMemoryVectorIndex::load_from_file(temp_dir.path())
             .unwrap()
             .expect("Should load from file");
-        let storage_index = VectorIndex::load_from_storage(&storage).unwrap();
+        let storage_index = InMemoryVectorIndex::load_from_storage(&storage).unwrap();
 
         // Query embedding
         let query: Vec<f32> = (0..384).map(|j| (j as f32).sin()).collect();
@@ -1994,7 +2004,7 @@ mod tests {
         }
 
         write_vector_index(temp_dir.path(), &storage).unwrap();
-        let index = VectorIndex::load_from_file(temp_dir.path())
+        let index = InMemoryVectorIndex::load_from_file(temp_dir.path())
             .unwrap()
             .expect("Should load");
 
