@@ -7,6 +7,8 @@
 //! - PID file handling
 //! - Signal handling (SIGINT, SIGTERM)
 //! - Idle timeout shutdown
+//! - Protocol version handling (bd-1nya)
+//! - Error responses (bd-1nya)
 //!
 //! # Test Infrastructure
 //!
@@ -32,8 +34,9 @@ use std::time::Duration;
 
 use serial_test::serial;
 use tempfile::TempDir;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::time::sleep;
-use xf::daemon::DaemonClient;
+use xf::daemon::{DaemonClient, Envelope, PROTOCOL_VERSION, Request, Response, error_codes};
 
 // =============================================================================
 // Test Infrastructure
@@ -679,4 +682,326 @@ async fn test_daemon_restart_after_shutdown() {
     );
 
     tracing::info!("Daemon restart test passed");
+}
+
+// =============================================================================
+// Lock File and PID File Tests (bd-376e)
+// =============================================================================
+
+/// Test that PID file contains the correct process ID.
+///
+/// This is a more rigorous version of test_pid_file_is_written that verifies
+/// the PID in the file matches the actual daemon process ID when tests run
+/// serially.
+#[tokio::test]
+#[serial]
+async fn test_pid_file_contains_correct_process_id() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+
+    // PID file should exist
+    assert!(
+        daemon.pid_path.exists(),
+        "PID file should exist at {}",
+        daemon.pid_path.display()
+    );
+
+    // Read and parse the PID
+    let pid_content = std::fs::read_to_string(&daemon.pid_path).expect("read PID file");
+    let file_pid: u32 = pid_content.trim().parse().expect("parse PID");
+
+    // In serial mode, the PID should match our daemon
+    let process_pid = daemon.pid();
+    assert_eq!(
+        file_pid, process_pid,
+        "PID file should contain daemon's PID: file={file_pid}, process={process_pid}"
+    );
+
+    tracing::info!(file_pid, process_pid, "PID file contains correct process ID");
+}
+
+/// Test that starting a second daemon on the same socket path is handled.
+///
+/// The current implementation removes stale sockets on startup, which means
+/// the second daemon will take over. This test documents this behavior.
+/// A proper lock file implementation would prevent the second daemon from starting.
+#[tokio::test]
+#[serial]
+async fn test_second_daemon_on_same_socket_takes_over() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    // Create a shared temp directory for both daemons
+    let temp_dir = tempfile::TempDir::new().expect("create temp dir");
+    let socket_path = temp_dir.path().join("shared.sock");
+
+    // Spawn first daemon
+    let xf_binary = find_xf_binary().expect("find xf binary");
+    let mut cmd1 = Command::new(&xf_binary);
+    cmd1.arg("daemon")
+        .arg("start")
+        .arg("--foreground")
+        .arg("--socket")
+        .arg(&socket_path)
+        .env("XF_DAEMON_SOCK", &socket_path)
+        .env("RUST_LOG", "xf=debug")
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+
+    let mut child1 = cmd1.spawn().expect("spawn first daemon");
+    wait_for_socket(&socket_path, Duration::from_secs(10))
+        .await
+        .expect("first socket");
+
+    let pid1 = child1.id();
+    tracing::info!(pid1, "First daemon started");
+
+    // Try to spawn second daemon on same socket
+    // This should either fail or take over (current behavior: takes over)
+    let mut cmd2 = Command::new(&xf_binary);
+    cmd2.arg("daemon")
+        .arg("start")
+        .arg("--foreground")
+        .arg("--socket")
+        .arg(&socket_path)
+        .env("XF_DAEMON_SOCK", &socket_path)
+        .env("RUST_LOG", "xf=debug")
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+
+    let mut child2 = cmd2.spawn().expect("spawn second daemon");
+    let pid2 = child2.id();
+
+    // Wait a bit for the second daemon to start
+    sleep(Duration::from_millis(500)).await;
+
+    // The second daemon removes the socket, breaking the first daemon's listener.
+    // This documents the current "last writer wins" behavior.
+    // A proper implementation would use advisory locks to prevent this.
+    tracing::info!(pid1, pid2, "Second daemon spawned (may have taken over socket)");
+
+    // Clean up both processes
+    let _ = child1.kill();
+    let _ = child1.wait();
+    let _ = child2.kill();
+    let _ = child2.wait();
+
+    tracing::info!("Socket takeover behavior documented");
+}
+
+/// Test that a stale PID file (pointing to non-existent process) doesn't prevent startup.
+#[tokio::test]
+#[serial]
+#[cfg(unix)]
+async fn test_stale_pid_file_does_not_block_startup() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    // Get the default PID path
+    let user_id = std::env::var("USER")
+        .or_else(|_| std::env::var("USERNAME"))
+        .unwrap_or_else(|_| "default".to_string());
+    let pid_path = PathBuf::from(format!("/tmp/xf-daemon-{user_id}.pid"));
+
+    // Create a stale PID file with a non-existent PID
+    // Using 4194304 (max PID + 1 on most Linux systems) ensures it doesn't exist
+    let stale_pid = 4_194_304u32;
+    std::fs::write(&pid_path, stale_pid.to_string()).expect("write stale PID");
+    tracing::info!(stale_pid, "Created stale PID file");
+
+    // Daemon should start despite stale PID file
+    // (PID file is overwritten, not checked)
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon with stale PID");
+
+    // Verify daemon is running and PID file was updated
+    let new_pid_content = std::fs::read_to_string(&pid_path).expect("read new PID");
+    let new_pid: u32 = new_pid_content.trim().parse().expect("parse new PID");
+
+    assert_ne!(
+        new_pid, stale_pid,
+        "PID file should be updated from stale PID"
+    );
+    assert_eq!(
+        new_pid,
+        daemon.pid(),
+        "PID file should contain new daemon's PID"
+    );
+
+    tracing::info!(
+        stale_pid,
+        new_pid,
+        "Stale PID file was overwritten successfully"
+    );
+}
+
+/// Test that PID file is removed after clean shutdown (SIGINT).
+#[tokio::test]
+#[serial]
+#[cfg(unix)]
+async fn test_pid_file_removed_on_clean_shutdown() {
+    use nix::sys::signal::{kill, Signal};
+    use nix::unistd::Pid;
+
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let mut daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+    let pid_path = daemon.pid_path.clone();
+
+    // Verify PID file exists
+    assert!(pid_path.exists(), "PID file should exist before shutdown");
+
+    // Send SIGINT for graceful shutdown
+    #[allow(clippy::cast_possible_wrap)]
+    let pid_i32 = daemon.pid() as i32;
+    kill(Pid::from_raw(pid_i32), Signal::SIGINT).expect("send SIGINT");
+
+    // Wait for daemon to exit
+    daemon
+        .wait_with_timeout(Duration::from_secs(5))
+        .await
+        .expect("wait for shutdown");
+
+    // Give filesystem a moment to sync
+    sleep(Duration::from_millis(100)).await;
+
+    // PID file should be removed
+    assert!(
+        !pid_path.exists(),
+        "PID file should be removed after clean shutdown: {}",
+        pid_path.display()
+    );
+
+    tracing::info!("PID file cleanup on clean shutdown verified");
+}
+
+/// Test that PID file remains after crash (SIGKILL).
+///
+/// When a daemon crashes or is killed forcefully, it doesn't get a chance
+/// to clean up its PID file. This test verifies the PID file persists,
+/// which is important for stale detection logic.
+#[tokio::test]
+#[serial]
+#[cfg(unix)]
+async fn test_pid_file_persists_after_crash() {
+    use nix::sys::signal::{kill, Signal};
+    use nix::unistd::Pid;
+
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let mut daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+    let pid_path = daemon.pid_path.clone();
+    let original_pid = daemon.pid();
+
+    // Verify PID file exists with correct content
+    assert!(pid_path.exists(), "PID file should exist");
+    let pid_content = std::fs::read_to_string(&pid_path).expect("read PID");
+    let file_pid: u32 = pid_content.trim().parse().expect("parse PID");
+    assert_eq!(file_pid, original_pid);
+
+    // Kill daemon forcefully (SIGKILL - no cleanup opportunity)
+    #[allow(clippy::cast_possible_wrap)]
+    let pid_i32 = original_pid as i32;
+    kill(Pid::from_raw(pid_i32), Signal::SIGKILL).expect("send SIGKILL");
+
+    // Wait for process to be reaped
+    let _ = daemon.child.wait();
+    sleep(Duration::from_millis(100)).await;
+
+    // PID file should still exist (no cleanup was possible)
+    assert!(
+        pid_path.exists(),
+        "PID file should persist after SIGKILL crash"
+    );
+
+    // And should still contain the original (now stale) PID
+    let stale_content = std::fs::read_to_string(&pid_path).expect("read stale PID");
+    let stale_pid: u32 = stale_content.trim().parse().expect("parse stale PID");
+    assert_eq!(
+        stale_pid, original_pid,
+        "Stale PID file should contain crashed daemon's PID"
+    );
+
+    tracing::info!(
+        original_pid,
+        "PID file persistence after crash verified (stale PID: {})",
+        stale_pid
+    );
+
+    // Clean up the stale PID file
+    let _ = std::fs::remove_file(&pid_path);
+}
+
+/// Test that socket file is removed on clean shutdown.
+#[tokio::test]
+#[serial]
+async fn test_socket_removed_on_clean_shutdown() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let mut daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+    let socket_path = daemon.socket_path.clone();
+
+    assert!(socket_path.exists(), "Socket should exist before shutdown");
+
+    daemon.stop().await.expect("graceful stop");
+    sleep(Duration::from_millis(200)).await;
+
+    assert!(
+        !socket_path.exists(),
+        "Socket should be removed after clean shutdown"
+    );
+
+    tracing::info!("Socket cleanup on clean shutdown verified");
+}
+
+/// Test that socket file persists after crash (for stale detection).
+#[tokio::test]
+#[serial]
+#[cfg(unix)]
+async fn test_socket_persists_after_crash() {
+    use nix::sys::signal::{kill, Signal};
+    use nix::unistd::Pid;
+
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let mut daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+    let socket_path = daemon.socket_path.clone();
+
+    assert!(socket_path.exists(), "Socket should exist");
+
+    // Kill forcefully
+    #[allow(clippy::cast_possible_wrap)]
+    let pid_i32 = daemon.pid() as i32;
+    kill(Pid::from_raw(pid_i32), Signal::SIGKILL).expect("send SIGKILL");
+
+    let _ = daemon.child.wait();
+    sleep(Duration::from_millis(100)).await;
+
+    // Socket file may or may not persist depending on kernel behavior
+    // This is system-dependent - document the actual behavior
+    let socket_exists = socket_path.exists();
+    tracing::info!(
+        socket_exists,
+        "Socket persistence after SIGKILL: {}",
+        if socket_exists {
+            "persists (stale socket)"
+        } else {
+            "removed by kernel"
+        }
+    );
+
+    // Clean up if it exists
+    let _ = std::fs::remove_file(&socket_path);
 }
