@@ -2568,12 +2568,12 @@ fn format_naive_date(date: NaiveDate) -> String {
         )
 }
 
-fn cmd_tweet(cli: &Cli, args: &cli::TweetArgs, _output: &Output) -> Result<()> {
+fn cmd_tweet(cli: &Cli, args: &cli::TweetArgs, output: &Output) -> Result<()> {
     let db_path = get_db_path(cli);
     let storage = Storage::open(&db_path)?;
 
     if args.thread {
-        return cmd_tweet_thread(cli, &storage, args);
+        return cmd_tweet_thread(cli, &storage, args, output);
     }
 
     let tweet = storage.get_tweet(&args.id)?;
@@ -2586,38 +2586,38 @@ fn cmd_tweet(cli: &Cli, args: &cli::TweetArgs, _output: &Output) -> Result<()> {
                 } else {
                     serde_json::to_string(&t)?
                 };
-                println!("{json}");
+                output.print(&json);
             }
             OutputFormat::Toon => {
                 let json = serde_json::to_value(&t)?;
-                println!("{}", toon_rust::encode(json, None));
+                output.print(&toon_rust::encode(json, None));
             }
             _ => {
-                println!("{}", "─".repeat(CONTENT_DIVIDER_WIDTH));
-                println!("{}", t.full_text);
-                println!("{}", "─".repeat(CONTENT_DIVIDER_WIDTH));
-                println!(
-                    "  ID: {}  Date: {}",
-                    t.id.dimmed(),
-                    format_relative_date(t.created_at).dimmed()
-                );
+                output.print(&format!("[dim]{}[/]", "─".repeat(CONTENT_DIVIDER_WIDTH)));
+                output.print(&t.full_text);
+                output.print(&format!("[dim]{}[/]", "─".repeat(CONTENT_DIVIDER_WIDTH)));
+                output.print(&format!(
+                    "  [dim]ID: {}  Date: {}[/]",
+                    t.id,
+                    format_relative_date(t.created_at)
+                ));
                 if args.engagement {
-                    println!(
-                        "  {} likes  {} retweets",
-                        format_number(t.favorite_count).bold(),
-                        format_number(t.retweet_count).bold()
-                    );
+                    output.print(&format!(
+                        "  [bold]{}[/] likes  [bold]{}[/] retweets",
+                        format_number(t.favorite_count),
+                        format_number(t.retweet_count)
+                    ));
                 }
                 if !t.hashtags.is_empty() {
-                    println!("  Hashtags: {}", t.hashtags.join(", ").blue());
+                    output.print(&format!("  Hashtags: [blue]{}[/]", t.hashtags.join(", ")));
                 }
                 if let Some(reply_to) = &t.in_reply_to_screen_name {
-                    println!("  {} @{}", "Reply to:".dimmed(), reply_to.bold());
+                    output.print(&format!("  [dim]Reply to:[/] [bold]@{}[/]", reply_to));
                 }
             }
         },
         None => {
-            println!("{}", format!("Tweet {} not found.", args.id).red());
+            output.print(&format!("[red]Tweet {} not found.[/]", args.id));
         }
     }
 
@@ -2625,42 +2625,37 @@ fn cmd_tweet(cli: &Cli, args: &cli::TweetArgs, _output: &Output) -> Result<()> {
 }
 
 #[allow(clippy::too_many_lines)]
-fn cmd_list(cli: &Cli, args: &cli::ListArgs, _output: &Output) -> Result<()> {
+fn cmd_list(cli: &Cli, args: &cli::ListArgs, output: &Output) -> Result<()> {
     let db_path = get_db_path(cli);
 
     if matches!(args.what, ListTarget::Files) {
         let config = Config::load();
         let Some(archive_path) = config.paths.archive else {
-            println!(
-                "{}",
-                "No archive path configured. Use 'xf config --archive <path>' or set XF_ARCHIVE."
-                    .yellow()
-            );
+            output.print("[yellow]No archive path configured. Use 'xf config --archive <path>' or set XF_ARCHIVE.[/]");
             return Ok(());
         };
 
         if !archive_path.exists() {
-            println!(
-                "{}",
-                format!("Archive path not found: {}", archive_path.display()).red()
-            );
+            output.print(&format!(
+                "[red]Archive path not found: {}[/]",
+                archive_path.display()
+            ));
             return Ok(());
         }
 
         let parser = ArchiveParser::new(&archive_path);
         let files = parser.list_data_files()?;
         if files.is_empty() {
-            println!("{}", "No data files found in archive.".yellow());
+            output.print("[yellow]No data files found in archive.[/]");
             return Ok(());
         }
 
-        println!(
-            "{} {} files:\n",
-            "Showing".dimmed(),
-            format_number_usize(files.len()).bold()
-        );
+        output.print(&format!(
+            "[dim]Showing[/] [bold]{}[/] files:\n",
+            format_number_usize(files.len())
+        ));
         for file in &files {
-            println!("{file}");
+            output.print(&format!("{file}"));
         }
         return Ok(());
     }
@@ -2683,64 +2678,57 @@ fn cmd_list(cli: &Cli, args: &cli::ListArgs, _output: &Output) -> Result<()> {
         ListTarget::Files => unreachable!(),
         ListTarget::Tweets => {
             let tweets = storage.get_all_tweets(limit)?;
-            println!(
-                "{} {} tweets:\n",
-                "Showing".dimmed(),
-                format_number_usize(tweets.len()).bold()
-            );
+            output.print(&format!(
+                "[dim]Showing[/] [bold]{}[/] tweets:\n",
+                format_number_usize(tweets.len())
+            ));
             for tweet in &tweets {
                 let date = format_relative_date(tweet.created_at);
                 let text = truncate_text(&tweet.full_text, 80);
-                println!(
-                    "{} {} {}",
-                    date.dimmed(),
-                    format_short_id(&tweet.id).dimmed(),
-                    text
-                );
+                output.print(&format!(
+                    "[dim]{} {}[/] {}",
+                    date, format_short_id(&tweet.id), text
+                ));
             }
         }
         ListTarget::Likes => {
             let likes = storage.get_all_likes(limit)?;
-            println!(
-                "{} {} likes:\n",
-                "Showing".dimmed(),
-                format_number_usize(likes.len()).bold()
-            );
+            output.print(&format!(
+                "[dim]Showing[/] [bold]{}[/] likes:\n",
+                format_number_usize(likes.len())
+            ));
             for like in &likes {
                 let text = like
                     .full_text
                     .as_ref()
                     .map_or_else(|| "[No text]".to_string(), |t| truncate_text(t, 80));
-                println!("{} {}", format_short_id(&like.tweet_id).dimmed(), text);
+                output.print(&format!("[dim]{}[/] {}", format_short_id(&like.tweet_id), text));
             }
         }
         ListTarget::Dms => {
             let dms = storage.get_all_dms(limit)?;
-            println!(
-                "{} {} DM messages:\n",
-                "Showing".dimmed(),
-                format_number_usize(dms.len()).bold()
-            );
+            output.print(&format!(
+                "[dim]Showing[/] [bold]{}[/] DM messages:\n",
+                format_number_usize(dms.len())
+            ));
             for dm in &dms {
                 let date = format_relative_date(dm.created_at);
                 let text = truncate_text(&dm.text, 60);
-                println!(
-                    "{} {} {} {} {}",
-                    date.dimmed(),
-                    format_short_id(&dm.sender_id).dimmed(),
-                    "→".dimmed(),
-                    format_short_id(&dm.recipient_id).dimmed(),
+                output.print(&format!(
+                    "[dim]{} {} → {}[/] {}",
+                    date,
+                    format_short_id(&dm.sender_id),
+                    format_short_id(&dm.recipient_id),
                     text
-                );
+                ));
             }
         }
         ListTarget::Conversations => {
             let conversations = storage.get_dm_conversation_summaries(limit)?;
-            println!(
-                "{} {} conversations:\n",
-                "Showing".dimmed(),
-                format_number_usize(conversations.len()).bold()
-            );
+            output.print(&format!(
+                "[dim]Showing[/] [bold]{}[/] conversations:\n",
+                format_number_usize(conversations.len())
+            ));
             for convo in &conversations {
                 let participants = if convo.participant_ids.is_empty() {
                     "[unknown]".to_string()
@@ -2754,78 +2742,74 @@ fn cmd_list(cli: &Cli, args: &cli::ListArgs, _output: &Output) -> Result<()> {
                 };
                 let first = format_optional_date(convo.first_message_at);
                 let last = format_optional_date(convo.last_message_at);
-                println!(
-                    "{} {} msgs  {} → {}  {}",
-                    format_short_id(&convo.conversation_id).dimmed(),
-                    format_number(convo.message_count).bold(),
-                    first.dimmed(),
-                    last.dimmed(),
-                    participants.dimmed()
-                );
+                output.print(&format!(
+                    "[dim]{}[/] [bold]{}[/] msgs  [dim]{} → {}  {}[/]",
+                    format_short_id(&convo.conversation_id),
+                    format_number(convo.message_count),
+                    first,
+                    last,
+                    participants
+                ));
             }
         }
         ListTarget::Followers => {
             let followers = storage.get_all_followers(limit)?;
-            println!(
-                "{} {} followers:\n",
-                "Showing".dimmed(),
-                format_number_usize(followers.len()).bold()
-            );
+            output.print(&format!(
+                "[dim]Showing[/] [bold]{}[/] followers:\n",
+                format_number_usize(followers.len())
+            ));
             for follower in &followers {
                 let link = follower.user_link.as_deref().unwrap_or("[no link]");
-                println!(
-                    "{} {}",
-                    format_short_id(&follower.account_id).dimmed(),
-                    link.dimmed()
-                );
+                output.print(&format!(
+                    "[dim]{} {}[/]",
+                    format_short_id(&follower.account_id),
+                    link
+                ));
             }
         }
         ListTarget::Following => {
             let following = storage.get_all_following(limit)?;
-            println!(
-                "{} {} following:\n",
-                "Showing".dimmed(),
-                format_number_usize(following.len()).bold()
-            );
+            output.print(&format!(
+                "[dim]Showing[/] [bold]{}[/] following:\n",
+                format_number_usize(following.len())
+            ));
             for f in &following {
                 let link = f.user_link.as_deref().unwrap_or("[no link]");
-                println!(
-                    "{} {}",
-                    format_short_id(&f.account_id).dimmed(),
-                    link.dimmed()
-                );
+                output.print(&format!(
+                    "[dim]{} {}[/]",
+                    format_short_id(&f.account_id),
+                    link
+                ));
             }
         }
         ListTarget::Blocks => {
             let blocks = storage.get_all_blocks(limit)?;
-            println!(
-                "{} {} blocks:\n",
-                "Showing".dimmed(),
-                format_number_usize(blocks.len()).bold()
-            );
+            output.print(&format!(
+                "[dim]Showing[/] [bold]{}[/] blocks:\n",
+                format_number_usize(blocks.len())
+            ));
             for block in &blocks {
                 let link = block.user_link.as_deref().unwrap_or("[no link]");
-                println!(
-                    "{} {}",
-                    format_short_id(&block.account_id).dimmed(),
-                    link.dimmed()
-                );
+                output.print(&format!(
+                    "[dim]{} {}[/]",
+                    format_short_id(&block.account_id),
+                    link
+                ));
             }
         }
         ListTarget::Mutes => {
             let mutes = storage.get_all_mutes(limit)?;
-            println!(
-                "{} {} mutes:\n",
-                "Showing".dimmed(),
-                format_number_usize(mutes.len()).bold()
-            );
+            output.print(&format!(
+                "[dim]Showing[/] [bold]{}[/] mutes:\n",
+                format_number_usize(mutes.len())
+            ));
             for mute in &mutes {
                 let link = mute.user_link.as_deref().unwrap_or("[no link]");
-                println!(
-                    "{} {}",
-                    format_short_id(&mute.account_id).dimmed(),
-                    link.dimmed()
-                );
+                output.print(&format!(
+                    "[dim]{} {}[/]",
+                    format_short_id(&mute.account_id),
+                    link
+                ));
             }
         }
     }
@@ -3034,7 +3018,7 @@ fn csv_escape(value: &serde_json::Value) -> String {
     }
 }
 
-fn cmd_config(cli: &Cli, args: &cli::ConfigArgs, _output: &Output) -> Result<()> {
+fn cmd_config(cli: &Cli, args: &cli::ConfigArgs, output: &Output) -> Result<()> {
     let mut config = Config::load();
     let set_present = args.set.is_some();
     let archive_present = args.archive.is_some();
@@ -3051,24 +3035,24 @@ fn cmd_config(cli: &Cli, args: &cli::ConfigArgs, _output: &Output) -> Result<()>
         config
             .save()
             .with_context(|| "Failed to save config file".to_string())?;
-        println!("{}", "✓ Updated configuration".green());
+        output.print("[green]✓ Updated configuration[/]");
     }
     if args.show {
-        println!("{}", "Current Configuration".bold().cyan());
-        println!("  Database: {}", get_db_path(cli).display());
-        println!("  Index: {}", get_index_path(cli).display());
+        output.print("[bold cyan]Current Configuration[/]");
+        output.print(&format!("  Database: {}", get_db_path(cli).display()));
+        output.print(&format!("  Index: {}", get_index_path(cli).display()));
         if let Some(archive) = &config.paths.archive {
-            println!("  Archive: {}", archive.display());
+            output.print(&format!("  Archive: {}", archive.display()));
         }
     }
     Ok(())
 }
 
-fn cmd_tweet_thread(cli: &Cli, storage: &Storage, args: &cli::TweetArgs) -> Result<()> {
+fn cmd_tweet_thread(cli: &Cli, storage: &Storage, args: &cli::TweetArgs, output: &Output) -> Result<()> {
     let thread = storage.get_tweet_thread(&args.id)?;
 
     if thread.is_empty() {
-        println!("{}", format!("Tweet {} not found.", args.id).red());
+        output.print(&format!("[red]Tweet {} not found.[/]", args.id));
         return Ok(());
     }
 
@@ -3079,30 +3063,30 @@ fn cmd_tweet_thread(cli: &Cli, storage: &Storage, args: &cli::TweetArgs) -> Resu
             } else {
                 serde_json::to_string(&thread)?
             };
-            println!("{json}");
+            output.print(&json);
         }
         OutputFormat::Toon => {
             let json = serde_json::to_value(&thread)?;
-            println!("{}", toon_rust::encode(json, None));
+            output.print(&toon_rust::encode(json, None));
         }
         _ => {
-            println!("{}", "Thread".bold().cyan());
-            println!("{}", "─".repeat(CONTENT_DIVIDER_WIDTH));
+            output.print("[bold cyan]Thread[/]");
+            output.print(&format!("[dim]{}[/]", "─".repeat(CONTENT_DIVIDER_WIDTH)));
             for tweet in &thread {
                 let date = format_relative_date(tweet.created_at);
                 let text = truncate_text(&tweet.full_text, 100);
-                println!(
-                    "{} {} {}",
-                    date.dimmed(),
-                    format_short_id(&tweet.id).dimmed(),
+                output.print(&format!(
+                    "[dim]{} {}[/] {}",
+                    date,
+                    format_short_id(&tweet.id),
                     text
-                );
+                ));
                 if args.engagement {
-                    println!(
-                        "  {} likes  {} retweets",
-                        format_number(tweet.favorite_count).bold(),
-                        format_number(tweet.retweet_count).bold()
-                    );
+                    output.print(&format!(
+                        "  [bold]{}[/] likes  [bold]{}[/] retweets",
+                        format_number(tweet.favorite_count),
+                        format_number(tweet.retweet_count)
+                    ));
                 }
             }
         }
