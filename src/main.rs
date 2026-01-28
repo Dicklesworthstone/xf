@@ -3831,7 +3831,7 @@ fn cmd_models(args: &cli::ModelsArgs, output: &Output) -> Result<()> {
                 .collect();
 
             if output.format() == OutFmt::Json {
-                println!("{}", serde_json::to_string_pretty(&filtered)?);
+                output.print_json_pretty(&filtered)?;
             } else {
                 // Text format
                 println!("{}", "Embedding Models".bold().underline());
@@ -3889,7 +3889,7 @@ fn cmd_models(args: &cli::ModelsArgs, output: &Output) -> Result<()> {
 
             if let Some(m) = model {
                 if output.format() == OutFmt::Json {
-                    println!("{}", serde_json::to_string_pretty(m)?);
+                    output.print_json_pretty(m)?;
                 } else {
                     println!("{}", format!("Model: {}", m.name).bold().underline());
                     println!();
