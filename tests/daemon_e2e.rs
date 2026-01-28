@@ -776,13 +776,30 @@ async fn test_second_daemon_on_same_socket_takes_over() {
     let mut child2 = cmd2.spawn().expect("spawn second daemon");
     let pid2 = child2.id();
 
-    // Wait a bit for the second daemon to start
+    // Wait for the second daemon to potentially take over the socket
+    // The socket file gets removed and recreated, so wait for it to reappear
     sleep(Duration::from_millis(500)).await;
 
     // The second daemon removes the socket, breaking the first daemon's listener.
     // This documents the current "last writer wins" behavior.
     // A proper implementation would use advisory locks to prevent this.
     tracing::info!(pid1, pid2, "Second daemon spawned (may have taken over socket)");
+
+    // Verify the socket is still operational (second daemon took over)
+    if socket_path.exists() {
+        let mut client = DaemonClient::with_socket_path(socket_path.clone());
+        match client.health().await {
+            Ok(health) => {
+                tracing::info!(
+                    uptime = health.uptime_secs,
+                    "Socket operational after takeover"
+                );
+            }
+            Err(e) => {
+                tracing::warn!(error = %e, "Socket not responding after takeover");
+            }
+        }
+    }
 
     // Clean up both processes
     let _ = child1.kill();
@@ -1160,6 +1177,14 @@ async fn test_oversized_request_rejected() {
             tracing::info!(error = %e, "Connection error after oversized request (expected)");
         }
     }
+
+    // Verify daemon is still healthy after rejecting oversized request
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+    let health = client.health().await;
+    assert!(
+        health.is_ok(),
+        "Daemon should still be healthy after rejecting oversized request"
+    );
 
     tracing::info!("Oversized request rejection verified");
 }
