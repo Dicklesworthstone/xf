@@ -102,7 +102,10 @@ impl DaemonProcess {
         let child = cmd.spawn()?;
         let child_pid = child.id();
 
-        tracing::info!(pid = child_pid, "daemon process spawned, waiting for socket");
+        tracing::info!(
+            pid = child_pid,
+            "daemon process spawned, waiting for socket"
+        );
 
         // Wait for socket to appear
         wait_for_socket(&socket_path, Duration::from_secs(10)).await?;
@@ -154,7 +157,10 @@ impl DaemonProcess {
         let child = cmd.spawn()?;
         let child_pid = child.id();
 
-        tracing::info!(pid = child_pid, "daemon process spawned, waiting for socket");
+        tracing::info!(
+            pid = child_pid,
+            "daemon process spawned, waiting for socket"
+        );
 
         // Wait for socket to appear
         wait_for_socket(&socket_path, Duration::from_secs(10)).await?;
@@ -230,7 +236,10 @@ impl DaemonProcess {
     }
 
     /// Wait for the daemon to exit with timeout.
-    async fn wait_with_timeout(&mut self, timeout_duration: Duration) -> anyhow::Result<std::process::ExitStatus> {
+    async fn wait_with_timeout(
+        &mut self,
+        timeout_duration: Duration,
+    ) -> anyhow::Result<std::process::ExitStatus> {
         let start = std::time::Instant::now();
 
         loop {
@@ -252,7 +261,10 @@ impl Drop for DaemonProcess {
     fn drop(&mut self) {
         // Best-effort cleanup: try to kill the process if still running
         if self.is_running() {
-            tracing::warn!(pid = self.child.id(), "daemon still running in drop, killing");
+            tracing::warn!(
+                pid = self.child.id(),
+                "daemon still running in drop, killing"
+            );
             let _ = self.child.kill();
             let _ = self.child.wait();
         }
@@ -486,12 +498,18 @@ async fn test_sigint_clean_shutdown() {
 
     kill(Pid::from_raw(pid as i32), Signal::SIGINT).expect("send SIGINT");
 
-    let status = daemon.wait_with_timeout(Duration::from_secs(5)).await.expect("wait for daemon");
+    let status = daemon
+        .wait_with_timeout(Duration::from_secs(5))
+        .await
+        .expect("wait for daemon");
 
     assert!(status.success(), "Daemon should exit cleanly on SIGINT");
 
     tokio::time::sleep(Duration::from_millis(100)).await;
-    assert!(!socket_path.exists(), "Socket should be cleaned up on SIGINT");
+    assert!(
+        !socket_path.exists(),
+        "Socket should be cleaned up on SIGINT"
+    );
 
     tracing::info!(?status, "SIGINT handling verified");
 }
@@ -518,7 +536,10 @@ async fn test_sigterm_terminates_daemon() {
 
     kill(Pid::from_raw(pid as i32), Signal::SIGTERM).expect("send SIGTERM");
 
-    let status = daemon.wait_with_timeout(Duration::from_secs(5)).await.expect("wait for daemon");
+    let status = daemon
+        .wait_with_timeout(Duration::from_secs(5))
+        .await
+        .expect("wait for daemon");
 
     // SIGTERM causes immediate termination (exit code 15 = signal 15)
     // The daemon doesn't get a chance to clean up
@@ -571,7 +592,12 @@ async fn test_multiple_sequential_clients() {
     for i in 0..5 {
         let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
         let health = client.health().await.expect("health check");
-        tracing::info!(iteration = i, uptime = health.uptime_secs, "Client {} connected", i);
+        tracing::info!(
+            iteration = i,
+            uptime = health.uptime_secs,
+            "Client {} connected",
+            i
+        );
     }
 
     let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
