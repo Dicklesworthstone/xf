@@ -650,10 +650,121 @@ impl MmapVectorIndex {
 
         results
     }
+
+    /// Get counts of embeddings by document type.
+    #[must_use]
+    pub fn type_counts(&self) -> std::collections::HashMap<String, usize> {
+        let mut counts = std::collections::HashMap::new();
+        let bytes = self.mmap.as_slice();
+        let Some(offsets_bytes) = bytes.get(self.offsets_range.clone()) else {
+            return counts;
+        };
+
+        for chunk in offsets_bytes.chunks_exact(8) {
+            let offset = usize::try_from(u64::from_le_bytes([
+                chunk[0], chunk[1], chunk[2], chunk[3], chunk[4], chunk[5], chunk[6], chunk[7],
+            ]))
+            .unwrap_or(usize::MAX);
+            let Some(record) = bytes.get(offset..) else {
+                continue;
+            };
+            if record.is_empty() {
+                continue;
+            }
+            if let Some(doc_type) = decode_doc_type(record[0]) {
+                *counts.entry(doc_type.to_string()).or_insert(0) += 1;
+            }
+        }
+        counts
+    }
+}
+
+/// Unified vector index interface wrapping either Mmap or In-Memory implementation.
+pub enum VectorIndex {
+    Mmap(MmapVectorIndex),
+    InMemory(InMemoryVectorIndex),
+}
+
+impl VectorIndex {
+    /// Try to load from file first (Mmap), fall back to storage (InMemory) if unavailable.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if both file loading and storage loading fail.
+    pub fn load_from_file_or_storage(
+        index_path: &std::path::Path,
+        storage: &Storage,
+    ) -> Result<Self> {
+        // Try mmap first (fast path)
+        let file_path = index_path.join(VECTOR_INDEX_FILENAME);
+        if file_path.exists() {
+            match MmapVectorIndex::open(&file_path) {
+                Ok(index) => return Ok(Self::Mmap(index)),
+                Err(e) => {
+                    tracing::warn!("Failed to mmap vector index, falling back to DB: {}", e);
+                }
+            }
+        }
+
+        // Fall back to storage (slow path, loads into memory)
+        let index = InMemoryVectorIndex::load_from_storage(storage)?;
+        Ok(Self::InMemory(index))
+    }
+
+    /// Get number of records.
+    #[must_use]
+    pub fn len(&self) -> usize {
+        match self {
+            Self::Mmap(idx) => idx.len(),
+            Self::InMemory(idx) => idx.len(),
+        }
+    }
+
+    /// Check if empty.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        match self {
+            Self::Mmap(idx) => idx.is_empty(),
+            Self::InMemory(idx) => idx.is_empty(),
+        }
+    }
+
+    /// Get embedding dimension.
+    #[must_use]
+    #[allow(clippy::missing_const_for_fn)] // Cannot be const due to match on enum
+    pub fn dimension(&self) -> usize {
+        match self {
+            Self::Mmap(idx) => idx.dimension(),
+            Self::InMemory(idx) => idx.dimension(),
+        }
+    }
+
+    /// Get type counts.
+    #[must_use]
+    pub fn type_counts(&self) -> std::collections::HashMap<String, usize> {
+        match self {
+            Self::Mmap(idx) => idx.type_counts(),
+            Self::InMemory(idx) => idx.type_counts(),
+        }
+    }
+
+    /// Search for top-k results.
+    #[must_use]
+    pub fn search_top_k(
+        &self,
+        query: &[f32],
+        k: usize,
+        doc_types: Option<&[&str]>,
+    ) -> Vec<VectorSearchResult> {
+        match self {
+            Self::Mmap(idx) => idx.search_top_k(query, k, doc_types),
+            Self::InMemory(idx) => idx.search_top_k(query, k, doc_types),
+        }
+    }
 }
 
 /// In-memory vector index for fast similarity search.
-pub struct VectorIndex {
+pub struct InMemoryVectorIndex {
     /// All stored vectors with their metadata.
     /// Uses `&'static str` for `doc_type` to avoid allocations.
     vectors: Vec<(String, &'static str, Vec<f32>)>, // (doc_id, doc_type, embedding)
@@ -661,7 +772,7 @@ pub struct VectorIndex {
     dimension: usize,
 }
 
-impl VectorIndex {
+impl InMemoryVectorIndex {
     /// Create a new empty vector index.
     #[must_use]
     pub const fn new(dimension: usize) -> Self {
@@ -774,27 +885,6 @@ impl VectorIndex {
         }
 
         Ok(Some(Self { vectors, dimension }))
-    }
-
-    /// Try to load from file first, fall back to storage if unavailable.
-    ///
-    /// This is the preferred method for search operations - it uses the fast
-    /// file-based index when available, and falls back to `SQLite` otherwise.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if both file loading and storage loading fail.
-    pub fn load_from_file_or_storage(
-        index_path: &std::path::Path,
-        storage: &Storage,
-    ) -> Result<Self> {
-        // Try file first (fast path)
-        if let Some(index) = Self::load_from_file(index_path)? {
-            return Ok(index);
-        }
-
-        // Fall back to storage (slow path)
-        Self::load_from_storage(storage)
     }
 
     /// Add a vector to the index.
