@@ -249,7 +249,7 @@ fn main() -> Result<()> {
         Some(Commands::Export(args)) => cmd_export(&cli, args, &output),
         Some(Commands::Config(args)) => cmd_config(&cli, args, &output),
         Some(Commands::Update) => {
-            cmd_update();
+            cmd_update(&output);
             Ok(())
         }
         Some(Commands::Completions(args)) => {
@@ -3225,13 +3225,9 @@ fn parse_csv_list(value: &str) -> Vec<String> {
         .collect()
 }
 
-fn cmd_update() {
-    println!("{}", "Checking for updates...".cyan());
-    println!(
-        "To update, run:\n  {}",
-        "curl -fsSL https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.sh | bash"
-            .bold()
-    );
+fn cmd_update(output: &Output) {
+    output.print("[cyan]Checking for updates...[/]");
+    output.print("To update, run:\n  [bold]curl -fsSL https://raw.githubusercontent.com/Dicklesworthstone/xf/main/install.sh | bash[/]");
 }
 
 fn cmd_completions(_cli: &Cli, args: &cli::CompletionsArgs) {
@@ -3762,8 +3758,8 @@ fn cmd_models(args: &cli::ModelsArgs, output: &Output) -> Result<()> {
                 output.print_json_pretty(&filtered)?;
             } else {
                 // Text format
-                println!("{}", "Embedding Models".bold().underline());
-                println!();
+                output.print("[bold underline]Embedding Models[/]");
+                output.print("");
 
                 let embedders: Vec<_> = filtered
                     .iter()
@@ -3771,25 +3767,21 @@ fn cmd_models(args: &cli::ModelsArgs, output: &Output) -> Result<()> {
                     .collect();
 
                 if embedders.is_empty() {
-                    println!("  No embedders found.");
+                    output.print("  No embedders found.");
                 } else {
                     for model in &embedders {
-                        let status = if model.available {
-                            "✓".green().to_string()
-                        } else {
-                            "✗".red().to_string()
-                        };
+                        let status = if model.available { "[green]✓[/]" } else { "[red]✗[/]" };
                         let mrl = if model.supports_mrl { " [MRL]" } else { "" };
-                        println!(
+                        output.print(&format!(
                             "  {} {} ({}, {}d){mrl}",
                             status, model.name, model.backend, model.native_dims
-                        );
+                        ));
                     }
                 }
 
-                println!();
-                println!("{}", "Reranker Models".bold().underline());
-                println!();
+                output.print("");
+                output.print("[bold underline]Reranker Models[/]");
+                output.print("");
 
                 let rerankers: Vec<_> = filtered
                     .iter()
@@ -3797,18 +3789,14 @@ fn cmd_models(args: &cli::ModelsArgs, output: &Output) -> Result<()> {
                     .collect();
 
                 if rerankers.is_empty() {
-                    println!("  No rerankers found.");
+                    output.print("  No rerankers found.");
                 } else {
                     for model in &rerankers {
-                        let status = if model.available {
-                            "✓".green().to_string()
-                        } else {
-                            "✗".red().to_string()
-                        };
-                        println!("  {} {} ({})", status, model.name, model.backend);
+                        let status = if model.available { "[green]✓[/]" } else { "[red]✗[/]" };
+                        output.print(&format!("  {} {} ({})", status, model.name, model.backend));
                     }
                 }
-                println!();
+                output.print("");
             }
         }
         ModelsCommand::Info(info_args) => {
@@ -3819,37 +3807,37 @@ fn cmd_models(args: &cli::ModelsArgs, output: &Output) -> Result<()> {
                 if output.format() == OutFmt::Json {
                     output.print_json_pretty(m)?;
                 } else {
-                    println!("{}", format!("Model: {}", m.name).bold().underline());
-                    println!();
-                    println!("  Backend:     {}", m.backend);
-                    println!("  Category:    {}", m.category);
-                    println!("  Dimensions:  {}", m.native_dims);
-                    println!(
+                    output.print(&format!("[bold underline]Model: {}[/]", m.name));
+                    output.print("");
+                    output.print(&format!("  Backend:     {}", m.backend));
+                    output.print(&format!("  Category:    {}", m.category));
+                    output.print(&format!("  Dimensions:  {}", m.native_dims));
+                    output.print(&format!(
                         "  MRL Support: {}",
                         if m.supports_mrl { "yes" } else { "no" }
-                    );
-                    println!(
+                    ));
+                    output.print(&format!(
                         "  Size:        {}",
                         m.size_mb
                             .map_or_else(|| "unknown".to_string(), |s| format!("{s:.1} MB"))
-                    );
-                    println!("  Available:   {}", if m.available { "yes" } else { "no" });
-                    println!("  Downloaded:  {}", if m.downloaded { "yes" } else { "no" });
-                    println!();
+                    ));
+                    output.print(&format!("  Available:   {}", if m.available { "yes" } else { "no" }));
+                    output.print(&format!("  Downloaded:  {}", if m.downloaded { "yes" } else { "no" }));
+                    output.print("");
                 }
             } else {
                 // Try to suggest a close match
                 let all_names: Vec<_> = models.iter().map(|m| m.name.as_str()).collect();
                 if let Some(suggestion) = find_closest_match(&info_args.name, &all_names, None) {
-                    eprintln!(
+                    output.eprint(&format!(
                         "Unknown model: '{}'. Did you mean '{}'?",
                         info_args.name, suggestion
-                    );
+                    ));
                 } else {
-                    eprintln!(
+                    output.eprint(&format!(
                         "Unknown model: '{}'. Run 'xf models list' to see available models.",
                         info_args.name
-                    );
+                    ));
                 }
                 std::process::exit(2);
             }
