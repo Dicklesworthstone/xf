@@ -37,11 +37,13 @@
 //! daemon.run().await?;
 //! ```
 
+mod client;
 mod core;
 mod models;
 mod protocol;
 mod resource;
 
+pub use client::{ClientConfig, DaemonClient, HealthInfo, InferenceMode, StatusInfo};
 pub use core::{DaemonConfig, ModelDaemon};
 pub use models::ModelManager;
 pub use protocol::{Envelope, LoadedModelInfo, PROTOCOL_VERSION, Request, Response, error_codes};
