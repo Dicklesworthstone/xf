@@ -686,6 +686,18 @@ pub enum VectorIndex {
 }
 
 impl VectorIndex {
+    /// Load embeddings from a file into memory.
+    ///
+    /// Returns `Ok(None)` if the file doesn't exist.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file exists but cannot be read or is invalid.
+    pub fn load_from_file(index_path: &std::path::Path) -> Result<Option<Self>> {
+        InMemoryVectorIndex::load_from_file(index_path)
+            .map(|opt| opt.map(Self::InMemory))
+    }
+
     /// Load embeddings directly from storage into memory.
     ///
     /// # Errors
