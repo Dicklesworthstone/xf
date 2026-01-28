@@ -1,0 +1,43 @@
+[Unit]
+Description=xf Warm Model Daemon
+Documentation=https://github.com/Dicklesworthstone/xf
+After=network.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/xf daemon start --foreground
+ExecStop=/usr/local/bin/xf daemon stop
+
+# Resource management
+Nice=10
+IOSchedulingClass=idle
+IOSchedulingPriority=7
+MemoryMax=2G
+MemoryHigh=1536M
+CPUQuota=200%
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+ReadWritePaths=/tmp
+ReadWritePaths=%h/.cache/xf
+
+# Restart policy
+Restart=on-failure
+RestartSec=5
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=xf-daemon
+
+# Environment
+Environment=XF_DAEMON_SOCKET=/tmp/xf-daemon-%u.sock
+Environment=RUST_LOG=xf=info
+
+[Install]
+WantedBy=default.target

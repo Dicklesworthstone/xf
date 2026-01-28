@@ -441,3 +441,102 @@ mod error_tests {
         }
     }
 }
+
+// =============================================================================
+// Service File Validation Tests
+// =============================================================================
+
+mod service_file_tests {
+    #[test]
+    fn test_systemd_service_file_valid() {
+        let content = include_str!("../scripts/daemon/xf-daemon.service");
+        // Basic INI section validation
+        assert!(content.contains("[Unit]"), "Missing [Unit] section");
+        assert!(content.contains("[Service]"), "Missing [Service] section");
+        assert!(content.contains("[Install]"), "Missing [Install] section");
+        // Required directives
+        assert!(content.contains("ExecStart="), "Missing ExecStart");
+        assert!(content.contains("ExecStop="), "Missing ExecStop");
+        assert!(content.contains("Type="), "Missing Type");
+        // Resource limits
+        assert!(content.contains("Nice="), "Missing Nice level");
+        assert!(content.contains("MemoryMax="), "Missing MemoryMax");
+        // Security hardening
+        assert!(
+            content.contains("NoNewPrivileges=true"),
+            "Missing NoNewPrivileges"
+        );
+        assert!(content.contains("ProtectSystem="), "Missing ProtectSystem");
+    }
+
+    #[test]
+    fn test_launchd_plist_valid() {
+        let content = include_str!("../scripts/daemon/com.dicklesworthstone.xf-daemon.plist");
+        // Basic XML validation
+        assert!(
+            content.contains("<!DOCTYPE plist"),
+            "Missing DOCTYPE declaration"
+        );
+        assert!(content.contains("<key>Label</key>"), "Missing Label key");
+        assert!(
+            content.contains("<key>ProgramArguments</key>"),
+            "Missing ProgramArguments"
+        );
+        assert!(
+            content.contains("<key>RunAtLoad</key>"),
+            "Missing RunAtLoad"
+        );
+        assert!(
+            content.contains("<key>KeepAlive</key>"),
+            "Missing KeepAlive"
+        );
+        // Resource settings
+        assert!(content.contains("<key>Nice</key>"), "Missing Nice key");
+        assert!(
+            content.contains("<key>LowPriorityIO</key>"),
+            "Missing LowPriorityIO"
+        );
+        assert!(
+            content.contains("<key>ProcessType</key>"),
+            "Missing ProcessType"
+        );
+        assert!(
+            content.contains("<string>Background</string>"),
+            "Missing Background process type"
+        );
+    }
+
+    #[test]
+    fn test_install_scripts_exist() {
+        let systemd_script = include_str!("../scripts/daemon/install-systemd.sh");
+        assert!(
+            systemd_script.contains("systemctl --user"),
+            "systemd script should use user units"
+        );
+        assert!(
+            systemd_script.contains("daemon-reload"),
+            "systemd script should reload daemon"
+        );
+
+        let launchd_script = include_str!("../scripts/daemon/install-launchd.sh");
+        assert!(
+            launchd_script.contains("launchctl"),
+            "launchd script should use launchctl"
+        );
+        assert!(
+            launchd_script.contains("bootstrap"),
+            "launchd script should bootstrap agent"
+        );
+    }
+
+    #[test]
+    fn test_readme_exists() {
+        let readme = include_str!("../scripts/daemon/README.md");
+        assert!(readme.contains("systemd"), "README should mention systemd");
+        assert!(readme.contains("launchd"), "README should mention launchd");
+        assert!(
+            readme.contains("install"),
+            "README should have install instructions"
+        );
+    }
+}
