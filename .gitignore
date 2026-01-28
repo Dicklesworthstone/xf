@@ -74,3 +74,6 @@ rustc-ice-*.txt
 *.snap.new
 sweep_*.png
 test_screenshot.png
+
+# ML/embedding caches
+.fastembed_cache/
