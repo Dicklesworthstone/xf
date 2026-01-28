@@ -1120,7 +1120,7 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, output: &Output) -> Result<()> {
 }
 
 #[allow(clippy::too_many_lines)]
-fn cmd_search(cli: &Cli, args: &cli::SearchArgs, _output: &Output) -> Result<()> {
+fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> {
     let db_path = get_db_path(cli);
     let index_path = get_index_path(cli);
     let config = Config::load();
@@ -1482,28 +1482,23 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, _output: &Output) -> Result<()>
 
     if results.is_empty() {
         if matches!(cli.format, OutputFormat::Json | OutputFormat::JsonPretty) {
-            println!("[]");
+            output.print("[]");
             return Ok(());
         }
 
-        println!(
-            "{} for \"{}\"\n",
-            "No results found".yellow(),
-            args.query.bold()
-        );
-        println!("  {}", "Try:".dimmed());
-        println!("    {} Using different keywords", "•".dimmed());
-        println!("    {} Checking your spelling", "•".dimmed());
+        output.print(&format!(
+            "[yellow]No results found[/] for \"[bold]{}[/]\"\n",
+            args.query
+        ));
+        output.print("[dim]  Try:[/]");
+        output.print("[dim]    • Using different keywords[/]");
+        output.print("[dim]    • Checking your spelling[/]");
         if args.since.is_some() || args.until.is_some() {
-            println!("    {} Removing date filters", "•".dimmed());
+            output.print("[dim]    • Removing date filters[/]");
         }
         if let Some(types) = &args.types {
             if types.len() == 1 {
-                println!(
-                    "    {} Searching other data types: {}",
-                    "•".dimmed(),
-                    "xf search \"...\" --types tweet,dm,like".cyan()
-                );
+                output.print("[dim]    •[/] Searching other data types: [cyan]xf search \"...\" --types tweet,dm,like[/]");
             }
         }
         return Ok(());
@@ -1517,7 +1512,7 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, _output: &Output) -> Result<()>
 
     if args.context {
         let contexts = build_dm_context(&results, &storage)?;
-        output_dm_context(cli, &contexts, config.search.highlight)?;
+        output_dm_context(cli, &contexts, config.search.highlight, output)?;
         return Ok(());
     }
 
@@ -1526,51 +1521,50 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, _output: &Output) -> Result<()>
         OutputFormat::Json => {
             if let Some(fields) = &args.fields {
                 let filtered = filter_results_fields(&results, fields)?;
-                println!("{}", serde_json::to_string(&filtered)?);
+                output.print(&serde_json::to_string(&filtered)?);
             } else {
-                println!("{}", serde_json::to_string(&results)?);
+                output.print(&serde_json::to_string(&results)?);
             }
         }
         OutputFormat::JsonPretty => {
             if let Some(fields) = &args.fields {
                 let filtered = filter_results_fields(&results, fields)?;
-                println!("{}", serde_json::to_string_pretty(&filtered)?);
+                output.print(&serde_json::to_string_pretty(&filtered)?);
             } else {
-                println!("{}", serde_json::to_string_pretty(&results)?);
+                output.print(&serde_json::to_string_pretty(&results)?);
             }
         }
         OutputFormat::Csv => {
-            println!("type,id,created_at,score,text");
+            output.print("type,id,created_at,score,text");
             for r in &results {
                 // Escape quotes and replace newlines/carriage returns for valid CSV
                 let text_escaped = csv_escape_text(&r.text);
-                println!(
+                output.print(&format!(
                     "{},{},{},{:.4},\"{}\"",
                     r.result_type,
                     r.id,
                     r.created_at.to_rfc3339(),
                     r.score,
                     text_escaped
-                );
+                ));
             }
         }
         OutputFormat::Compact => {
             for r in &results {
-                println!("[{}] {} | {}", r.result_type, r.id, truncate(&r.text, 100));
+                output.print(&format!("[{}] {} | {}", r.result_type, r.id, truncate(&r.text, 100)));
             }
         }
         OutputFormat::Text => {
             let timing_str = format_duration(search_elapsed);
 
-            println!(
-                "Found {} results for \"{}\" in {}\n",
-                format_number_usize(results.len()).bold(),
-                args.query.bold(),
-                timing_str.dimmed()
-            );
+            output.print(&format!(
+                "Found [bold]{}[/] results for \"[bold]{}[/]\" in [dim]{timing_str}[/]\n",
+                format_number_usize(results.len()),
+                args.query
+            ));
 
             for (i, r) in results.iter().enumerate() {
-                print_result(i + 1, r);
+                print_result(i + 1, r, output);
             }
         }
         OutputFormat::Toon => {
@@ -1580,7 +1574,7 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, _output: &Output) -> Result<()>
             } else {
                 serde_json::to_value(&results)?
             };
-            println!("{}", toon_rust::encode(json, None));
+            output.print(&toon_rust::encode(json, None));
         }
     }
 
@@ -1731,20 +1725,21 @@ fn output_dm_context(
     cli: &Cli,
     contexts: &[DmConversationContext],
     highlight_enabled: bool,
+    output: &Output,
 ) -> Result<()> {
     match cli.format {
         OutputFormat::Json => {
-            println!("{}", serde_json::to_string(contexts)?);
+            output.print(&serde_json::to_string(contexts)?);
         }
         OutputFormat::JsonPretty => {
-            println!("{}", serde_json::to_string_pretty(contexts)?);
+            output.print(&serde_json::to_string_pretty(contexts)?);
         }
         OutputFormat::Text => {
-            print_dm_context_text(contexts, highlight_enabled);
+            print_dm_context_text(contexts, highlight_enabled, output);
         }
         OutputFormat::Toon => {
             let json = serde_json::to_value(contexts)?;
-            println!("{}", toon_rust::encode(json, None));
+            output.print(&toon_rust::encode(json, None));
         }
         _ => {
             anyhow::bail!("--context only supports text, json, json-pretty, or toon output.");
@@ -1753,54 +1748,50 @@ fn output_dm_context(
     Ok(())
 }
 
-fn print_dm_context_text(contexts: &[DmConversationContext], highlight_enabled: bool) {
+fn print_dm_context_text(contexts: &[DmConversationContext], highlight_enabled: bool, output: &Output) {
     for context in contexts {
-        println!(
-            "{} {}",
-            "Conversation".bold().cyan(),
-            context.conversation_id.dimmed()
-        );
-        println!("{}", "─".repeat(CONTENT_DIVIDER_WIDTH));
+        output.print(&format!(
+            "[bold cyan]Conversation[/] [dim]{}[/]",
+            context.conversation_id
+        ));
+        output.print(&format!("[dim]{}[/]", "─".repeat(CONTENT_DIVIDER_WIDTH)));
 
         for message in &context.messages {
             let timestamp = format_relative_date(message.created_at);
-            println!(
-                "{} {} {} {}",
-                timestamp.dimmed(),
-                format_short_id(&message.sender_id).dimmed(),
-                "→".dimmed(),
-                format_short_id(&message.recipient_id).dimmed()
-            );
+            output.print(&format!(
+                "[dim]{} {} → {}[/]",
+                timestamp,
+                format_short_id(&message.sender_id),
+                format_short_id(&message.recipient_id)
+            ));
 
             let lines = textwrap::wrap(&message.text, 78);
             for line in lines {
                 if highlight_enabled && message.is_match {
-                    println!("  {}", line.yellow().bold());
+                    output.print(&format!("  [bold yellow]{}[/]", line));
                 } else {
-                    println!("  {line}");
+                    output.print(&format!("  {line}"));
                 }
             }
-            println!();
+            output.print("");
         }
     }
 }
 
-fn print_result(num: usize, result: &SearchResult) {
+fn print_result(num: usize, result: &SearchResult, output: &Output) {
     let type_badge = match result.result_type {
-        SearchResultType::Tweet => "TWEET".on_blue(),
-        SearchResultType::Like => "LIKE".on_magenta(),
-        SearchResultType::DirectMessage => "DM".on_green(),
-        SearchResultType::GrokMessage => "GROK".on_yellow(),
+        SearchResultType::Tweet => "[on blue]TWEET[/]",
+        SearchResultType::Like => "[on magenta]LIKE[/]",
+        SearchResultType::DirectMessage => "[on green]DM[/]",
+        SearchResultType::GrokMessage => "[on yellow]GROK[/]",
     };
 
     // Result number is bold for easy scanning, ID is shown but dimmed
     // Score is hidden in text output (kept in JSON for programmatic use)
-    println!(
-        "{}. {} {}",
-        num.to_string().bold(),
-        type_badge,
-        format_short_id(&result.id).dimmed()
-    );
+    output.print(&format!(
+        "[bold]{}[/]. {} [dim]{}[/]",
+        num, type_badge, format_short_id(&result.id)
+    ));
 
     // Use highlighted text if available, otherwise use plain text
     let display_text = if result.highlights.is_empty() {
@@ -1814,14 +1805,14 @@ fn print_result(num: usize, result: &SearchResult) {
     // Word wrap the text
     let wrapped = textwrap::wrap(&display_text, 78);
     for line in wrapped {
-        println!("   {line}");
+        output.print(&format!("   {line}"));
     }
 
     if result.created_at.timestamp() > 0 {
-        println!("   {}", format_relative_date(result.created_at).dimmed());
+        output.print(&format!("   [dim]{}[/]", format_relative_date(result.created_at)));
     }
 
-    println!();
+    output.print("");
 }
 
 /// Convert HTML-style highlights (from Tantivy) to ANSI colored text
