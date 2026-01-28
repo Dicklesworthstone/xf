@@ -1014,6 +1014,7 @@ async fn test_socket_persists_after_crash() {
 #[tokio::test]
 #[serial]
 #[cfg(unix)]
+#[allow(clippy::cast_possible_truncation)] // Test message sizes are always small
 async fn test_protocol_version_mismatch_rejected() {
     use tokio::net::UnixStream;
 
@@ -1167,6 +1168,7 @@ async fn test_oversized_request_rejected() {
 #[tokio::test]
 #[serial]
 #[cfg(unix)]
+#[allow(clippy::cast_possible_truncation)] // Test message sizes are always small
 async fn test_malformed_request_handled() {
     use tokio::net::UnixStream;
 
@@ -1208,6 +1210,7 @@ async fn test_malformed_request_handled() {
 #[tokio::test]
 #[serial]
 #[cfg(unix)]
+#[allow(clippy::cast_possible_truncation)] // Test message sizes are always small
 async fn test_response_has_correct_protocol_version() {
     use tokio::net::UnixStream;
 
@@ -1260,6 +1263,7 @@ async fn test_response_has_correct_protocol_version() {
 #[tokio::test]
 #[serial]
 #[cfg(unix)]
+#[allow(clippy::cast_possible_truncation)] // Test message sizes are always small
 async fn test_request_id_correlation() {
     use tokio::net::UnixStream;
 
