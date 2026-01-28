@@ -605,9 +605,9 @@ fn cmd_import(cli: &Cli, args: &cli::ImportArgs, output: &Output) -> Result<()> 
         );
     }
 
-    println!();
-    println!("{}", "Importing X data archive...".bold().bright_cyan());
-    println!();
+    output.print("");
+    output.print("[bold bright_cyan]Importing X data archive...[/]");
+    output.print("");
 
     // Create progress bar for extraction
     let pb = ProgressBar::new_spinner();
@@ -672,27 +672,25 @@ fn cmd_import(cli: &Cli, args: &cli::ImportArgs, output: &Output) -> Result<()> 
     // Format extracted size
     let size_str = format_bytes(extracted_size);
 
-    println!(
-        "  {} Extracted to {}",
-        "✓".green().bold(),
-        output_dir.display().to_string().cyan()
-    );
-    println!(
-        "    {} {} in {} files",
-        "→".dimmed(),
-        size_str.bold(),
+    output.print(&format!(
+        "  [bold green]✓[/] Extracted to [cyan]{}[/]",
+        output_dir.display()
+    ));
+    output.print(&format!(
+        "    [dim]→[/] [bold]{}[/] in {} files",
+        size_str,
         total_files
-    );
-    println!();
+    ));
+    output.print("");
 
     // Index unless --no-index
     if args.no_index {
-        println!("  {} Skipping indexing (--no-index)", "·".dimmed());
-        println!();
-        println!(
-            "  Run {} to index later.",
-            format!("xf index {}", output_dir.display()).bright_green()
-        );
+        output.print("[dim]  · Skipping indexing (--no-index)[/]");
+        output.print("");
+        output.print(&format!(
+            "  Run [bright_green]xf index {}[/] to index later.",
+            output_dir.display()
+        ));
     } else {
         // Create index args and call cmd_index
         let index_args = cli::IndexArgs {
@@ -710,7 +708,7 @@ fn cmd_import(cli: &Cli, args: &cli::ImportArgs, output: &Output) -> Result<()> 
         print_import_welcome(&output_dir, cli)?;
     }
 
-    println!();
+    output.print("");
     Ok(())
 }
 
@@ -2203,14 +2201,14 @@ fn cmd_stats(cli: &Cli, args: &cli::StatsArgs, output: &Output) -> Result<()> {
                 } else {
                     serde_json::to_string(&extended)?
                 };
-                println!("{json}");
+                output.print(&json);
             } else {
                 let json = if matches!(cli.format, OutputFormat::JsonPretty) {
                     serde_json::to_string_pretty(&stats)?
                 } else {
                     serde_json::to_string(&stats)?
                 };
-                println!("{json}");
+                output.print(&json);
             }
         }
         OutputFormat::Toon => {
@@ -2225,179 +2223,160 @@ fn cmd_stats(cli: &Cli, args: &cli::StatsArgs, output: &Output) -> Result<()> {
                     content,
                 };
                 let json = serde_json::to_value(&extended)?;
-                println!("{}", toon_rust::encode(json, None));
+                output.print(&toon_rust::encode(json, None));
             } else {
                 let json = serde_json::to_value(&stats)?;
-                println!("{}", toon_rust::encode(json, None));
+                output.print(&toon_rust::encode(json, None));
             }
         }
         _ => {
             // Show fancy banner for --detailed mode
             if args.detailed {
-                println!("{}", "═".repeat(HEADER_DIVIDER_WIDTH).bright_blue());
-                println!(
-                    "{}",
-                    "              ARCHIVE ANALYTICS DASHBOARD              "
-                        .bold()
-                        .on_bright_blue()
-                );
-                println!("{}", "═".repeat(HEADER_DIVIDER_WIDTH).bright_blue());
-                println!();
+                output.print(&format!("[bright_blue]{}[/]", "═".repeat(HEADER_DIVIDER_WIDTH)));
+                output.print("[bold on bright_blue]              ARCHIVE ANALYTICS DASHBOARD              [/]");
+                output.print(&format!("[bright_blue]{}[/]", "═".repeat(HEADER_DIVIDER_WIDTH)));
+                output.print("");
             }
 
-            println!("{}", "Overview".bold().cyan());
-            println!("{}", "─".repeat(CONTENT_DIVIDER_WIDTH));
-            println!(
-                "  {:<20} {}",
-                "Tweets:".dimmed(),
-                format!("{:>10}", format_number(stats.tweets_count)).bold()
-            );
-            println!(
-                "  {:<20} {}",
-                "Likes:".dimmed(),
-                format!("{:>10}", format_number(stats.likes_count)).bold()
-            );
-            println!(
-                "  {:<20} {}",
-                "DM Conversations:".dimmed(),
-                format!("{:>10}", format_number(stats.dm_conversations_count)).bold()
-            );
-            println!(
-                "  {:<20} {}",
-                "DM Messages:".dimmed(),
-                format!("{:>10}", format_number(stats.dms_count)).bold()
-            );
-            println!(
-                "  {:<20} {}",
-                "Grok Messages:".dimmed(),
-                format!("{:>10}", format_number(stats.grok_messages_count)).bold()
-            );
-            println!(
-                "  {:<20} {}",
-                "Followers:".dimmed(),
-                format!("{:>10}", format_number(stats.followers_count)).bold()
-            );
-            println!(
-                "  {:<20} {}",
-                "Following:".dimmed(),
-                format!("{:>10}", format_number(stats.following_count)).bold()
-            );
-            println!(
-                "  {:<20} {}",
-                "Blocks:".dimmed(),
-                format!("{:>10}", format_number(stats.blocks_count)).bold()
-            );
-            println!(
-                "  {:<20} {}",
-                "Mutes:".dimmed(),
-                format!("{:>10}", format_number(stats.mutes_count)).bold()
-            );
-            println!("{}", "─".repeat(CONTENT_DIVIDER_WIDTH));
+            output.print("[bold cyan]Overview[/]");
+            output.print(&format!("[dim]{}[/]", "─".repeat(CONTENT_DIVIDER_WIDTH)));
+            output.print(&format!(
+                "  [dim]{:<20}[/] [bold]{:>10}[/]",
+                "Tweets:", format_number(stats.tweets_count)
+            ));
+            output.print(&format!(
+                "  [dim]{:<20}[/] [bold]{:>10}[/]",
+                "Likes:", format_number(stats.likes_count)
+            ));
+            output.print(&format!(
+                "  [dim]{:<20}[/] [bold]{:>10}[/]",
+                "DM Conversations:", format_number(stats.dm_conversations_count)
+            ));
+            output.print(&format!(
+                "  [dim]{:<20}[/] [bold]{:>10}[/]",
+                "DM Messages:", format_number(stats.dms_count)
+            ));
+            output.print(&format!(
+                "  [dim]{:<20}[/] [bold]{:>10}[/]",
+                "Grok Messages:", format_number(stats.grok_messages_count)
+            ));
+            output.print(&format!(
+                "  [dim]{:<20}[/] [bold]{:>10}[/]",
+                "Followers:", format_number(stats.followers_count)
+            ));
+            output.print(&format!(
+                "  [dim]{:<20}[/] [bold]{:>10}[/]",
+                "Following:", format_number(stats.following_count)
+            ));
+            output.print(&format!(
+                "  [dim]{:<20}[/] [bold]{:>10}[/]",
+                "Blocks:", format_number(stats.blocks_count)
+            ));
+            output.print(&format!(
+                "  [dim]{:<20}[/] [bold]{:>10}[/]",
+                "Mutes:", format_number(stats.mutes_count)
+            ));
+            output.print(&format!("[dim]{}[/]", "─".repeat(CONTENT_DIVIDER_WIDTH)));
 
             if let (Some(first), Some(last)) = (stats.first_tweet_date, stats.last_tweet_date) {
-                println!(
-                    "  {} {}",
-                    "First tweet:".dimmed(),
-                    format_relative_date(first).bold()
-                );
-                println!(
-                    "  {} {}",
-                    "Last tweet:".dimmed(),
-                    format_relative_date(last).bold()
-                );
+                output.print(&format!(
+                    "  [dim]{}[/] [bold]{}[/]",
+                    "First tweet:", format_relative_date(first)
+                ));
+                output.print(&format!(
+                    "  [dim]{}[/] [bold]{}[/]",
+                    "Last tweet:", format_relative_date(last)
+                ));
             }
 
             if let Some(detailed) = detailed {
                 if !detailed.is_empty() {
-                    println!();
-                    println!("{}", "Tweets by Month".bold().cyan());
-                    println!("{}", "─".repeat(CONTENT_DIVIDER_WIDTH));
+                    output.print("");
+                    output.print("[bold cyan]Tweets by Month[/]");
+                    output.print(&format!("[dim]{}[/]", "─".repeat(CONTENT_DIVIDER_WIDTH)));
                     for entry in detailed {
-                        println!(
-                            "  {:04}-{:02}: {}",
+                        output.print(&format!(
+                            "  {:04}-{:02}: [bold]{}[/]",
                             entry.year,
                             entry.month,
-                            format_number_usize(entry.count).bold()
-                        );
+                            format_number_usize(entry.count)
+                        ));
                     }
                 }
             }
 
             if let Some(items) = top_hashtags {
                 if !items.is_empty() {
-                    println!();
-                    println!("{}", "Top Hashtags".bold().cyan());
-                    println!("{}", "─".repeat(CONTENT_DIVIDER_WIDTH));
+                    output.print("");
+                    output.print("[bold cyan]Top Hashtags[/]");
+                    output.print(&format!("[dim]{}[/]", "─".repeat(CONTENT_DIVIDER_WIDTH)));
                     for item in items {
-                        println!(
-                            "  {:<20} {}",
+                        output.print(&format!(
+                            "  {:<20} [bold]{}[/]",
                             item.value,
-                            format_number_usize(item.count).bold()
-                        );
+                            format_number_usize(item.count)
+                        ));
                     }
                 }
             }
 
             if let Some(items) = top_mentions {
                 if !items.is_empty() {
-                    println!();
-                    println!("{}", "Top Mentions".bold().cyan());
-                    println!("{}", "─".repeat(CONTENT_DIVIDER_WIDTH));
+                    output.print("");
+                    output.print("[bold cyan]Top Mentions[/]");
+                    output.print(&format!("[dim]{}[/]", "─".repeat(CONTENT_DIVIDER_WIDTH)));
                     for item in items {
-                        println!(
-                            "  {:<20} {}",
+                        output.print(&format!(
+                            "  {:<20} [bold]{}[/]",
                             item.value,
-                            format_number_usize(item.count).bold()
-                        );
+                            format_number_usize(item.count)
+                        ));
                     }
                 }
             }
 
             #[allow(clippy::cast_possible_wrap)]
             if let Some(ref temporal) = temporal {
-                println!();
-                println!("{}", "Temporal Patterns".bold().cyan());
-                println!("{}", "─".repeat(CONTENT_DIVIDER_WIDTH));
+                output.print("");
+                output.print("[bold cyan]Temporal Patterns[/]");
+                output.print(&format!("[dim]{}[/]", "─".repeat(CONTENT_DIVIDER_WIDTH)));
 
                 // Activity sparkline
                 let sparkline = stats_analytics::sparkline_from_daily(&temporal.daily_counts, 50);
-                println!("  Activity: {}", sparkline.dimmed());
+                output.print(&format!("  Activity: [dim]{}[/]", sparkline));
 
                 // Key metrics
-                println!(
-                    "  {:<25} {}",
-                    "Active days:".dimmed(),
-                    format!("{:>10}", format_number_u64(temporal.active_days_count)).bold()
-                );
-                println!(
-                    "  {:<25} {}",
-                    "Total days in range:".dimmed(),
-                    format!("{:>10}", format_number_u64(temporal.total_days_in_range)).bold()
-                );
-                println!(
-                    "  {:<25} {}",
-                    "Avg tweets/active day:".dimmed(),
-                    format!("{:>10.1}", temporal.avg_tweets_per_active_day).bold()
-                );
+                output.print(&format!(
+                    "  [dim]{:<25}[/] [bold]{:>10}[/]",
+                    "Active days:", format_number_u64(temporal.active_days_count)
+                ));
+                output.print(&format!(
+                    "  [dim]{:<25}[/] [bold]{:>10}[/]",
+                    "Total days in range:", format_number_u64(temporal.total_days_in_range)
+                ));
+                output.print(&format!(
+                    "  [dim]{:<25}[/] [bold]{:>10.1}[/]",
+                    "Avg tweets/active day:", temporal.avg_tweets_per_active_day
+                ));
 
                 // Most active day
                 if let Some(day) = temporal.most_active_day {
-                    println!(
-                        "  {:<25} {} ({})",
-                        "Most active day:".dimmed(),
-                        format_naive_date(day).bold(),
-                        format_number_u64(temporal.most_active_day_count).bold()
-                    );
+                    output.print(&format!(
+                        "  [dim]{:<25}[/] [bold]{}[/] ([bold]{}[/])",
+                        "Most active day:",
+                        format_naive_date(day),
+                        format_number_u64(temporal.most_active_day_count)
+                    ));
                 }
 
                 // Most active hour
                 let hour_label = format!("{:02}:00", temporal.most_active_hour);
-                println!(
-                    "  {:<25} {} ({})",
-                    "Most active hour:".dimmed(),
-                    hour_label.bold(),
-                    format_number_u64(temporal.most_active_hour_count).bold()
-                );
+                output.print(&format!(
+                    "  [dim]{:<25}[/] [bold]{}[/] ([bold]{}[/])",
+                    "Most active hour:",
+                    hour_label,
+                    format_number_u64(temporal.most_active_hour_count)
+                ));
 
                 // Longest gap
                 if temporal.longest_gap_days > 1 {
@@ -2413,151 +2392,144 @@ fn cmd_stats(cli: &Cli, args: &cli::StatsArgs, output: &Output) -> Result<()> {
                     } else {
                         format!("{} days", format_number(temporal.longest_gap_days))
                     };
-                    println!("  {:<25} {}", "Longest gap:".dimmed(), gap_info.yellow());
+                    output.print(&format!("  [dim]{:<25}[/] [yellow]{}[/]", "Longest gap:", gap_info));
                 }
 
                 // Hourly distribution
-                println!();
-                println!("  {} (00-23):", "Hourly distribution".dimmed());
+                output.print("");
+                output.print(&format!("  [dim]{} (00-23):[/]", "Hourly distribution"));
                 let hourly_sparkline =
                     stats_analytics::format_hourly_sparkline(&temporal.hourly_distribution);
-                println!("  {hourly_sparkline}");
+                output.print(&format!("  {hourly_sparkline}"));
 
                 // Day of week distribution
-                println!();
-                println!("  {}:", "Day of week".dimmed());
+                output.print("");
+                output.print(&format!("  [dim]{}:[/]", "Day of week"));
                 let dow_chart =
                     stats_analytics::format_dow_distribution(&temporal.dow_distribution);
                 for line in dow_chart.lines() {
-                    println!("  {line}");
+                    output.print(&format!("  {line}"));
                 }
             }
 
             #[allow(clippy::cast_possible_wrap)]
             if let Some(ref engagement) = engagement {
-                println!();
-                println!("{}", "Engagement Analytics".bold().cyan());
-                println!("{}", "─".repeat(CONTENT_DIVIDER_WIDTH));
+                output.print("");
+                output.print("[bold cyan]Engagement Analytics[/]");
+                output.print(&format!("[dim]{}[/]", "─".repeat(CONTENT_DIVIDER_WIDTH)));
 
                 // Summary metrics
-                println!(
-                    "  Total Likes: {} | Total Retweets: {}",
-                    format_number_u64(engagement.total_likes).bold(),
-                    format_number_u64(engagement.total_retweets).bold()
-                );
-                println!(
-                    "  Average per Tweet: {} | Median: {}",
-                    format!("{:.1}", engagement.avg_engagement).bold(),
-                    format_number_u64(engagement.median_engagement).bold()
-                );
+                output.print(&format!(
+                    "  Total Likes: [bold]{}[/] | Total Retweets: [bold]{}[/]",
+                    format_number_u64(engagement.total_likes),
+                    format_number_u64(engagement.total_retweets)
+                ));
+                output.print(&format!(
+                    "  Average per Tweet: [bold]{:.1}[/] | Median: [bold]{}[/]",
+                    engagement.avg_engagement,
+                    format_number_u64(engagement.median_engagement)
+                ));
 
                 // Trend sparkline
                 if !engagement.monthly_trend.is_empty() {
-                    println!();
-                    println!("  {} (monthly avg):", "Engagement trend".dimmed());
+                    output.print("");
+                    output.print(&format!("  [dim]{} (monthly avg):[/]", "Engagement trend"));
                     let trend_sparkline =
                         stats_analytics::sparkline_from_monthly(&engagement.monthly_trend, 24);
-                    println!("  {trend_sparkline}");
+                    output.print(&format!("  {trend_sparkline}"));
                 }
 
                 // Likes histogram
-                println!();
-                println!("  {}:", "Likes distribution".dimmed());
+                output.print("");
+                output.print(&format!("  [dim]{}:[/]", "Likes distribution"));
                 let histogram =
                     stats_analytics::format_likes_histogram(&engagement.likes_histogram);
                 for line in histogram.lines() {
-                    println!("  {line}");
+                    output.print(&format!("  {line}"));
                 }
 
                 // Top performing tweets
                 if !engagement.top_tweets.is_empty() {
-                    println!();
-                    println!("  {}:", "Top performing tweets".dimmed());
+                    output.print("");
+                    output.print(&format!("  [dim]{}:[/]", "Top performing tweets"));
                     for (i, tweet) in engagement.top_tweets.iter().enumerate() {
-                        println!(
-                            "  {}. [{} {} {}] \"{}\" ({})",
+                        output.print(&format!(
+                            "  {}. [[bold]{}[/] [dim]♥[/] [bold]{}[/]] \"[dim]{}[/]\" ({})",
                             i + 1,
-                            format_number_u64(tweet.likes).bold(),
-                            "♥".dimmed(),
-                            format_number_u64(tweet.retweets).bold(),
-                            tweet.text_preview.dimmed(),
+                            format_number_u64(tweet.likes),
+                            format_number_u64(tweet.retweets),
+                            tweet.text_preview,
                             format_relative_date(tweet.created_at)
-                        );
+                        ));
                     }
                 }
             }
 
             #[allow(clippy::cast_possible_wrap)]
             if let Some(ref content) = content {
-                println!();
-                println!("{}", "Content Analysis".bold().cyan());
-                println!("{}", "─".repeat(CONTENT_DIVIDER_WIDTH));
+                output.print("");
+                output.print("[bold cyan]Content Analysis[/]");
+                output.print(&format!("[dim]{}[/]", "─".repeat(CONTENT_DIVIDER_WIDTH)));
 
                 // Content type ratios
-                println!(
-                    "  {:<25} {}",
-                    "Tweets with media:".dimmed(),
-                    format!("{:>6.1}%", content.media_ratio).bold()
-                );
-                println!(
-                    "  {:<25} {}",
-                    "Tweets with links:".dimmed(),
-                    format!("{:>6.1}%", content.link_ratio).bold()
-                );
-                println!(
-                    "  {:<25} {}",
-                    "Replies:".dimmed(),
-                    format!("{:>6.1}%", content.reply_ratio).bold()
-                );
-                println!(
-                    "  {:<25} {}",
-                    "Self-threads:".dimmed(),
-                    format!("{:>10}", format_number_u64(content.thread_count)).bold()
-                );
-                println!(
-                    "  {:<25} {}",
-                    "Standalone tweets:".dimmed(),
-                    format!("{:>10}", format_number_u64(content.standalone_count)).bold()
-                );
+                output.print(&format!(
+                    "  [dim]{:<25}[/] [bold]{:>6.1}%[/]",
+                    "Tweets with media:", content.media_ratio
+                ));
+                output.print(&format!(
+                    "  [dim]{:<25}[/] [bold]{:>6.1}%[/]",
+                    "Tweets with links:", content.link_ratio
+                ));
+                output.print(&format!(
+                    "  [dim]{:<25}[/] [bold]{:>6.1}%[/]",
+                    "Replies:", content.reply_ratio
+                ));
+                output.print(&format!(
+                    "  [dim]{:<25}[/] [bold]{:>10}[/]",
+                    "Self-threads:", format_number_u64(content.thread_count)
+                ));
+                output.print(&format!(
+                    "  [dim]{:<25}[/] [bold]{:>10}[/]",
+                    "Standalone tweets:", format_number_u64(content.standalone_count)
+                ));
 
                 // Tweet length
-                println!();
-                println!(
-                    "  {:<25} {}",
-                    "Average tweet length:".dimmed(),
-                    format!("{:.1} chars", content.avg_tweet_length).bold()
-                );
-                println!();
-                println!("  {}:", "Length distribution".dimmed());
+                output.print("");
+                output.print(&format!(
+                    "  [dim]{:<25}[/] [bold]{:.1} chars[/]",
+                    "Average tweet length:", content.avg_tweet_length
+                ));
+                output.print("");
+                output.print(&format!("  [dim]{}:[/]", "Length distribution"));
                 let length_chart =
                     stats_analytics::format_length_distribution(&content.length_distribution);
                 for line in length_chart.lines() {
-                    println!("  {line}");
+                    output.print(&format!("  {line}"));
                 }
 
                 // Top hashtags
                 if !content.top_hashtags.is_empty() {
-                    println!();
-                    println!("  {}:", "Top hashtags".dimmed());
+                    output.print("");
+                    output.print(&format!("  [dim]{}:[/]", "Top hashtags"));
                     for tag in content.top_hashtags.iter().take(6) {
-                        println!(
-                            "    #{:<20} {}",
+                        output.print(&format!(
+                            "    #{:<20} [bold]{}[/]",
                             tag.tag,
-                            format_number_u64(tag.count).bold()
-                        );
+                            format_number_u64(tag.count)
+                        ));
                     }
                 }
 
                 // Top mentions
                 if !content.top_mentions.is_empty() {
-                    println!();
-                    println!("  {}:", "Top mentions".dimmed());
+                    output.print("");
+                    output.print(&format!("  [dim]{}:[/]", "Top mentions"));
                     for mention in content.top_mentions.iter().take(6) {
-                        println!(
-                            "    @{:<20} {}",
+                        output.print(&format!(
+                            "    @{:<20} [bold]{}[/]",
                             mention.tag,
-                            format_number_u64(mention.count).bold()
-                        );
+                            format_number_u64(mention.count)
+                        ));
                     }
                 }
             }
