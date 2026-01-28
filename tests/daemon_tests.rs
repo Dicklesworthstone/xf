@@ -7,8 +7,8 @@
 //! - Client configuration
 
 use xf::daemon::{
-    error_codes, get_process_rss_mb, Envelope, IoPriority, LoadedModelInfo, MemoryMonitor,
-    Request, ResourceConfig, Response, PROTOCOL_VERSION,
+    Envelope, IoPriority, LoadedModelInfo, MemoryMonitor, PROTOCOL_VERSION, Request,
+    ResourceConfig, Response, error_codes, get_process_rss_mb,
 };
 
 // =============================================================================
@@ -355,7 +355,11 @@ mod wire_format_tests {
         let req = Request::Health;
         let bytes = rmp_serde::to_vec(&req).unwrap();
         // Health request should be very small
-        assert!(bytes.len() < 20, "Health request too large: {} bytes", bytes.len());
+        assert!(
+            bytes.len() < 20,
+            "Health request too large: {} bytes",
+            bytes.len()
+        );
     }
 
     #[test]
@@ -368,7 +372,11 @@ mod wire_format_tests {
         // 384 floats * 4 bytes = 1536 bytes minimum, plus overhead
         // MsgPack may use more due to array framing but should be efficient
         println!("384-dim embedding response size: {} bytes", bytes.len());
-        assert!(bytes.len() < 3000, "Embeddings too large: {} bytes", bytes.len());
+        assert!(
+            bytes.len() < 3000,
+            "Embeddings too large: {} bytes",
+            bytes.len()
+        );
     }
 
     #[test]
