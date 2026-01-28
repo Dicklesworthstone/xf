@@ -99,7 +99,7 @@ impl DaemonConfig {
     pub fn with_resources(mut self, resources: ResourceConfig) -> Self {
         // Update paths if ResourceConfig specifies them
         if let Some(socket) = &resources.socket_path {
-            self.socket_path = socket.clone();
+            self.socket_path.clone_from(socket);
         }
         self.idle_timeout = resources.idle_timeout;
         self.resources = resources;

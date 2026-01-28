@@ -44,7 +44,7 @@ impl Default for ResourceConfig {
             nice_level: 10,
             io_priority: IoPriority::Idle,
             memory_limit_mb: 2048,
-            max_threads: cpus.min(4).max(1).min(cpus / 2).max(1),
+            max_threads: (cpus / 2).clamp(1, 4),
             idle_timeout: Duration::from_secs(30 * 60),
             socket_path: None,
         }
@@ -96,31 +96,38 @@ impl ResourceConfig {
     }
 
     /// Parse config from TOML string.
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     fn from_toml(content: &str) -> anyhow::Result<Self> {
         let table: toml::Table = toml::from_str(content)?;
         let mut config = Self::default();
 
-        if let Some(daemon) = table.get("daemon").and_then(|v| v.as_table()) {
-            if let Some(v) = daemon.get("nice_level").and_then(|v| v.as_integer()) {
+        if let Some(daemon) = table.get("daemon").and_then(toml::Value::as_table) {
+            if let Some(v) = daemon.get("nice_level").and_then(toml::Value::as_integer) {
                 config.nice_level = v as i32;
             }
-            if let Some(v) = daemon.get("memory_limit_mb").and_then(|v| v.as_integer()) {
+            if let Some(v) = daemon
+                .get("memory_limit_mb")
+                .and_then(toml::Value::as_integer)
+            {
                 config.memory_limit_mb = v as u64;
             }
-            if let Some(v) = daemon.get("max_threads").and_then(|v| v.as_integer()) {
+            if let Some(v) = daemon.get("max_threads").and_then(toml::Value::as_integer) {
                 config.max_threads = v as usize;
             }
-            if let Some(v) = daemon.get("idle_timeout_secs").and_then(|v| v.as_integer()) {
+            if let Some(v) = daemon
+                .get("idle_timeout_secs")
+                .and_then(toml::Value::as_integer)
+            {
                 config.idle_timeout = Duration::from_secs(v as u64);
             }
-            if let Some(v) = daemon.get("socket_path").and_then(|v| v.as_str()) {
+            if let Some(v) = daemon.get("socket_path").and_then(toml::Value::as_str) {
                 config.socket_path = Some(PathBuf::from(v));
             }
-            if let Some(v) = daemon.get("io_priority").and_then(|v| v.as_str()) {
+            if let Some(v) = daemon.get("io_priority").and_then(toml::Value::as_str) {
                 config.io_priority = match v.to_lowercase().as_str() {
-                    "idle" => IoPriority::Idle,
                     "best_effort" | "best-effort" | "besteffort" => IoPriority::BestEffort,
                     "none" => IoPriority::None,
+                    // "idle" and anything else defaults to Idle
                     _ => IoPriority::Idle,
                 };
             }
@@ -230,13 +237,12 @@ fn apply_cpu_nice(level: i32) -> std::io::Result<()> {
 
     if output.status.success() {
         tracing::info!(level, "CPU nice level applied via renice");
-        Ok(())
     } else {
         let stderr = String::from_utf8_lossy(&output.stderr);
         tracing::warn!(level, stderr = %stderr.trim(), "renice failed");
         // Not a hard error - we continue even if nice fails
-        Ok(())
     }
+    Ok(())
 }
 
 #[cfg(not(unix))]
@@ -293,7 +299,10 @@ fn configure_thread_pools(max_threads: usize) {
 
     // Note: ONNX runtime thread configuration would require unsafe set_var
     // in Rust 2024 edition. The runtime will use its default thread count.
-    tracing::debug!(threads = max_threads, "thread pool limit target (ONNX may use default)");
+    tracing::debug!(
+        threads = max_threads,
+        "thread pool limit target (ONNX may use default)"
+    );
 }
 
 /// Memory pressure monitor.
@@ -319,6 +328,7 @@ impl Default for MemoryMonitor {
 impl MemoryMonitor {
     /// Create a new memory monitor with the given threshold.
     #[must_use]
+    #[allow(clippy::missing_const_for_fn)] // clamp is not const
     pub fn new(threshold: f64) -> Self {
         Self {
             threshold: threshold.clamp(0.5, 0.99),
@@ -329,6 +339,7 @@ impl MemoryMonitor {
     /// Check if system is under memory pressure.
     ///
     /// Returns true if memory usage exceeds threshold.
+    #[allow(clippy::cast_precision_loss)] // Precision loss acceptable for memory stats
     pub fn is_under_pressure(&mut self) -> bool {
         let (total, available) = get_system_memory();
 
@@ -433,6 +444,7 @@ fn get_system_memory() -> (u64, u64) {
 
 /// Get current process RSS in MB.
 #[cfg(target_os = "linux")]
+#[must_use]
 pub fn get_process_rss_mb() -> f64 {
     if let Ok(status) = std::fs::read_to_string("/proc/self/status") {
         for line in status.lines() {
@@ -448,6 +460,7 @@ pub fn get_process_rss_mb() -> f64 {
 }
 
 #[cfg(target_os = "macos")]
+#[must_use]
 pub fn get_process_rss_mb() -> f64 {
     // macOS: Use ps command to get RSS
     let pid = std::process::id();
@@ -462,6 +475,7 @@ pub fn get_process_rss_mb() -> f64 {
 }
 
 #[cfg(not(any(target_os = "linux", target_os = "macos")))]
+#[must_use]
 pub fn get_process_rss_mb() -> f64 {
     0.0
 }
@@ -498,10 +512,7 @@ socket_path = "/tmp/test.sock"
         assert_eq!(config.max_threads, 2);
         assert_eq!(config.idle_timeout, Duration::from_secs(600));
         assert_eq!(config.io_priority, IoPriority::BestEffort);
-        assert_eq!(
-            config.socket_path,
-            Some(PathBuf::from("/tmp/test.sock"))
-        );
+        assert_eq!(config.socket_path, Some(PathBuf::from("/tmp/test.sock")));
     }
 
     #[test]

@@ -114,6 +114,9 @@ pub enum Commands {
 
     /// Manage embedding and reranker models
     Models(ModelsArgs),
+
+    /// Manage the warm model daemon
+    Daemon(DaemonArgs),
 }
 
 #[derive(Args, Debug)]
@@ -462,6 +465,53 @@ pub struct ModelsListArgs {
 pub struct ModelsInfoArgs {
     /// Model name to show info for
     pub name: String,
+}
+
+#[derive(Args, Debug)]
+#[command(after_help = r#"Examples:
+  xf daemon start                    # Start the daemon in foreground
+  xf daemon start --background       # Start detached (auto-shutdown on idle)
+  xf daemon stop                     # Stop the running daemon
+  xf daemon status                   # Show daemon status and loaded models
+"#)]
+pub struct DaemonArgs {
+    #[command(subcommand)]
+    pub command: DaemonCommand,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum DaemonCommand {
+    /// Start the model daemon
+    Start(DaemonStartArgs),
+
+    /// Stop the running daemon
+    Stop,
+
+    /// Show daemon status
+    Status,
+}
+
+#[derive(Args, Debug)]
+pub struct DaemonStartArgs {
+    /// Run in foreground (default: detach and exit)
+    #[arg(long, short = 'f')]
+    pub foreground: bool,
+
+    /// Path to socket file
+    #[arg(long)]
+    pub socket: Option<PathBuf>,
+
+    /// Idle timeout in seconds (0 = no timeout)
+    #[arg(long, default_value = "300")]
+    pub idle_timeout: u64,
+
+    /// Maximum models to keep loaded
+    #[arg(long, default_value = "4")]
+    pub max_models: usize,
+
+    /// Path to config file
+    #[arg(long, short = 'c')]
+    pub config: Option<PathBuf>,
 }
 
 #[derive(ValueEnum, Clone, Debug)]

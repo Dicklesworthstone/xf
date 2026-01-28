@@ -240,9 +240,7 @@ mod hash_embedder {
 
         assert!(
             sim_rust_rust2 > sim_rust_python,
-            "Related texts should be more similar: {} vs {}",
-            sim_rust_rust2,
-            sim_rust_python
+            "Related texts should be more similar: {sim_rust_rust2} vs {sim_rust_python}"
         );
     }
 
@@ -347,8 +345,7 @@ mod loading {
         let err_str = err.to_string();
         assert!(
             err_str.contains("not found") || err_str.contains("unavailable"),
-            "Error should indicate model not found: {}",
-            err_str
+            "Error should indicate model not found: {err_str}"
         );
     }
 }
@@ -374,9 +371,7 @@ mod quality {
 
         assert!(
             sim_good > sim_bad,
-            "Related texts should be more similar: {} vs {}",
-            sim_good,
-            sim_bad
+            "Related texts should be more similar: {sim_good} vs {sim_bad}"
         );
         assert!(sim_good > 0.4, "Related texts should have >0.4 similarity");
         assert!(sim_bad < 0.6, "Unrelated texts should have <0.6 similarity");
@@ -396,9 +391,7 @@ mod quality {
 
         assert!(
             sim_good > sim_bad,
-            "Model2Vec should rank relevant higher: {} vs {}",
-            sim_good,
-            sim_bad
+            "Model2Vec should rank relevant higher: {sim_good} vs {sim_bad}"
         );
     }
 
@@ -435,7 +428,7 @@ mod mrl {
 
         for dims in [64, 128, 256, 512, 768] {
             let truncated = embedder.truncate_embedding(&full, dims).unwrap();
-            assert_eq!(truncated.len(), dims, "Truncated should be {} dims", dims);
+            assert_eq!(truncated.len(), dims, "Truncated should be {dims} dims");
         }
     }
 
@@ -456,8 +449,7 @@ mod mrl {
             let truncated = embedder.truncate_embedding(&full, dims).unwrap();
             assert!(
                 is_normalized(&truncated, 0.01),
-                "Truncated to {} dims: must be re-normalized after MRL truncation",
-                dims
+                "Truncated to {dims} dims: must be re-normalized after MRL truncation"
             );
         }
     }
@@ -482,10 +474,7 @@ mod mrl {
 
             assert!(
                 sim_good > sim_bad,
-                "Relevance ordering broken at dims={}: {} vs {}",
-                dims,
-                sim_good,
-                sim_bad
+                "Relevance ordering broken at dims={dims}: {sim_good} vs {sim_bad}"
             );
         }
     }
@@ -495,17 +484,16 @@ mod mrl {
     fn test_mrl_batch_truncation() {
         let embedder = StaticMrlEmbedder::try_load().unwrap();
         let texts = ["hello world", "foo bar", "test sentence"];
-        let text_refs: Vec<&str> = texts.iter().map(|s| *s).collect();
+        let text_refs: Vec<&str> = texts.to_vec();
         let full = embedder.embed_batch(&text_refs).unwrap();
 
         let truncated = embedder.truncate_batch(&full, 256).unwrap();
         assert_eq!(truncated.len(), 3);
         for (i, t) in truncated.iter().enumerate() {
-            assert_eq!(t.len(), 256, "Batch item {} should be 256 dims", i);
+            assert_eq!(t.len(), 256, "Batch item {i} should be 256 dims");
             assert!(
                 is_normalized(t, 0.01),
-                "Batch item {} should be normalized after truncation",
-                i
+                "Batch item {i} should be normalized after truncation"
             );
         }
     }
@@ -549,7 +537,7 @@ mod batch {
     fn test_static_mrl_batch_matches_individual() {
         let embedder = StaticMrlEmbedder::try_load().unwrap();
         let texts = ["hello world", "foo bar", "test three"];
-        let text_refs: Vec<&str> = texts.iter().map(|s| *s).collect();
+        let text_refs: Vec<&str> = texts.to_vec();
 
         let batch = embedder.embed_batch(&text_refs).unwrap();
         for (i, text) in texts.iter().enumerate() {
@@ -561,9 +549,7 @@ mod batch {
                 .sum();
             assert!(
                 diff < 0.001,
-                "Batch and individual should match at index {}, diff={}",
-                i,
-                diff
+                "Batch and individual should match at index {i}, diff={diff}"
             );
         }
     }
@@ -573,7 +559,7 @@ mod batch {
     fn test_model2vec_batch_matches_individual() {
         let embedder = Model2VecEmbedder::try_load(MODEL_POTION_32M).unwrap();
         let texts = ["hello world", "foo bar", "test three"];
-        let text_refs: Vec<&str> = texts.iter().map(|s| *s).collect();
+        let text_refs: Vec<&str> = texts.to_vec();
 
         let batch = embedder.embed_batch(&text_refs).unwrap();
         for (i, text) in texts.iter().enumerate() {
@@ -585,9 +571,7 @@ mod batch {
                 .sum();
             assert!(
                 diff < 0.001,
-                "Batch and individual should match at index {}, diff={}",
-                i,
-                diff
+                "Batch and individual should match at index {i}, diff={diff}"
             );
         }
     }
@@ -604,8 +588,8 @@ mod batch {
     #[ignore = "requires model files"]
     fn test_large_batch() {
         let embedder = StaticMrlEmbedder::try_load().unwrap();
-        let texts: Vec<String> = (0..50).map(|i| format!("document number {}", i)).collect();
-        let text_refs: Vec<&str> = texts.iter().map(|s| s.as_str()).collect();
+        let texts: Vec<String> = (0..50).map(|i| format!("document number {i}")).collect();
+        let text_refs: Vec<&str> = texts.iter().map(String::as_str).collect();
         let results = embedder.embed_batch(&text_refs).unwrap();
         assert_eq!(results.len(), 50);
     }
@@ -658,7 +642,7 @@ mod edge_cases {
         let embedder = StaticMrlEmbedder::try_load().unwrap();
         for text in ["<script>alert(1)</script>", "\n\t\r", "test\0text"] {
             let result = embedder.embed(text);
-            assert!(result.is_ok(), "Should handle special chars: {:?}", text);
+            assert!(result.is_ok(), "Should handle special chars: {text:?}");
         }
     }
 
@@ -713,6 +697,7 @@ mod performance {
 
     #[test]
     #[ignore = "requires model files"]
+    #[allow(clippy::cast_precision_loss)]
     fn test_model2vec_is_fast() {
         let embedder = Model2VecEmbedder::try_load(MODEL_POTION_32M).unwrap();
 
@@ -730,13 +715,13 @@ mod performance {
         // Model2Vec should be very fast (sub-millisecond)
         assert!(
             avg_us < 1000.0,
-            "Model2Vec should be <1ms per embed, got {}us",
-            avg_us
+            "Model2Vec should be <1ms per embed, got {avg_us}us"
         );
     }
 
     #[test]
     #[ignore = "requires model files"]
+    #[allow(clippy::cast_precision_loss)]
     fn test_static_mrl_latency() {
         let embedder = StaticMrlEmbedder::try_load().unwrap();
 
@@ -756,8 +741,7 @@ mod performance {
         // Static MRL uses ONNX but should still be fast
         assert!(
             avg_ms < 50.0,
-            "static-mrl should be <50ms per embed, got {}ms",
-            avg_ms
+            "static-mrl should be <50ms per embed, got {avg_ms}ms"
         );
     }
 }
@@ -842,8 +826,7 @@ mod model2vec_specific {
         // but they should be very similar
         assert!(
             sim > 0.9,
-            "Mean pooling should be mostly order-invariant: {}",
-            sim
+            "Mean pooling should be mostly order-invariant: {sim}"
         );
     }
 }

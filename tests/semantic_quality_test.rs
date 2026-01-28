@@ -6,8 +6,8 @@
 //! 3. Synonyms cluster together
 //! 4. Antonyms are distant
 
-use xf::model2vec_embedder::Model2VecEmbedder;
 use xf::embedder::Embedder;
+use xf::model2vec_embedder::Model2VecEmbedder;
 
 fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
     let dot: f32 = a.iter().zip(b.iter()).map(|(x, y)| x * y).sum();
@@ -21,17 +21,27 @@ fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
 }
 
 #[test]
-#[ignore] // Requires model files
+#[ignore = "Requires model files"]
+#[allow(clippy::cast_precision_loss)]
 fn test_semantic_similarity_pairs() {
-    let embedder = Model2VecEmbedder::try_load("potion-retrieval-32M")
-        .expect("Failed to load model");
+    let embedder =
+        Model2VecEmbedder::try_load("potion-retrieval-32M").expect("Failed to load model");
 
     // Similar pairs should have HIGH similarity (> 0.7)
     let similar_pairs = vec![
-        ("I love programming in Rust", "Rust is my favorite programming language"),
+        (
+            "I love programming in Rust",
+            "Rust is my favorite programming language",
+        ),
         ("The cat sat on the mat", "A feline was resting on the rug"),
-        ("Machine learning is fascinating", "AI and deep learning are interesting"),
-        ("The stock market crashed today", "Financial markets experienced a major downturn"),
+        (
+            "Machine learning is fascinating",
+            "AI and deep learning are interesting",
+        ),
+        (
+            "The stock market crashed today",
+            "Financial markets experienced a major downturn",
+        ),
         ("I'm feeling happy today", "I'm in a great mood"),
         ("The weather is beautiful", "It's a gorgeous sunny day"),
         ("He runs very fast", "He sprints at high speed"),
@@ -41,10 +51,16 @@ fn test_semantic_similarity_pairs() {
     // Dissimilar pairs should have LOW similarity (< 0.5)
     let dissimilar_pairs = vec![
         ("I love programming in Rust", "The cat sat on the mat"),
-        ("Machine learning is fascinating", "The weather is beautiful"),
+        (
+            "Machine learning is fascinating",
+            "The weather is beautiful",
+        ),
         ("The stock market crashed today", "I'm feeling happy today"),
         ("Quantum physics is complex", "I need to buy groceries"),
-        ("The sunset was breathtaking", "Database optimization techniques"),
+        (
+            "The sunset was breathtaking",
+            "Database optimization techniques",
+        ),
         ("My dog loves playing fetch", "The economy is recovering"),
     ];
 
@@ -56,7 +72,7 @@ fn test_semantic_similarity_pairs() {
         let sim = cosine_similarity(&emb_a, &emb_b);
         similar_scores.push(sim);
         let status = if sim > 0.7 { "✓" } else { "✗" };
-        println!("{} {:.3}: \"{}\" <-> \"{}\"", status, sim, a, b);
+        println!("{status} {sim:.3}: \"{a}\" <-> \"{b}\"");
     }
 
     println!("\n=== DISSIMILAR PAIRS (should be < 0.5) ===");
@@ -67,29 +83,38 @@ fn test_semantic_similarity_pairs() {
         let sim = cosine_similarity(&emb_a, &emb_b);
         dissimilar_scores.push(sim);
         let status = if sim < 0.5 { "✓" } else { "✗" };
-        println!("{} {:.3}: \"{}\" <-> \"{}\"", status, sim, a, b);
+        println!("{status} {sim:.3}: \"{a}\" <-> \"{b}\"");
     }
 
     let avg_similar: f32 = similar_scores.iter().sum::<f32>() / similar_scores.len() as f32;
-    let avg_dissimilar: f32 = dissimilar_scores.iter().sum::<f32>() / dissimilar_scores.len() as f32;
+    let avg_dissimilar: f32 =
+        dissimilar_scores.iter().sum::<f32>() / dissimilar_scores.len() as f32;
 
     println!("\n=== SUMMARY ===");
-    println!("Average similar pair score: {:.3}", avg_similar);
-    println!("Average dissimilar pair score: {:.3}", avg_dissimilar);
-    println!("Separation (similar - dissimilar): {:.3}", avg_similar - avg_dissimilar);
+    println!("Average similar pair score: {avg_similar:.3}");
+    println!("Average dissimilar pair score: {avg_dissimilar:.3}");
+    println!(
+        "Separation (similar - dissimilar): {:.3}",
+        avg_similar - avg_dissimilar
+    );
 
     // The gap between similar and dissimilar should be significant
-    assert!(avg_similar > avg_dissimilar,
-        "Similar pairs should score higher than dissimilar pairs");
-    assert!(avg_similar - avg_dissimilar > 0.1,
-        "There should be meaningful separation between similar and dissimilar");
+    assert!(
+        avg_similar > avg_dissimilar,
+        "Similar pairs should score higher than dissimilar pairs"
+    );
+    assert!(
+        avg_similar - avg_dissimilar > 0.1,
+        "There should be meaningful separation between similar and dissimilar"
+    );
 }
 
 #[test]
-#[ignore] // Requires model files
+#[ignore = "Requires model files"]
+#[allow(clippy::cast_precision_loss, clippy::items_after_statements)]
 fn test_topic_clustering() {
-    let embedder = Model2VecEmbedder::try_load("potion-retrieval-32M")
-        .expect("Failed to load model");
+    let embedder =
+        Model2VecEmbedder::try_load("potion-retrieval-32M").expect("Failed to load model");
 
     // Topics that should cluster together
     let tech_sentences = vec![
@@ -139,7 +164,7 @@ fn test_topic_clustering() {
     // Check that topics are more similar to themselves than to other topics
     println!("\n=== TOPIC CLUSTERING ===");
 
-    for (name, sentences, own_centroid) in [
+    for (name, sentences, _own_centroid) in [
         ("Tech", &tech_sentences, &tech_centroid),
         ("Food", &food_sentences, &food_centroid),
         ("Sports", &sports_sentences, &sports_centroid),
@@ -150,13 +175,14 @@ fn test_topic_clustering() {
             (&sports_centroid, "Sports"),
         ];
 
-        println!("\n{} sentences:", name);
-        for sentence in sentences.iter() {
+        println!("\n{name} sentences:");
+        for sentence in sentences {
             let emb = embedder.embed(sentence).unwrap();
-            print!("  \"{}...\"\n    ", &sentence[..sentence.len().min(40)]);
+            let short = &sentence[..sentence.len().min(40)];
+            print!("  \"{short}...\"\n    ");
             for (centroid, centroid_name) in &other_centroids {
                 let sim = cosine_similarity(&emb, centroid);
-                print!("{}: {:.3}  ", centroid_name, sim);
+                print!("{centroid_name}: {sim:.3}  ");
             }
             println!();
         }
@@ -168,9 +194,9 @@ fn test_topic_clustering() {
     let food_sports_sim = cosine_similarity(&food_centroid, &sports_centroid);
 
     println!("\n=== CENTROID SIMILARITIES ===");
-    println!("Tech <-> Food: {:.3}", tech_food_sim);
-    println!("Tech <-> Sports: {:.3}", tech_sports_sim);
-    println!("Food <-> Sports: {:.3}", food_sports_sim);
+    println!("Tech <-> Food: {tech_food_sim:.3}");
+    println!("Tech <-> Sports: {tech_sports_sim:.3}");
+    println!("Food <-> Sports: {food_sports_sim:.3}");
 
     // All cross-topic similarities should be relatively low
     assert!(tech_food_sim < 0.8, "Tech and Food should be distinct");
@@ -179,10 +205,10 @@ fn test_topic_clustering() {
 }
 
 #[test]
-#[ignore] // Requires model files
+#[ignore = "Requires model files"]
 fn test_query_document_matching() {
-    let embedder = Model2VecEmbedder::try_load("potion-retrieval-32M")
-        .expect("Failed to load model");
+    let embedder =
+        Model2VecEmbedder::try_load("potion-retrieval-32M").expect("Failed to load model");
 
     // Queries and their relevant documents
     let test_cases = vec![
@@ -224,7 +250,7 @@ fn test_query_document_matching() {
     let mut total = 0;
 
     for (query, documents) in &test_cases {
-        println!("\nQuery: \"{}\"", query);
+        println!("\nQuery: \"{query}\"");
         let query_emb = embedder.embed(query).unwrap();
 
         let mut scored: Vec<_> = documents
@@ -241,21 +267,29 @@ fn test_query_document_matching() {
         for (doc, relevant, sim) in &scored {
             let marker = if *relevant { "✓" } else { "✗" };
             let expected = if *relevant { "relevant" } else { "irrelevant" };
-            println!("  {} {:.3} [{}] \"{}\"", marker, sim, expected, doc);
+            println!("  {marker} {sim:.3} [{expected}] \"{doc}\"");
         }
 
         // Check if relevant docs are ranked higher than irrelevant
-        let relevant_scores: Vec<f32> = scored.iter()
+        let relevant_scores: Vec<f32> = scored
+            .iter()
             .filter(|(_, r, _)| *r)
             .map(|(_, _, s)| *s)
             .collect();
-        let irrelevant_scores: Vec<f32> = scored.iter()
+        let irrelevant_scores: Vec<f32> = scored
+            .iter()
             .filter(|(_, r, _)| !*r)
             .map(|(_, _, s)| *s)
             .collect();
 
-        let min_relevant = relevant_scores.iter().cloned().fold(f32::INFINITY, f32::min);
-        let max_irrelevant = irrelevant_scores.iter().cloned().fold(f32::NEG_INFINITY, f32::max);
+        let min_relevant = relevant_scores
+            .iter()
+            .copied()
+            .fold(f32::INFINITY, f32::min);
+        let max_irrelevant = irrelevant_scores
+            .iter()
+            .copied()
+            .fold(f32::NEG_INFINITY, f32::max);
 
         if min_relevant > max_irrelevant {
             println!("  → Perfect separation! ✓");
@@ -267,5 +301,5 @@ fn test_query_document_matching() {
     }
 
     println!("\n=== RANKING ACCURACY ===");
-    println!("Queries with perfect separation: {}/{}", correct, total);
+    println!("Queries with perfect separation: {correct}/{total}");
 }

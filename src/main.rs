@@ -261,6 +261,7 @@ fn main() -> Result<()> {
         Some(Commands::Benchmark(args)) => cmd_benchmark(&cli, args, &output),
         Some(Commands::RobotDocs(args)) => cmd_robot_docs(args),
         Some(Commands::Models(args)) => cmd_models(args, &output),
+        Some(Commands::Daemon(args)) => cmd_daemon(args, &output),
     }
 }
 
@@ -3924,6 +3925,136 @@ fn cmd_models(args: &cli::ModelsArgs, output: &Output) -> Result<()> {
                     );
                 }
                 std::process::exit(2);
+            }
+        }
+    }
+
+    Ok(())
+}
+
+/// Handle daemon subcommand.
+#[allow(clippy::too_many_lines)]
+fn cmd_daemon(args: &cli::DaemonArgs, output: &Output) -> Result<()> {
+    use cli::DaemonCommand;
+    use xf::daemon::{DaemonClient, DaemonConfig, ModelDaemon};
+
+    match &args.command {
+        DaemonCommand::Start(start_args) => {
+            // Load config
+            let mut config = DaemonConfig::load(start_args.config.as_ref())?;
+
+            // Apply CLI overrides
+            if let Some(socket) = &start_args.socket {
+                config.socket_path.clone_from(socket);
+            }
+            if start_args.idle_timeout > 0 {
+                config.idle_timeout = Duration::from_secs(start_args.idle_timeout);
+            } else {
+                config.idle_timeout = Duration::MAX; // No timeout
+            }
+            config.max_models = start_args.max_models;
+
+            if start_args.foreground {
+                // Run daemon in foreground
+                println!(
+                    "{} Starting daemon on {} (foreground mode)",
+                    "ℹ".blue(),
+                    config.socket_path.display()
+                );
+                println!(
+                    "{} Idle timeout: {}s, max models: {}",
+                    "ℹ".blue(),
+                    config.idle_timeout.as_secs(),
+                    config.max_models
+                );
+
+                let daemon = ModelDaemon::new(config);
+                let runtime = tokio::runtime::Runtime::new()?;
+                runtime.block_on(daemon.run())?;
+            } else {
+                // Spawn daemon as background process
+                println!("{} Spawning daemon in background...", "ℹ".blue());
+
+                let exe = std::env::current_exe()?;
+                let mut cmd = std::process::Command::new(&exe);
+                cmd.args(["daemon", "start", "--foreground"]);
+
+                if let Some(socket) = &start_args.socket {
+                    cmd.args(["--socket", &socket.to_string_lossy()]);
+                }
+                cmd.args(["--idle-timeout", &start_args.idle_timeout.to_string()]);
+                cmd.args(["--max-models", &start_args.max_models.to_string()]);
+
+                cmd.stdin(std::process::Stdio::null())
+                    .stdout(std::process::Stdio::null())
+                    .stderr(std::process::Stdio::null())
+                    .spawn()?;
+
+                println!("{} Daemon spawned", "✓".green());
+            }
+        }
+
+        DaemonCommand::Stop => {
+            println!("{} Stopping daemon...", "ℹ".blue());
+
+            let mut client = DaemonClient::new();
+            let runtime = tokio::runtime::Runtime::new()?;
+
+            match runtime.block_on(client.shutdown()) {
+                Ok(_) => println!("{} Daemon stopped", "✓".green()),
+                Err(e) => {
+                    if e.to_string().contains("not running") {
+                        eprintln!("{} Daemon is not running", "⚠".yellow());
+                    } else {
+                        return Err(e.context("Failed to stop daemon"));
+                    }
+                }
+            }
+        }
+
+        DaemonCommand::Status => {
+            let mut client = DaemonClient::new();
+            let runtime = tokio::runtime::Runtime::new()?;
+
+            match runtime.block_on(client.status()) {
+                Ok(status) => {
+                    if output.format() == OutFmt::Json {
+                        output.print_json_pretty(&status)?;
+                    } else {
+                        println!("{}", "Daemon Status".bold().underline());
+                        println!();
+                        println!("  Uptime:          {}s", status.uptime_secs);
+                        println!("  Memory (RSS):    {:.1} MB", status.rss_mb);
+                        println!("  Requests served: {}", status.requests_served);
+                        println!("  In-flight:       {}", status.in_flight);
+                        println!("  Queue length:    {}", status.queue_len);
+                        println!();
+                        println!("{}", "Loaded Models".bold().underline());
+                        println!();
+
+                        if status.models.is_empty() {
+                            println!("  No models loaded.");
+                        } else {
+                            for model in &status.models {
+                                println!(
+                                    "  {} ({}) - {} requests",
+                                    model.name.cyan(),
+                                    model.model_type,
+                                    model.requests_served
+                                );
+                            }
+                        }
+                    }
+                }
+                Err(e) => {
+                    if e.to_string().contains("not running")
+                        || e.to_string().contains("No such file")
+                    {
+                        eprintln!("{} Daemon is not running", "⚠".yellow());
+                    } else {
+                        return Err(e.context("Failed to get daemon status"));
+                    }
+                }
             }
         }
     }

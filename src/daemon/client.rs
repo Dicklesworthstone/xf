@@ -56,8 +56,7 @@ impl Default for ClientConfig {
     fn default() -> Self {
         Self {
             socket_path: std::env::var("XF_DAEMON_SOCK")
-                .map(PathBuf::from)
-                .unwrap_or_else(|_| default_socket_path()),
+                .map_or_else(|_| default_socket_path(), PathBuf::from),
             pid_path: default_pid_path(),
             connect_timeout: Duration::from_secs(2),
             request_timeout: Duration::from_secs(30),
@@ -100,7 +99,7 @@ impl DaemonClient {
 
     /// Create a new client with custom configuration.
     #[must_use]
-    pub fn with_config(config: ClientConfig) -> Self {
+    pub const fn with_config(config: ClientConfig) -> Self {
         Self { config, next_id: 1 }
     }
 
@@ -184,10 +183,7 @@ impl DaemonClient {
             }
         }
 
-        anyhow::bail!(
-            "daemon failed to start within {:?}",
-            self.config.spawn_wait
-        )
+        anyhow::bail!("daemon failed to start within {:?}", self.config.spawn_wait)
     }
 
     #[cfg(not(unix))]
@@ -279,9 +275,12 @@ impl DaemonClient {
         }
 
         let mut resp_buf = vec![0u8; resp_len];
-        tokio::time::timeout(self.config.request_timeout, stream.read_exact(&mut resp_buf))
-            .await
-            .map_err(|_| anyhow::anyhow!("response read timeout"))??;
+        tokio::time::timeout(
+            self.config.request_timeout,
+            stream.read_exact(&mut resp_buf),
+        )
+        .await
+        .map_err(|_| anyhow::anyhow!("response read timeout"))??;
 
         // Decode response envelope
         let resp_envelope: Envelope = rmp_serde::from_slice(&resp_buf)?;
@@ -420,7 +419,7 @@ impl Default for DaemonClient {
 }
 
 /// Health check response info.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct HealthInfo {
     /// Daemon uptime in seconds.
     pub uptime_secs: u64,
@@ -429,7 +428,7 @@ pub struct HealthInfo {
 }
 
 /// Status response info.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct StatusInfo {
     /// Daemon uptime in seconds.
     pub uptime_secs: u64,
