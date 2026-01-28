@@ -1,0 +1,2 @@
+model,dimension,batch_size,warmup_iters,measure_iters,cold_start_ms,ttfr_ms,warm_p50_ms,warm_p95_ms,warm_p99_ms,throughput_docs_per_sec
+nomic-embed-text-v1.5,768,32,3,20,44844.06,659.20,466.94,568.44,582.73,69.30
