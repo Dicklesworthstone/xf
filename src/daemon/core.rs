@@ -20,9 +20,7 @@ use tokio::sync::Mutex;
 
 use super::models::ModelManager;
 use super::protocol::{Envelope, PROTOCOL_VERSION, Request, Response, error_codes};
-
-/// Default idle timeout before daemon shuts down (30 minutes).
-const DEFAULT_IDLE_TIMEOUT_SECS: u64 = 30 * 60;
+use super::resource::{ResourceConfig, apply_resource_settings, get_process_rss_mb};
 
 /// Default maximum number of models to keep loaded.
 const DEFAULT_MAX_MODELS: usize = 4;
@@ -41,22 +39,32 @@ pub struct DaemonConfig {
     pub idle_timeout: Duration,
     /// Maximum models to keep loaded.
     pub max_models: usize,
+    /// Resource management settings.
+    pub resources: ResourceConfig,
 }
 
 impl Default for DaemonConfig {
     fn default() -> Self {
+        let resources = ResourceConfig::default();
+
         // Get user identifier for unique socket paths (safe alternative to getuid)
         let user_id = std::env::var("USER")
             .or_else(|_| std::env::var("USERNAME"))
             .unwrap_or_else(|_| "default".to_string());
-        let socket_path = PathBuf::from(format!("/tmp/xf-daemon-{user_id}.sock"));
+
+        // Use socket path from ResourceConfig if set, otherwise default
+        let socket_path = resources
+            .socket_path
+            .clone()
+            .unwrap_or_else(|| PathBuf::from(format!("/tmp/xf-daemon-{user_id}.sock")));
         let pid_path = PathBuf::from(format!("/tmp/xf-daemon-{user_id}.pid"));
 
         Self {
             socket_path,
             pid_path,
-            idle_timeout: Duration::from_secs(DEFAULT_IDLE_TIMEOUT_SECS),
+            idle_timeout: resources.idle_timeout,
             max_models: DEFAULT_MAX_MODELS,
+            resources,
         }
     }
 }
@@ -84,6 +92,27 @@ impl DaemonConfig {
     pub const fn with_max_models(mut self, max: usize) -> Self {
         self.max_models = max;
         self
+    }
+
+    /// Set resource configuration.
+    #[must_use]
+    pub fn with_resources(mut self, resources: ResourceConfig) -> Self {
+        // Update paths if ResourceConfig specifies them
+        if let Some(socket) = &resources.socket_path {
+            self.socket_path = socket.clone();
+        }
+        self.idle_timeout = resources.idle_timeout;
+        self.resources = resources;
+        self
+    }
+
+    /// Load configuration from file and environment.
+    ///
+    /// # Errors
+    /// Returns an error if the config file exists but cannot be parsed.
+    pub fn load(config_path: Option<&PathBuf>) -> anyhow::Result<Self> {
+        let resources = ResourceConfig::load(config_path)?;
+        Ok(Self::default().with_resources(resources))
     }
 }
 
@@ -139,6 +168,9 @@ impl ModelDaemon {
     /// Returns an error on Windows as Unix Domain Sockets are not supported.
     #[cfg(unix)]
     pub async fn run(&self) -> anyhow::Result<()> {
+        // Apply resource settings (nice, ionice, memory limits, thread pools)
+        apply_resource_settings(&self.config.resources)?;
+
         // Clean up stale socket if it exists
         if self.config.socket_path.exists() {
             fs::remove_file(&self.config.socket_path).await?;
@@ -410,7 +442,7 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
             let s = state.lock().await;
 
             // Get RSS (resident set size)
-            let rss_mb = get_rss_mb();
+            let rss_mb = get_process_rss_mb();
 
             Response::Status {
                 uptime_secs: s.uptime_secs(),
@@ -428,35 +460,6 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
             state.lock().await.shutdown_requested = true;
             Response::Shutdown { ok: true }
         }
-    }
-}
-
-/// Get current process RSS in MB.
-fn get_rss_mb() -> f64 {
-    #[cfg(target_os = "linux")]
-    {
-        if let Ok(status) = std::fs::read_to_string("/proc/self/status") {
-            for line in status.lines() {
-                if let Some(kb) = line.strip_prefix("VmRSS:") {
-                    let kb = kb.trim().trim_end_matches(" kB").trim();
-                    if let Ok(kb) = kb.parse::<f64>() {
-                        return kb / 1024.0;
-                    }
-                }
-            }
-        }
-        0.0
-    }
-
-    #[cfg(target_os = "macos")]
-    {
-        // macOS: use mach APIs via libc
-        0.0 // Placeholder - would need mach APIs
-    }
-
-    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
-    {
-        0.0
     }
 }
 
@@ -615,7 +618,7 @@ mod tests {
 
     #[test]
     fn test_get_rss_mb() {
-        let rss = get_rss_mb();
+        let rss = get_process_rss_mb();
         // Should return something >= 0
         assert!(rss >= 0.0);
     }

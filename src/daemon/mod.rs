@@ -40,7 +40,9 @@
 mod core;
 mod models;
 mod protocol;
+mod resource;
 
 pub use core::{DaemonConfig, ModelDaemon};
 pub use models::ModelManager;
 pub use protocol::{Envelope, LoadedModelInfo, PROTOCOL_VERSION, Request, Response, error_codes};
+pub use resource::{IoPriority, MemoryMonitor, ResourceConfig, apply_resource_settings, get_process_rss_mb};
