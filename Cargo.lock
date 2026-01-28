@@ -6090,6 +6090,7 @@ dependencies = [
  "itertools 0.13.0",
  "memchr",
  "ndarray",
+ "num_cpus",
  "once_cell",
  "ort",
  "parking_lot",
