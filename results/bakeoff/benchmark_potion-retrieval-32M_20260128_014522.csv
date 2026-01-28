@@ -1,0 +1,2 @@
+model,dimension,batch_size,warmup_iters,measure_iters,cold_start_ms,ttfr_ms,warm_p50_ms,warm_p95_ms,warm_p99_ms,throughput_docs_per_sec
+potion-retrieval-32M,512,32,5,50,304.60,5.89,0.91,1.21,3.29,33512.31
