@@ -818,7 +818,7 @@ fn print_import_welcome(_archive_path: &PathBuf, cli: &Cli) -> Result<()> {
 }
 
 #[allow(clippy::too_many_lines)]
-fn cmd_index(cli: &Cli, args: &cli::IndexArgs, _output: &Output) -> Result<()> {
+fn cmd_index(cli: &Cli, args: &cli::IndexArgs, output: &Output) -> Result<()> {
     // Use provided path or fall back to config/default
     let config = Config::load();
     let default_path = config
@@ -892,11 +892,11 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, _output: &Output) -> Result<()> {
 
     let index_start = Instant::now();
 
-    println!("{}", "Indexing X data archive...".bold().cyan());
-    println!("  Archive: {}", archive_path.display());
-    println!("  Database: {}", db_path.display());
-    println!("  Index: {}", index_path.display());
-    println!();
+    output.print("[bold cyan]Indexing X data archive...[/]");
+    output.print(&format!("  Archive: {}", archive_path.display()));
+    output.print(&format!("  Database: {}", db_path.display()));
+    output.print(&format!("  Index: {}", index_path.display()));
+    output.print("");
 
     // Parse archive
     let parser = ArchiveParser::new(archive_path);
@@ -909,12 +909,11 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, _output: &Output) -> Result<()> {
     // Parse and store manifest
     let manifest = parser.parse_manifest()?;
     storage.store_archive_info(&manifest)?;
-    println!(
-        "  {} Archive for @{} ({})",
-        "✓".green(),
+    output.print(&format!(
+        "  [green]✓[/] Archive for @{} ({})",
         manifest.username,
         manifest.display_name.as_deref().unwrap_or("Unknown")
-    );
+    ));
 
     // Determine what to index
     let mut data_types = args.only.as_ref().map_or_else(
@@ -974,11 +973,11 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, _output: &Output) -> Result<()> {
         ProgressBar::hidden()
     };
 
-    let log_line = |line: String| {
+    let log_line = |line: &str| {
         if use_progress {
             pb.println(line);
         } else {
-            println!("{line}");
+            output.print(line);
         }
     };
 
@@ -992,11 +991,9 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, _output: &Output) -> Result<()> {
                 storage.store_tweets(&tweets)?;
                 search_engine.index_tweets(&mut writer, &tweets)?;
                 let elapsed = format_duration(item_start.elapsed());
-                log_line(format!(
-                    "  {} {} tweets {}",
-                    "✓".green(),
-                    format_number_usize(tweets.len()).bold(),
-                    format!("({elapsed})").dimmed()
+                log_line(&format!(
+                    "  [green]✓[/] [bold]{}[/] tweets [dim]({elapsed})[/]",
+                    format_number_usize(tweets.len())
                 ));
             }
             DataType::Like => {
@@ -1005,11 +1002,9 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, _output: &Output) -> Result<()> {
                 storage.store_likes(&likes)?;
                 search_engine.index_likes(&mut writer, &likes)?;
                 let elapsed = format_duration(item_start.elapsed());
-                log_line(format!(
-                    "  {} {} likes {}",
-                    "✓".green(),
-                    format_number_usize(likes.len()).bold(),
-                    format!("({elapsed})").dimmed()
+                log_line(&format!(
+                    "  [green]✓[/] [bold]{}[/] likes [dim]({elapsed})[/]",
+                    format_number_usize(likes.len())
                 ));
             }
             DataType::Dm => {
@@ -1019,12 +1014,10 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, _output: &Output) -> Result<()> {
                 storage.store_dm_conversations(&convos)?;
                 search_engine.index_dms(&mut writer, &convos)?;
                 let elapsed = format_duration(item_start.elapsed());
-                log_line(format!(
-                    "  {} {} DM conversations ({} messages) {}",
-                    "✓".green(),
-                    format_number_usize(convos.len()).bold(),
-                    format_number_usize(msg_count).bold(),
-                    format!("({elapsed})").dimmed()
+                log_line(&format!(
+                    "  [green]✓[/] [bold]{}[/] DM conversations ([bold]{}[/] messages) [dim]({elapsed})[/]",
+                    format_number_usize(convos.len()),
+                    format_number_usize(msg_count)
                 ));
             }
             DataType::Grok => {
@@ -1033,11 +1026,9 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, _output: &Output) -> Result<()> {
                 storage.store_grok_messages(&messages)?;
                 search_engine.index_grok_messages(&mut writer, &messages)?;
                 let elapsed = format_duration(item_start.elapsed());
-                log_line(format!(
-                    "  {} {} Grok messages {}",
-                    "✓".green(),
-                    format_number_usize(messages.len()).bold(),
-                    format!("({elapsed})").dimmed()
+                log_line(&format!(
+                    "  [green]✓[/] [bold]{}[/] Grok messages [dim]({elapsed})[/]",
+                    format_number_usize(messages.len())
                 ));
             }
             DataType::Follower => {
@@ -1045,11 +1036,9 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, _output: &Output) -> Result<()> {
                 let followers = parser.parse_followers()?;
                 storage.store_followers(&followers)?;
                 let elapsed = format_duration(item_start.elapsed());
-                log_line(format!(
-                    "  {} {} followers {}",
-                    "✓".green(),
-                    format_number_usize(followers.len()).bold(),
-                    format!("({elapsed})").dimmed()
+                log_line(&format!(
+                    "  [green]✓[/] [bold]{}[/] followers [dim]({elapsed})[/]",
+                    format_number_usize(followers.len())
                 ));
             }
             DataType::Following => {
@@ -1057,11 +1046,9 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, _output: &Output) -> Result<()> {
                 let following = parser.parse_following()?;
                 storage.store_following(&following)?;
                 let elapsed = format_duration(item_start.elapsed());
-                log_line(format!(
-                    "  {} {} following {}",
-                    "✓".green(),
-                    format_number_usize(following.len()).bold(),
-                    format!("({elapsed})").dimmed()
+                log_line(&format!(
+                    "  [green]✓[/] [bold]{}[/] following [dim]({elapsed})[/]",
+                    format_number_usize(following.len())
                 ));
             }
             DataType::Block => {
@@ -1069,11 +1056,9 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, _output: &Output) -> Result<()> {
                 let blocks = parser.parse_blocks()?;
                 storage.store_blocks(&blocks)?;
                 let elapsed = format_duration(item_start.elapsed());
-                log_line(format!(
-                    "  {} {} blocks {}",
-                    "✓".green(),
-                    format_number_usize(blocks.len()).bold(),
-                    format!("({elapsed})").dimmed()
+                log_line(&format!(
+                    "  [green]✓[/] [bold]{}[/] blocks [dim]({elapsed})[/]",
+                    format_number_usize(blocks.len())
                 ));
             }
             DataType::Mute => {
@@ -1081,11 +1066,9 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, _output: &Output) -> Result<()> {
                 let mutes = parser.parse_mutes()?;
                 storage.store_mutes(&mutes)?;
                 let elapsed = format_duration(item_start.elapsed());
-                log_line(format!(
-                    "  {} {} mutes {}",
-                    "✓".green(),
-                    format_number_usize(mutes.len()).bold(),
-                    format!("({elapsed})").dimmed()
+                log_line(&format!(
+                    "  [green]✓[/] [bold]{}[/] mutes [dim]({elapsed})[/]",
+                    format_number_usize(mutes.len())
                 ));
             }
             DataType::All => {
@@ -1113,28 +1096,25 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, _output: &Output) -> Result<()> {
     // Write vector index file for fast semantic search
     let vector_stats = write_vector_index(&index_path, &storage)?;
     if !cli.quiet && vector_stats.record_count > 0 {
-        println!(
-            "  {} Vector index written ({} records, {})",
-            "✓".green(),
+        output.print(&format!(
+            "  [green]✓[/] Vector index written ({} records, {})",
             format_number_usize(vector_stats.record_count),
             format_bytes(vector_stats.file_size)
-        );
+        ));
     }
 
     let total_elapsed = format_duration(index_start.elapsed());
 
-    println!();
-    println!(
-        "{} {}",
-        "✓".green(),
-        format!("Indexing complete in {total_elapsed}").bold()
-    );
-    println!(
-        "  Total documents indexed: {}",
-        format_number_u64(search_engine.doc_count()).bold()
-    );
-    println!();
-    println!("Run {} to search your archive.", "xf search <query>".bold());
+    output.print("");
+    output.print(&format!(
+        "[green]✓[/] [bold]Indexing complete in {total_elapsed}[/]"
+    ));
+    output.print(&format!(
+        "  Total documents indexed: [bold]{}[/]",
+        format_number_u64(search_engine.doc_count())
+    ));
+    output.print("");
+    output.print("Run [bold]xf search <query>[/] to search your archive.");
 
     Ok(())
 }
