@@ -260,6 +260,7 @@ fn main() -> Result<()> {
         Some(Commands::Shell(args)) => cmd_shell(&cli, args, &output),
         Some(Commands::Benchmark(args)) => cmd_benchmark(&cli, args, &output),
         Some(Commands::RobotDocs(args)) => cmd_robot_docs(args),
+        Some(Commands::Models(args)) => cmd_models(args, &output),
     }
 }
 
@@ -3793,6 +3794,140 @@ fn cmd_robot_docs(args: &cli::RobotDocsArgs) -> Result<()> {
 
     let docs = xf::robot_docs::generate(&args.topic);
     println!("{}", serde_json::to_string_pretty(&docs)?);
+    Ok(())
+}
+
+// ============================================================================
+// Models Command
+// ============================================================================
+
+#[allow(clippy::too_many_lines)]
+fn cmd_models(args: &cli::ModelsArgs, output: &Output) -> Result<()> {
+    use cli::{ModelType, ModelsCommand};
+
+    let registry = ModelRegistry::new();
+
+    match &args.command {
+        ModelsCommand::List(list_args) => {
+            let models = registry.list_models();
+
+            // Filter by type if specified
+            let filtered: Vec<_> = models
+                .into_iter()
+                .filter(|m| {
+                    list_args
+                        .model_type
+                        .as_ref()
+                        .is_none_or(|model_type| match model_type {
+                            ModelType::Embedder => {
+                                registry.embedder_names().contains(&m.name.as_str())
+                            }
+                            ModelType::Reranker => {
+                                registry.reranker_names().contains(&m.name.as_str())
+                            }
+                        })
+                })
+                .filter(|m| !list_args.available || m.available)
+                .collect();
+
+            if output.format() == OutFmt::Json {
+                println!("{}", serde_json::to_string_pretty(&filtered)?);
+            } else {
+                // Text format
+                println!("{}", "Embedding Models".bold().underline());
+                println!();
+
+                let embedders: Vec<_> = filtered
+                    .iter()
+                    .filter(|m| registry.embedder_names().contains(&m.name.as_str()))
+                    .collect();
+
+                if embedders.is_empty() {
+                    println!("  No embedders found.");
+                } else {
+                    for model in &embedders {
+                        let status = if model.available {
+                            "✓".green().to_string()
+                        } else {
+                            "✗".red().to_string()
+                        };
+                        let mrl = if model.supports_mrl { " [MRL]" } else { "" };
+                        println!(
+                            "  {} {} ({}, {}d){mrl}",
+                            status, model.name, model.backend, model.native_dims
+                        );
+                    }
+                }
+
+                println!();
+                println!("{}", "Reranker Models".bold().underline());
+                println!();
+
+                let rerankers: Vec<_> = filtered
+                    .iter()
+                    .filter(|m| registry.reranker_names().contains(&m.name.as_str()))
+                    .collect();
+
+                if rerankers.is_empty() {
+                    println!("  No rerankers found.");
+                } else {
+                    for model in &rerankers {
+                        let status = if model.available {
+                            "✓".green().to_string()
+                        } else {
+                            "✗".red().to_string()
+                        };
+                        println!("  {} {} ({})", status, model.name, model.backend);
+                    }
+                }
+                println!();
+            }
+        }
+        ModelsCommand::Info(info_args) => {
+            let models = registry.list_models();
+            let model = models.iter().find(|m| m.name == info_args.name);
+
+            if let Some(m) = model {
+                if output.format() == OutFmt::Json {
+                    println!("{}", serde_json::to_string_pretty(m)?);
+                } else {
+                    println!("{}", format!("Model: {}", m.name).bold().underline());
+                    println!();
+                    println!("  Backend:     {}", m.backend);
+                    println!("  Category:    {}", m.category);
+                    println!("  Dimensions:  {}", m.native_dims);
+                    println!(
+                        "  MRL Support: {}",
+                        if m.supports_mrl { "yes" } else { "no" }
+                    );
+                    println!(
+                        "  Size:        {}",
+                        m.size_mb
+                            .map_or_else(|| "unknown".to_string(), |s| format!("{s:.1} MB"))
+                    );
+                    println!("  Available:   {}", if m.available { "yes" } else { "no" });
+                    println!("  Downloaded:  {}", if m.downloaded { "yes" } else { "no" });
+                    println!();
+                }
+            } else {
+                // Try to suggest a close match
+                let all_names: Vec<_> = models.iter().map(|m| m.name.as_str()).collect();
+                if let Some(suggestion) = find_closest_match(&info_args.name, &all_names, None) {
+                    eprintln!(
+                        "Unknown model: '{}'. Did you mean '{}'?",
+                        info_args.name, suggestion
+                    );
+                } else {
+                    eprintln!(
+                        "Unknown model: '{}'. Run 'xf models list' to see available models.",
+                        info_args.name
+                    );
+                }
+                std::process::exit(2);
+            }
+        }
+    }
+
     Ok(())
 }
 

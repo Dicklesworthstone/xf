@@ -472,9 +472,7 @@ pub enum ModelType {
 
 /// Validate MRL dimensions (must be 256, 512, 768, or 1024).
 fn validate_mrl_dims(s: &str) -> Result<usize, String> {
-    let dims: usize = s
-        .parse()
-        .map_err(|_| format!("invalid dimension: {s}"))?;
+    let dims: usize = s.parse().map_err(|_| format!("invalid dimension: {s}"))?;
     match dims {
         256 | 512 | 768 | 1024 => Ok(dims),
         _ => Err(format!(
