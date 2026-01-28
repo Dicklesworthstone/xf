@@ -4,9 +4,11 @@
 //! - Protocol serialization/deserialization
 //! - Resource configuration
 //! - Memory monitoring
-//! - Client configuration
+//! - Client configuration (ClientConfig, DaemonClient, DaemonConfig)
+//! - ModelManager (loading, caching, eviction)
+//! - Info types (HealthInfo, StatusInfo)
 //! - Wire format
-//! - Service files
+//! - Service files (systemd, launchd)
 
 use std::path::PathBuf;
 use std::time::Duration;
