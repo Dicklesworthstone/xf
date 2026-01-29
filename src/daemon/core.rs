@@ -647,4 +647,86 @@ mod tests {
         // Should return something >= 0
         assert!(rss >= 0.0);
     }
+
+    #[test]
+    fn test_with_paths() {
+        let config = DaemonConfig::with_paths(
+            PathBuf::from("/tmp/custom.sock"),
+            PathBuf::from("/tmp/custom.pid"),
+        );
+        assert_eq!(config.socket_path, PathBuf::from("/tmp/custom.sock"));
+        assert_eq!(config.pid_path, PathBuf::from("/tmp/custom.pid"));
+        // Other defaults should still hold
+        assert_eq!(config.max_models, DEFAULT_MAX_MODELS);
+        assert_eq!(config.idle_timeout, Duration::from_secs(30 * 60));
+    }
+
+    #[test]
+    fn test_with_resources() {
+        let resources = ResourceConfig {
+            socket_path: Some(PathBuf::from("/tmp/res.sock")),
+            idle_timeout: Duration::from_secs(120),
+            ..ResourceConfig::default()
+        };
+        let config = DaemonConfig::default().with_resources(resources);
+        assert_eq!(config.socket_path, PathBuf::from("/tmp/res.sock"));
+        assert_eq!(config.idle_timeout, Duration::from_secs(120));
+    }
+
+    #[test]
+    fn test_with_resources_no_socket_override() {
+        let resources = ResourceConfig {
+            socket_path: None,
+            idle_timeout: Duration::from_secs(60),
+            ..ResourceConfig::default()
+        };
+        let default_socket = DaemonConfig::default().socket_path.clone();
+        let config = DaemonConfig::default().with_resources(resources);
+        // Socket path should stay at default when ResourceConfig has None
+        assert_eq!(config.socket_path, default_socket);
+        assert_eq!(config.idle_timeout, Duration::from_secs(60));
+    }
+
+    #[test]
+    fn test_uptime_secs() {
+        let state = DaemonState::new(4);
+        // Just created, uptime should be 0 or very close
+        assert!(state.uptime_secs() < 2);
+    }
+
+    #[test]
+    fn test_daemon_state_requests_served_starts_zero() {
+        let state = DaemonState::new(4);
+        assert_eq!(state.requests_served.load(Ordering::Relaxed), 0);
+        assert_eq!(state.in_flight.load(Ordering::Relaxed), 0);
+    }
+
+    #[test]
+    fn test_model_daemon_new() {
+        let config = DaemonConfig::default().with_max_models(2);
+        let daemon = ModelDaemon::new(config);
+        assert_eq!(daemon.config.max_models, 2);
+    }
+
+    #[tokio::test]
+    async fn test_handle_rerank_none_model() {
+        let state = Arc::new(Mutex::new(DaemonState::new(4)));
+
+        let response = handle_request(
+            Request::Rerank {
+                query: "test query".to_string(),
+                documents: vec!["doc".to_string()],
+                model: "none".to_string(),
+            },
+            &state,
+        )
+        .await;
+
+        match response {
+            Response::Error { code, .. } => {
+                assert_eq!(code, error_codes::UNKNOWN_MODEL);
+            }
+            _ => panic!("expected Error response for 'none' reranker"),
+        }
+    }
 }

@@ -257,6 +257,145 @@ mod tests {
     }
 
     #[test]
+    fn test_internal_error() {
+        let resp = Response::internal_error("something broke");
+        match resp {
+            Response::Error { code, message } => {
+                assert_eq!(code, error_codes::INTERNAL);
+                assert_eq!(message, "something broke");
+            }
+            _ => panic!("expected Error response"),
+        }
+    }
+
+    #[test]
+    fn test_rerank_request_roundtrip() {
+        let req = Request::Rerank {
+            query: "search query".to_string(),
+            documents: vec!["doc one".to_string(), "doc two".to_string()],
+            model: "cross-encoder".to_string(),
+        };
+        let envelope = Envelope::from_request(7, &req).unwrap();
+        let decoded = envelope.to_request().unwrap();
+
+        match decoded {
+            Request::Rerank {
+                query,
+                documents,
+                model,
+            } => {
+                assert_eq!(query, "search query");
+                assert_eq!(documents, vec!["doc one", "doc two"]);
+                assert_eq!(model, "cross-encoder");
+            }
+            _ => panic!("expected Rerank request"),
+        }
+    }
+
+    #[test]
+    fn test_shutdown_request_roundtrip() {
+        let req = Request::Shutdown;
+        let envelope = Envelope::from_request(10, &req).unwrap();
+        let decoded = envelope.to_request().unwrap();
+        assert!(matches!(decoded, Request::Shutdown));
+    }
+
+    #[test]
+    fn test_status_request_roundtrip() {
+        let req = Request::Status;
+        let envelope = Envelope::from_request(11, &req).unwrap();
+        let decoded = envelope.to_request().unwrap();
+        assert!(matches!(decoded, Request::Status));
+    }
+
+    #[test]
+    fn test_health_response_roundtrip() {
+        let resp = Response::Health {
+            uptime_secs: 120,
+            models_loaded: 3,
+        };
+        let envelope = Envelope::from_response(50, &resp).unwrap();
+        let decoded = envelope.to_response().unwrap();
+
+        match decoded {
+            Response::Health {
+                uptime_secs,
+                models_loaded,
+            } => {
+                assert_eq!(uptime_secs, 120);
+                assert_eq!(models_loaded, 3);
+            }
+            _ => panic!("expected Health response"),
+        }
+    }
+
+    #[test]
+    fn test_shutdown_response_roundtrip() {
+        let resp = Response::Shutdown { ok: true };
+        let envelope = Envelope::from_response(60, &resp).unwrap();
+        let decoded = envelope.to_response().unwrap();
+
+        match decoded {
+            Response::Shutdown { ok } => assert!(ok),
+            _ => panic!("expected Shutdown response"),
+        }
+
+        // Also test ok: false
+        let resp_false = Response::Shutdown { ok: false };
+        let envelope2 = Envelope::from_response(61, &resp_false).unwrap();
+        let decoded2 = envelope2.to_response().unwrap();
+        match decoded2 {
+            Response::Shutdown { ok } => assert!(!ok),
+            _ => panic!("expected Shutdown response"),
+        }
+    }
+
+    #[test]
+    fn test_scores_response_roundtrip() {
+        let resp = Response::Scores {
+            scores: vec![0.95, 0.72, 0.31],
+        };
+        let envelope = Envelope::from_response(70, &resp).unwrap();
+        let decoded = envelope.to_response().unwrap();
+
+        match decoded {
+            Response::Scores { scores } => {
+                assert_eq!(scores.len(), 3);
+                assert!((scores[0] - 0.95).abs() < f32::EPSILON);
+                assert!((scores[1] - 0.72).abs() < f32::EPSILON);
+                assert!((scores[2] - 0.31).abs() < f32::EPSILON);
+            }
+            _ => panic!("expected Scores response"),
+        }
+    }
+
+    #[test]
+    fn test_envelope_new_sets_version() {
+        let envelope = Envelope::new(99, vec![1, 2, 3]);
+        assert_eq!(envelope.version, PROTOCOL_VERSION);
+        assert_eq!(envelope.id, 99);
+        assert_eq!(envelope.payload, vec![1, 2, 3]);
+    }
+
+    #[test]
+    fn test_embed_request_no_dims() {
+        let req = Request::Embed {
+            texts: vec!["test".to_string()],
+            model: "default".to_string(),
+            dims: None,
+        };
+        let envelope = Envelope::from_request(5, &req).unwrap();
+        let decoded = envelope.to_request().unwrap();
+
+        match decoded {
+            Request::Embed { dims, .. } => {
+                assert!(dims.is_none());
+            }
+            _ => panic!("expected Embed request"),
+        }
+    }
+
+    #[test]
     fn test_status_response_roundtrip() {
         let resp = Response::Status {
             uptime_secs: 3600,

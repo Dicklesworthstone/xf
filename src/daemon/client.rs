@@ -546,4 +546,116 @@ mod tests {
         assert!(socket.to_string_lossy().ends_with(".sock"));
         assert!(pid.to_string_lossy().ends_with(".pid"));
     }
+
+    #[test]
+    fn test_with_config() {
+        let config = ClientConfig {
+            socket_path: PathBuf::from("/custom/test.sock"),
+            pid_path: PathBuf::from("/custom/test.pid"),
+            connect_timeout: Duration::from_secs(10),
+            request_timeout: Duration::from_secs(60),
+            max_retries: 5,
+            auto_spawn: false,
+            spawn_wait: Duration::from_secs(10),
+        };
+        let client = DaemonClient::with_config(config);
+        assert_eq!(
+            client.config.socket_path,
+            PathBuf::from("/custom/test.sock")
+        );
+        assert_eq!(client.config.max_retries, 5);
+        assert!(!client.config.auto_spawn);
+    }
+
+    #[test]
+    fn test_client_with_socket_path() {
+        let client = DaemonClient::with_socket_path(PathBuf::from("/tmp/custom.sock"));
+        assert_eq!(client.config.socket_path, PathBuf::from("/tmp/custom.sock"));
+        // Other defaults should still hold
+        assert!(client.config.auto_spawn);
+        assert_eq!(client.config.max_retries, 3);
+    }
+
+    #[test]
+    fn test_daemon_pid_no_file() {
+        let config = ClientConfig {
+            pid_path: PathBuf::from("/tmp/nonexistent-xf-test-pid-file.pid"),
+            ..ClientConfig::default()
+        };
+        let client = DaemonClient::with_config(config);
+        assert!(client.daemon_pid().is_none());
+    }
+
+    #[test]
+    fn test_daemon_pid_with_temp_file() {
+        let dir = std::env::temp_dir();
+        let pid_path = dir.join("xf-test-daemon-pid-unit.pid");
+        std::fs::write(&pid_path, "12345\n").unwrap();
+
+        let config = ClientConfig {
+            pid_path: pid_path.clone(),
+            ..ClientConfig::default()
+        };
+        let client = DaemonClient::with_config(config);
+        assert_eq!(client.daemon_pid(), Some(12345));
+
+        // Cleanup
+        let _ = std::fs::remove_file(&pid_path);
+    }
+
+    #[test]
+    fn test_daemon_pid_invalid_content() {
+        let dir = std::env::temp_dir();
+        let pid_path = dir.join("xf-test-daemon-pid-invalid.pid");
+        std::fs::write(&pid_path, "not-a-number\n").unwrap();
+
+        let config = ClientConfig {
+            pid_path: pid_path.clone(),
+            ..ClientConfig::default()
+        };
+        let client = DaemonClient::with_config(config);
+        assert!(client.daemon_pid().is_none());
+
+        let _ = std::fs::remove_file(&pid_path);
+    }
+
+    #[test]
+    fn test_inference_mode_new() {
+        let mode = InferenceMode::new();
+        assert!(matches!(mode, InferenceMode::Daemon(_)));
+    }
+
+    #[test]
+    fn test_inference_mode_daemon_only() {
+        let mode = InferenceMode::daemon_only();
+        match mode {
+            InferenceMode::Daemon(client) => {
+                // daemon_only disables auto_spawn
+                assert!(!client.config.auto_spawn);
+            }
+            _ => panic!("expected Daemon variant"),
+        }
+    }
+
+    #[test]
+    fn test_inference_mode_default() {
+        let mode = InferenceMode::default();
+        assert!(matches!(mode, InferenceMode::Daemon(_)));
+    }
+
+    #[test]
+    fn test_client_default_impl() {
+        let client = DaemonClient::default();
+        assert!(client.config.auto_spawn);
+        assert_eq!(client.config.connect_timeout, Duration::from_secs(2));
+    }
+
+    #[test]
+    fn test_config_without_auto_spawn() {
+        let config = ClientConfig::default().without_auto_spawn();
+        assert!(!config.auto_spawn);
+        // Other fields unchanged
+        assert_eq!(config.connect_timeout, Duration::from_secs(2));
+        assert_eq!(config.max_retries, 3);
+    }
 }
