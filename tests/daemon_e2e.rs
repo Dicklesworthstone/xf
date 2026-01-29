@@ -9,6 +9,8 @@
 //! - Idle timeout shutdown
 //! - Protocol version handling (bd-1nya)
 //! - Error responses (bd-1nya)
+//! - Client auto-spawn and retry logic (bd-2zll)
+//! - Config file and environment variable handling (bd-35ft)
 //!
 //! # Test Infrastructure
 //!
@@ -36,7 +38,9 @@ use serial_test::serial;
 use tempfile::TempDir;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::time::sleep;
-use xf::daemon::{DaemonClient, Envelope, PROTOCOL_VERSION, Request, Response, error_codes};
+use xf::daemon::{
+    ClientConfig, DaemonClient, Envelope, PROTOCOL_VERSION, Request, Response, error_codes,
+};
 
 // =============================================================================
 // Test Infrastructure
@@ -1342,4 +1346,434 @@ async fn test_request_id_correlation() {
 
         tracing::info!(request_id, "Request ID correlation verified");
     }
+}
+
+// =============================================================================
+// Client Auto-Spawn and Retry Tests (bd-2zll)
+// =============================================================================
+
+/// Test that a client with auto_spawn disabled fails immediately when no daemon is running.
+#[tokio::test]
+#[serial]
+async fn test_no_auto_spawn_when_disabled() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let temp_dir = TempDir::new().expect("create temp dir");
+    let socket_path = temp_dir.path().join("no-spawn.sock");
+
+    let config = ClientConfig::default()
+        .with_socket_path(socket_path.clone())
+        .without_auto_spawn();
+    let mut client = DaemonClient::with_config(config);
+
+    // Should fail immediately without spawning
+    let result = client.health().await;
+    assert!(result.is_err(), "health check should fail without daemon");
+    assert!(
+        !socket_path.exists(),
+        "socket should not exist - daemon should not have been spawned"
+    );
+
+    tracing::info!("auto_spawn disabled correctly prevents daemon spawn");
+}
+
+/// Test that connection timeout is enforced when daemon is not running.
+#[tokio::test]
+#[serial]
+async fn test_connection_timeout_without_daemon() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let temp_dir = TempDir::new().expect("create temp dir");
+    let socket_path = temp_dir.path().join("timeout-test.sock");
+
+    let config = ClientConfig::default()
+        .with_socket_path(socket_path)
+        .without_auto_spawn();
+    let mut client = DaemonClient::with_config(config);
+
+    let start = std::time::Instant::now();
+    let result = client.health().await;
+    let elapsed = start.elapsed();
+
+    assert!(result.is_err(), "should fail when no daemon is running");
+    // Should not wait forever - connect_timeout is 2s by default
+    assert!(
+        elapsed < Duration::from_secs(10),
+        "should not wait forever, elapsed: {elapsed:?}"
+    );
+
+    tracing::info!(
+        elapsed_ms = elapsed.as_millis(),
+        "connection timeout enforced correctly"
+    );
+}
+
+/// Test that is_daemon_running returns false when socket doesn't exist.
+#[tokio::test]
+#[serial]
+async fn test_is_daemon_running_false_when_no_socket() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let temp_dir = TempDir::new().expect("create temp dir");
+    let socket_path = temp_dir.path().join("nonexistent.sock");
+
+    let client = DaemonClient::with_socket_path(socket_path);
+    assert!(
+        !client.is_daemon_running(),
+        "should report not running when socket doesn't exist"
+    );
+
+    tracing::info!("is_daemon_running correctly returns false for nonexistent socket");
+}
+
+/// Test that is_daemon_running returns true when socket exists.
+#[tokio::test]
+#[serial]
+async fn test_is_daemon_running_true_when_socket_exists() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+
+    let client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+    assert!(
+        client.is_daemon_running(),
+        "should report running when daemon socket exists"
+    );
+
+    tracing::info!("is_daemon_running correctly detects running daemon");
+}
+
+/// Test that daemon_pid returns None when PID file doesn't exist.
+#[tokio::test]
+#[serial]
+async fn test_daemon_pid_returns_none_when_no_pid_file() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let temp_dir = TempDir::new().expect("create temp dir");
+    let socket_path = temp_dir.path().join("no-pid.sock");
+
+    // Create a client that points to a nonexistent PID file
+    let mut config = ClientConfig::default().with_socket_path(socket_path);
+    config.pid_path = temp_dir.path().join("nonexistent.pid");
+    let client = DaemonClient::with_config(config);
+
+    assert_eq!(
+        client.daemon_pid(),
+        None,
+        "should return None when PID file doesn't exist"
+    );
+
+    tracing::info!("daemon_pid correctly returns None for missing PID file");
+}
+
+/// Test that client can make multiple sequential health checks.
+#[tokio::test]
+#[serial]
+async fn test_multiple_sequential_health_checks() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    // Make 5 sequential health checks
+    for i in 0..5 {
+        let health = client
+            .health()
+            .await
+            .unwrap_or_else(|e| panic!("health check {i} failed: {e}"));
+        assert!(
+            health.uptime_secs < 30,
+            "uptime should be reasonable at iteration {i}"
+        );
+    }
+
+    tracing::info!("5 sequential health checks succeeded");
+}
+
+/// Test that spawn_wait configuration affects auto-spawn behavior.
+///
+/// When auto_spawn is disabled, the client should fail quickly regardless
+/// of spawn_wait setting.
+#[tokio::test]
+#[serial]
+async fn test_spawn_wait_with_no_auto_spawn() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let temp_dir = TempDir::new().expect("create temp dir");
+    let socket_path = temp_dir.path().join("spawn-wait.sock");
+
+    let mut config = ClientConfig::default()
+        .with_socket_path(socket_path)
+        .without_auto_spawn();
+    // Set a long spawn_wait - should not matter with auto_spawn=false
+    config.spawn_wait = Duration::from_secs(30);
+
+    let mut client = DaemonClient::with_config(config);
+
+    let start = std::time::Instant::now();
+    let result = client.health().await;
+    let elapsed = start.elapsed();
+
+    assert!(result.is_err());
+    // Should NOT wait 30 seconds - auto_spawn is disabled, so spawn_wait is irrelevant
+    assert!(
+        elapsed < Duration::from_secs(5),
+        "should not honor spawn_wait when auto_spawn is disabled, elapsed: {elapsed:?}"
+    );
+
+    tracing::info!(
+        elapsed_ms = elapsed.as_millis(),
+        "spawn_wait correctly ignored when auto_spawn disabled"
+    );
+}
+
+// =============================================================================
+// Config File and Environment Variable E2E Tests (bd-35ft)
+// =============================================================================
+
+/// Test that ResourceConfig loads valid TOML correctly.
+#[test]
+fn test_resource_config_load_valid_toml() {
+    use xf::daemon::ResourceConfig;
+
+    let config_content = r#"
+[daemon]
+nice_level = 15
+memory_limit_mb = 1024
+max_threads = 2
+idle_timeout_secs = 600
+io_priority = "best_effort"
+socket_path = "/tmp/test-xf.sock"
+"#;
+
+    let mut file = tempfile::NamedTempFile::new().expect("create temp file");
+    std::io::Write::write_all(&mut file, config_content.as_bytes()).expect("write config");
+    let path = file.path().to_path_buf();
+
+    let config = ResourceConfig::load(Some(&path)).expect("load config");
+
+    assert_eq!(config.nice_level, 15);
+    assert_eq!(config.memory_limit_mb, 1024);
+    assert_eq!(config.max_threads, 2);
+    assert_eq!(config.idle_timeout, Duration::from_secs(600));
+
+    tracing::info!(?config, "Valid TOML config loaded correctly");
+}
+
+/// Test that ResourceConfig handles invalid TOML gracefully.
+#[test]
+fn test_resource_config_load_invalid_toml() {
+    use xf::daemon::ResourceConfig;
+
+    let config_content = "this is not valid toml {{{";
+
+    let mut file = tempfile::NamedTempFile::new().expect("create temp file");
+    std::io::Write::write_all(&mut file, config_content.as_bytes()).expect("write config");
+    let path = file.path().to_path_buf();
+
+    let result = ResourceConfig::load(Some(&path));
+    assert!(result.is_err(), "invalid TOML should return an error");
+
+    tracing::info!(
+        error = %result.unwrap_err(),
+        "Invalid TOML correctly rejected"
+    );
+}
+
+/// Test that ResourceConfig uses defaults when file doesn't exist.
+#[test]
+fn test_resource_config_missing_file_uses_defaults() {
+    use xf::daemon::ResourceConfig;
+
+    let path = PathBuf::from("/nonexistent/path/config.toml");
+    let config = ResourceConfig::load(Some(&path)).expect("should use defaults");
+
+    // Should use defaults
+    assert_eq!(config.nice_level, 10);
+    assert_eq!(config.memory_limit_mb, 2048);
+    assert_eq!(config.idle_timeout, Duration::from_secs(30 * 60));
+
+    tracing::info!("Missing file correctly uses defaults");
+}
+
+/// Test that DaemonConfig::load produces valid default config.
+#[test]
+fn test_daemon_config_load_defaults() {
+    use xf::daemon::DaemonConfig;
+
+    let config = DaemonConfig::load(None).expect("load default config");
+
+    assert!(
+        config.max_models > 0,
+        "max_models should be positive by default"
+    );
+    assert!(
+        config.idle_timeout.as_secs() > 0,
+        "idle_timeout should be positive by default"
+    );
+
+    tracing::info!(
+        max_models = config.max_models,
+        idle_timeout_secs = config.idle_timeout.as_secs(),
+        socket = %config.socket_path.display(),
+        "DaemonConfig defaults loaded"
+    );
+}
+
+/// Test that DaemonConfig loads resources from a TOML config file.
+#[test]
+fn test_daemon_config_load_from_toml_file() {
+    use xf::daemon::DaemonConfig;
+
+    let config_content = r"
+[daemon]
+nice_level = 5
+memory_limit_mb = 512
+max_threads = 1
+idle_timeout_secs = 120
+";
+
+    let mut file = tempfile::NamedTempFile::new().expect("create temp file");
+    std::io::Write::write_all(&mut file, config_content.as_bytes()).expect("write config");
+    let path = file.path().to_path_buf();
+
+    let config = DaemonConfig::load(Some(&path)).expect("load config from file");
+
+    assert_eq!(config.resources.nice_level, 5);
+    assert_eq!(config.resources.memory_limit_mb, 512);
+    assert_eq!(config.resources.max_threads, 1);
+
+    tracing::info!("DaemonConfig loaded from TOML file correctly");
+}
+
+/// Test that effective_threads clamps to available CPUs.
+#[test]
+fn test_effective_threads_clamps_to_cpu_count() {
+    use xf::daemon::ResourceConfig;
+
+    let cpus = num_cpus::get();
+
+    // Set max_threads way higher than CPU count
+    let config_content = r"
+[daemon]
+max_threads = 99999
+";
+    let mut file = tempfile::NamedTempFile::new().expect("create temp file");
+    std::io::Write::write_all(&mut file, config_content.as_bytes()).expect("write config");
+    let path = file.path().to_path_buf();
+
+    let config = ResourceConfig::load(Some(&path)).expect("load config");
+
+    assert_eq!(
+        config.effective_threads(),
+        cpus,
+        "effective_threads should be clamped to CPU count ({cpus})"
+    );
+
+    tracing::info!(
+        max_threads = config.max_threads,
+        effective = config.effective_threads(),
+        cpus,
+        "effective_threads correctly clamped"
+    );
+}
+
+/// Test that daemon uses idle timeout from config.
+#[tokio::test]
+#[serial]
+async fn test_daemon_respects_config_idle_timeout() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    // Spawn daemon with very short idle timeout
+    let daemon = DaemonProcess::spawn_with_timeout(3)
+        .await
+        .expect("spawn daemon with short timeout");
+
+    // Verify daemon is running
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+    let health = client.health().await.expect("initial health check");
+    assert!(health.uptime_secs < 5, "daemon should be freshly started");
+
+    tracing::info!(
+        uptime = health.uptime_secs,
+        "daemon started with short idle timeout"
+    );
+
+    // Note: We don't wait for the idle timeout here because that's already
+    // covered by test_idle_timeout_triggers_shutdown. This test just verifies
+    // the config value is accepted without error.
+}
+
+/// Test that DaemonConfig socket path override works end-to-end.
+#[tokio::test]
+#[serial]
+async fn test_daemon_custom_socket_path() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let temp_dir = TempDir::new().expect("create temp dir");
+    let custom_socket = temp_dir.path().join("custom-daemon.sock");
+
+    let xf_binary = find_xf_binary().expect("find xf binary");
+
+    let child = Command::new(&xf_binary)
+        .arg("daemon")
+        .arg("start")
+        .arg("--foreground")
+        .arg("--socket")
+        .arg(&custom_socket)
+        .arg("--idle-timeout")
+        .arg("300")
+        .env("XF_DAEMON_SOCK", &custom_socket)
+        .env("RUST_LOG", "xf=debug")
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn daemon");
+
+    // Wait for socket to appear
+    wait_for_socket(&custom_socket, Duration::from_secs(10))
+        .await
+        .expect("custom socket should appear");
+
+    // Connect to the custom socket
+    let mut client = DaemonClient::with_socket_path(custom_socket.clone());
+    let health = client
+        .health()
+        .await
+        .expect("health check on custom socket");
+    assert!(health.uptime_secs < 10);
+
+    tracing::info!(
+        socket = %custom_socket.display(),
+        uptime = health.uptime_secs,
+        "custom socket path works end-to-end"
+    );
+
+    // Cleanup: create a wrapper to stop the process
+    let mut daemon = DaemonProcess {
+        child,
+        socket_path: custom_socket,
+        pid_path: PathBuf::from("/tmp/nonexistent.pid"),
+        _temp_dir: temp_dir,
+    };
+    let _ = daemon.stop().await;
 }
