@@ -1140,20 +1140,23 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
             // Semantic-only search using vector similarity
             let vector_index = vector_index
                 .ok_or_else(|| anyhow::anyhow!("vector index required for semantic"))?;
-            // Use explicit model if provided, otherwise FastEmbedder fallback
+            // Model resolution: CLI flag > config file/env > FastEmbedder > hash fallback
+            let effective_model = config.semantic.effective_model(args.model.as_deref());
+            let effective_dims = config.semantic.effective_dimensions(args.dimensions);
             #[allow(unused_assignments)]
             let mut embedder_box: Option<Box<dyn Embedder>> = None;
             #[allow(unused_assignments)]
             let mut hash_embedder_fallback: Option<HashEmbedder> = None;
-            let embedder: &dyn Embedder = if let Some(model) = &args.model {
-                if let Some(dims) = args.dimensions {
+            let embedder: &dyn Embedder = if let Some(model) = effective_model {
+                if let Some(dims) = effective_dims {
                     validate_mrl_dims(dims)?;
                 }
                 let registry = ModelRegistry::new();
                 let mut cfg = EmbedderConfig::new(model);
-                cfg.dimensions = args.dimensions;
+                cfg.dimensions = effective_dims;
                 cfg.show_progress = false;
                 let boxed = registry.embedder(&cfg)?;
+                info!("Using configured embedder: {}", model);
                 embedder_box = Some(boxed);
                 embedder_box.as_ref().unwrap().as_ref()
             } else if let Some(fe) = get_semantic_embedder() {
@@ -1212,20 +1215,23 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
 
         SearchMode::Hybrid => {
             // Hybrid search using RRF fusion
-            // Use explicit model if provided, otherwise FastEmbedder fallback
+            // Model resolution: CLI flag > config file/env > FastEmbedder > hash fallback
+            let effective_model = config.semantic.effective_model(args.model.as_deref());
+            let effective_dims = config.semantic.effective_dimensions(args.dimensions);
             #[allow(unused_assignments)]
             let mut embedder_box: Option<Box<dyn Embedder>> = None;
             #[allow(unused_assignments)]
             let mut hash_embedder_fallback: Option<HashEmbedder> = None;
-            let embedder: &dyn Embedder = if let Some(model) = &args.model {
-                if let Some(dims) = args.dimensions {
+            let embedder: &dyn Embedder = if let Some(model) = effective_model {
+                if let Some(dims) = effective_dims {
                     validate_mrl_dims(dims)?;
                 }
                 let registry = ModelRegistry::new();
                 let mut cfg = EmbedderConfig::new(model);
-                cfg.dimensions = args.dimensions;
+                cfg.dimensions = effective_dims;
                 cfg.show_progress = false;
                 let boxed = registry.embedder(&cfg)?;
+                info!("Using configured embedder: {}", model);
                 embedder_box = Some(boxed);
                 embedder_box.as_ref().unwrap().as_ref()
             } else if let Some(fe) = get_semantic_embedder() {

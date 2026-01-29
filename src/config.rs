@@ -191,6 +191,38 @@ impl Default for SemanticConfig {
     }
 }
 
+impl SemanticConfig {
+    /// Resolve the effective embedding model name.
+    ///
+    /// Priority: CLI argument > config file/env > None (use runtime default).
+    #[must_use]
+    pub fn effective_model<'a>(&'a self, cli_override: Option<&'a str>) -> Option<&'a str> {
+        cli_override.or(self.model.as_deref())
+    }
+
+    /// Resolve the effective MRL dimensions.
+    ///
+    /// Priority: CLI argument > config file/env > None (use model native).
+    #[must_use]
+    pub fn effective_dimensions(&self, cli_override: Option<usize>) -> Option<usize> {
+        cli_override.or(self.dimensions)
+    }
+
+    /// Resolve the effective reranker model name.
+    ///
+    /// Priority: CLI argument > config file/env > None (no reranking).
+    #[must_use]
+    pub fn effective_reranker<'a>(&'a self, cli_override: Option<&'a str>) -> Option<&'a str> {
+        cli_override.or(self.reranker.as_deref())
+    }
+
+    /// Whether reranking is enabled (CLI flag or config).
+    #[must_use]
+    pub const fn is_rerank_enabled(&self, cli_rerank: bool) -> bool {
+        cli_rerank || self.rerank
+    }
+}
+
 impl Config {
     /// Load configuration from all sources.
     ///
@@ -475,5 +507,140 @@ mod tests {
         assert!(content.contains("[search]"));
         assert!(content.contains("[indexing]"));
         assert!(content.contains("[output]"));
+    }
+
+    #[test]
+    fn test_semantic_config_defaults() {
+        let sc = SemanticConfig::default();
+        assert!(sc.model.is_none());
+        assert!(sc.dimensions.is_none());
+        assert!(sc.reranker.is_none());
+        assert!(!sc.rerank);
+        assert!(sc.daemon);
+        assert_eq!(sc.rerank_top, 100);
+    }
+
+    #[test]
+    fn test_semantic_effective_model_cli_wins() {
+        let sc = SemanticConfig {
+            model: Some("config-model".to_string()),
+            ..Default::default()
+        };
+        // CLI override should win
+        assert_eq!(sc.effective_model(Some("cli-model")), Some("cli-model"));
+    }
+
+    #[test]
+    fn test_semantic_effective_model_config_fallback() {
+        let sc = SemanticConfig {
+            model: Some("config-model".to_string()),
+            ..Default::default()
+        };
+        // No CLI override → config value
+        assert_eq!(sc.effective_model(None), Some("config-model"));
+    }
+
+    #[test]
+    fn test_semantic_effective_model_none() {
+        let sc = SemanticConfig::default();
+        // No CLI, no config → None
+        assert_eq!(sc.effective_model(None), None);
+    }
+
+    #[test]
+    fn test_semantic_effective_dimensions() {
+        let sc = SemanticConfig {
+            dimensions: Some(512),
+            ..Default::default()
+        };
+        assert_eq!(sc.effective_dimensions(Some(256)), Some(256)); // CLI wins
+        assert_eq!(sc.effective_dimensions(None), Some(512)); // Config fallback
+    }
+
+    #[test]
+    fn test_semantic_effective_reranker() {
+        let sc = SemanticConfig {
+            reranker: Some("flashrank-nano".to_string()),
+            ..Default::default()
+        };
+        assert_eq!(sc.effective_reranker(Some("mxbai")), Some("mxbai")); // CLI wins
+        assert_eq!(sc.effective_reranker(None), Some("flashrank-nano")); // Config fallback
+    }
+
+    #[test]
+    fn test_semantic_is_rerank_enabled() {
+        let sc_off = SemanticConfig::default();
+        assert!(!sc_off.is_rerank_enabled(false));
+        assert!(sc_off.is_rerank_enabled(true)); // CLI flag enables it
+
+        let sc_on = SemanticConfig {
+            rerank: true,
+            ..Default::default()
+        };
+        assert!(sc_on.is_rerank_enabled(false)); // Config enables it
+        assert!(sc_on.is_rerank_enabled(true)); // Both on
+    }
+
+    #[test]
+    fn test_semantic_config_toml_roundtrip() {
+        let sc = SemanticConfig {
+            model: Some("all-MiniLM-L6-v2".to_string()),
+            dimensions: Some(384),
+            reranker: Some("flashrank-nano".to_string()),
+            rerank: true,
+            daemon: false,
+            rerank_top: 50,
+        };
+        let toml_str = toml::to_string(&sc).unwrap();
+        let parsed: SemanticConfig = toml::from_str(&toml_str).unwrap();
+        assert_eq!(parsed.model.as_deref(), Some("all-MiniLM-L6-v2"));
+        assert_eq!(parsed.dimensions, Some(384));
+        assert_eq!(parsed.reranker.as_deref(), Some("flashrank-nano"));
+        assert!(parsed.rerank);
+        assert!(!parsed.daemon);
+        assert_eq!(parsed.rerank_top, 50);
+    }
+
+    #[test]
+    fn test_semantic_config_partial_toml() {
+        let toml_str = r#"
+            model = "nomic-embed-text-v1.5"
+            rerank = true
+        "#;
+        let parsed: SemanticConfig = toml::from_str(toml_str).unwrap();
+        assert_eq!(parsed.model.as_deref(), Some("nomic-embed-text-v1.5"));
+        assert!(parsed.rerank);
+        // Other fields should be defaults
+        assert!(parsed.dimensions.is_none());
+        assert!(parsed.reranker.is_none());
+        assert!(parsed.daemon);
+        assert_eq!(parsed.rerank_top, 100);
+    }
+
+    #[test]
+    fn test_config_merge_semantic() {
+        let mut base = Config::default();
+        let mut other = Config::default();
+        other.semantic.model = Some("custom-model".to_string());
+        other.semantic.reranker = Some("custom-reranker".to_string());
+        other.semantic.rerank = true;
+
+        base.merge(other);
+
+        assert_eq!(base.semantic.model.as_deref(), Some("custom-model"));
+        assert_eq!(base.semantic.reranker.as_deref(), Some("custom-reranker"));
+        assert!(base.semantic.rerank);
+    }
+
+    #[test]
+    fn test_config_merge_semantic_none_doesnt_overwrite() {
+        let mut base = Config::default();
+        base.semantic.model = Some("existing-model".to_string());
+
+        let other = Config::default(); // model is None
+        base.merge(other);
+
+        // None should not overwrite existing value
+        assert_eq!(base.semantic.model.as_deref(), Some("existing-model"));
     }
 }
