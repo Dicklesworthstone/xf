@@ -415,6 +415,12 @@ impl TruncateEmbedder {
                 "model does not support MRL truncation".to_string(),
             ));
         }
+        if target_dim == 0 || target_dim > inner.dimension() {
+            return Err(EmbedderError::InvalidInput(format!(
+                "target dimension {target_dim} must be between 1 and {} (native dimension)",
+                inner.dimension()
+            )));
+        }
         Ok(Self { inner, target_dim })
     }
 }
@@ -544,5 +550,76 @@ mod tests {
             format!("{}", ModelCategory::TransformerEmbedder),
             "transformer"
         );
+    }
+
+    /// Test-only embedder that reports MRL support for validation testing.
+    struct MockMrlEmbedder {
+        dim: usize,
+    }
+
+    impl Embedder for MockMrlEmbedder {
+        fn embed(&self, _text: &str) -> EmbedderResult<Vec<f32>> {
+            Ok(vec![0.0; self.dim])
+        }
+
+        fn dimension(&self) -> usize {
+            self.dim
+        }
+
+        fn id(&self) -> &str {
+            "mock-mrl"
+        }
+
+        fn is_semantic(&self) -> bool {
+            true
+        }
+
+        fn supports_mrl(&self) -> bool {
+            true
+        }
+    }
+
+    #[test]
+    fn test_truncate_embedder_rejects_oversized_dimension() {
+        let inner: Box<dyn Embedder> = Box::new(MockMrlEmbedder { dim: 384 });
+        let result = TruncateEmbedder::new(inner, 999);
+        let err = result.err().expect("should fail for oversized dimension");
+        assert!(
+            err.to_string().contains("target dimension 999"),
+            "error should mention the invalid dimension: {err}"
+        );
+    }
+
+    #[test]
+    fn test_truncate_embedder_rejects_zero_dimension() {
+        let inner: Box<dyn Embedder> = Box::new(MockMrlEmbedder { dim: 384 });
+        let result = TruncateEmbedder::new(inner, 0);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_truncate_embedder_accepts_valid_dimension() {
+        let inner: Box<dyn Embedder> = Box::new(MockMrlEmbedder { dim: 384 });
+        let result = TruncateEmbedder::new(inner, 128);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().dimension(), 128);
+    }
+
+    #[test]
+    fn test_truncate_embedder_accepts_native_dimension() {
+        // target_dim == native_dim is handled by the registry (skips TruncateEmbedder),
+        // but TruncateEmbedder::new should still accept it as valid.
+        let inner: Box<dyn Embedder> = Box::new(MockMrlEmbedder { dim: 384 });
+        let result = TruncateEmbedder::new(inner, 384);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_truncate_embedder_rejects_non_mrl_model() {
+        use crate::hash_embedder::HashEmbedder;
+        let inner: Box<dyn Embedder> = Box::new(HashEmbedder::new(384));
+        let result = TruncateEmbedder::new(inner, 128);
+        let err = result.err().expect("should fail for non-MRL model");
+        assert!(err.to_string().contains("MRL"));
     }
 }

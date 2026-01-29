@@ -116,13 +116,21 @@ impl DaemonConfig {
     }
 }
 
+/// Atomic counters accessible without holding the daemon state lock.
+///
+/// Extracted from `DaemonState` so that `InFlightGuard::drop()` can update
+/// counters synchronously without spawning an unreliable async task.
+struct DaemonCounters {
+    requests_served: AtomicU64,
+    in_flight: AtomicU64,
+}
+
 /// Shared daemon state.
 struct DaemonState {
     models: ModelManager,
     start_time: Instant,
     last_request: Instant,
-    requests_served: AtomicU64,
-    in_flight: AtomicU64,
+    counters: Arc<DaemonCounters>,
     shutdown_requested: bool,
 }
 
@@ -133,8 +141,10 @@ impl DaemonState {
             models: ModelManager::new(max_models),
             start_time: now,
             last_request: now,
-            requests_served: AtomicU64::new(0),
-            in_flight: AtomicU64::new(0),
+            counters: Arc::new(DaemonCounters {
+                requests_served: AtomicU64::new(0),
+                in_flight: AtomicU64::new(0),
+            }),
             shutdown_requested: false,
         }
     }
@@ -278,36 +288,33 @@ impl ModelDaemon {
 }
 
 /// RAII guard for in-flight request counter.
+///
+/// Holds an `Arc` to shared atomic counters so that `Drop` can decrement
+/// synchronously without spawning an async task (which could be lost during shutdown).
 struct InFlightGuard {
-    state: Arc<Mutex<DaemonState>>,
+    counters: Arc<DaemonCounters>,
 }
 
 impl InFlightGuard {
-    async fn acquire(state: Arc<Mutex<DaemonState>>) -> Option<Self> {
+    async fn acquire(state: &Arc<Mutex<DaemonState>>) -> Option<Self> {
         let s = state.lock().await;
-        let current = s.in_flight.load(Ordering::Relaxed);
+        let current = s.counters.in_flight.load(Ordering::Relaxed);
         if current >= MAX_IN_FLIGHT as u64 {
             return None;
         }
-        s.in_flight.fetch_add(1, Ordering::Relaxed);
-        drop(s); // Drop the lock before returning
-        Some(Self {
-            state: state.clone(),
-        })
+        s.counters.in_flight.fetch_add(1, Ordering::Relaxed);
+        let counters = Arc::clone(&s.counters);
+        drop(s);
+        Some(Self { counters })
     }
 }
 
 impl Drop for InFlightGuard {
     fn drop(&mut self) {
-        // We need to spawn a task because Drop cannot be async, but we need to lock the mutex.
-        // This is a common pattern for async RAII in tokio.
-        let state = self.state.clone();
-        tokio::spawn(async move {
-            let mut s = state.lock().await;
-            s.in_flight.fetch_sub(1, Ordering::Relaxed);
-            s.requests_served.fetch_add(1, Ordering::Relaxed);
-            s.touch();
-        });
+        self.counters.in_flight.fetch_sub(1, Ordering::Relaxed);
+        self.counters
+            .requests_served
+            .fetch_add(1, Ordering::Relaxed);
     }
 }
 
@@ -319,7 +326,7 @@ async fn handle_connection(
     state: Arc<Mutex<DaemonState>>,
 ) -> anyhow::Result<()> {
     // Acquire in-flight guard
-    let Some(_guard) = InFlightGuard::acquire(state.clone()).await else {
+    let Some(_guard) = InFlightGuard::acquire(&state).await else {
         let response = Response::error(error_codes::OVERLOADED, "server overloaded");
         let envelope = Envelope::from_response(0, &response)?;
         let bytes = rmp_serde::to_vec(&envelope)?;
@@ -375,7 +382,8 @@ async fn handle_connection(
 async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Response {
     match request {
         Request::Health => {
-            let s = state.lock().await;
+            let mut s = state.lock().await;
+            s.touch();
             Response::Health {
                 uptime_secs: s.uptime_secs(),
                 models_loaded: s.models.total_models(),
@@ -384,6 +392,7 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
 
         Request::Embed { texts, model, dims } => {
             let mut s = state.lock().await;
+            s.touch();
 
             // Get embedder
             let embedder = match s.models.get_embedder(&model) {
@@ -437,6 +446,7 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
             model,
         } => {
             let mut s = state.lock().await;
+            s.touch();
 
             // Get reranker
             let reranker = match s.models.get_reranker(&model) {
@@ -464,7 +474,8 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
         }
 
         Request::Status => {
-            let s = state.lock().await;
+            let mut s = state.lock().await;
+            s.touch();
 
             // Get RSS (resident set size)
             let rss_mb = get_process_rss_mb();
@@ -473,16 +484,18 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
                 uptime_secs: s.uptime_secs(),
                 models: s.models.loaded_models(),
                 rss_mb,
-                requests_served: s.requests_served.load(Ordering::Relaxed),
+                requests_served: s.counters.requests_served.load(Ordering::Relaxed),
                 // Safety: in_flight is bounded by MAX_IN_FLIGHT (64), fits in usize
                 #[allow(clippy::cast_possible_truncation)]
-                in_flight: s.in_flight.load(Ordering::Relaxed) as usize,
+                in_flight: s.counters.in_flight.load(Ordering::Relaxed) as usize,
                 queue_len: 0, // No queue in current implementation
             }
         }
 
         Request::Shutdown => {
-            state.lock().await.shutdown_requested = true;
+            let mut s = state.lock().await;
+            s.touch();
+            s.shutdown_requested = true;
             Response::Shutdown { ok: true }
         }
     }
@@ -516,7 +529,7 @@ mod tests {
         let state = DaemonState::new(4);
         assert_eq!(state.models.total_models(), 0);
         assert!(!state.shutdown_requested);
-        assert_eq!(state.requests_served.load(Ordering::Relaxed), 0);
+        assert_eq!(state.counters.requests_served.load(Ordering::Relaxed), 0);
     }
 
     #[test]
@@ -697,8 +710,8 @@ mod tests {
     #[test]
     fn test_daemon_state_requests_served_starts_zero() {
         let state = DaemonState::new(4);
-        assert_eq!(state.requests_served.load(Ordering::Relaxed), 0);
-        assert_eq!(state.in_flight.load(Ordering::Relaxed), 0);
+        assert_eq!(state.counters.requests_served.load(Ordering::Relaxed), 0);
+        assert_eq!(state.counters.in_flight.load(Ordering::Relaxed), 0);
     }
 
     #[test]
