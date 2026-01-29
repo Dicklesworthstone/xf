@@ -2337,10 +2337,13 @@ async fn test_daemon_healthy_after_reranker_errors() {
     );
 }
 
-/// Test rerank with empty model string (equivalent to "none").
+/// Test rerank with no explicit model (client uses "default" internally).
+///
+/// When `None` is passed for the model, the client substitutes `"default"`.
+/// The daemon should handle this gracefully without crashing.
 #[tokio::test]
 #[serial]
-async fn test_rerank_empty_model_string() {
+async fn test_rerank_with_no_model_specified() {
     let _ = tracing_subscriber::fmt()
         .with_env_filter("xf=debug,daemon_e2e=debug")
         .try_init();
@@ -2348,15 +2351,14 @@ async fn test_rerank_empty_model_string() {
     let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
     let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
 
-    // The "default" model name goes through client API
-    // When reranker model is "default", it depends on registry behavior
+    // None becomes "default" via client.rerank()'s unwrap_or("default")
     let result = client.rerank("test query", &["doc"], None).await;
 
-    // Result depends on what the "default" reranker resolves to
-    // The important thing is the daemon doesn't crash
+    // Result depends on what the "default" reranker resolves to.
+    // The important thing is the daemon doesn't crash.
     tracing::info!(
         success = result.is_ok(),
-        "rerank with default model handled without crash"
+        "rerank with no model specified handled without crash"
     );
 
     // Daemon should still be healthy regardless

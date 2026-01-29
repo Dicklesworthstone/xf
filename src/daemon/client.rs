@@ -633,7 +633,7 @@ mod tests {
                 // daemon_only disables auto_spawn
                 assert!(!client.config.auto_spawn);
             }
-            _ => panic!("expected Daemon variant"),
+            InferenceMode::Direct(_) => panic!("expected Daemon variant"),
         }
     }
 

@@ -680,7 +680,7 @@ mod tests {
             idle_timeout: Duration::from_secs(60),
             ..ResourceConfig::default()
         };
-        let default_socket = DaemonConfig::default().socket_path.clone();
+        let default_socket = DaemonConfig::default().socket_path;
         let config = DaemonConfig::default().with_resources(resources);
         // Socket path should stay at default when ResourceConfig has None
         assert_eq!(config.socket_path, default_socket);
