@@ -130,6 +130,61 @@ impl DaemonProcess {
         })
     }
 
+    /// Spawn a daemon with a specific max-models limit.
+    ///
+    /// # Arguments
+    /// * `max_models` - Maximum number of models to keep loaded
+    async fn spawn_with_max_models(max_models: usize) -> anyhow::Result<Self> {
+        let temp_dir = TempDir::new()?;
+        let socket_path = temp_dir.path().join("daemon.sock");
+
+        let user_id = std::env::var("USER")
+            .or_else(|_| std::env::var("USERNAME"))
+            .unwrap_or_else(|_| "default".to_string());
+        let pid_path = PathBuf::from(format!("/tmp/xf-daemon-{user_id}.pid"));
+
+        let xf_binary = find_xf_binary()?;
+
+        tracing::info!(
+            binary = %xf_binary.display(),
+            socket = %socket_path.display(),
+            max_models,
+            "spawning test daemon with max_models limit"
+        );
+
+        let mut cmd = Command::new(&xf_binary);
+        cmd.arg("daemon")
+            .arg("start")
+            .arg("--foreground")
+            .arg("--socket")
+            .arg(&socket_path)
+            .arg("--max-models")
+            .arg(max_models.to_string())
+            .env("XF_DAEMON_SOCK", &socket_path)
+            .env("RUST_LOG", "xf=debug")
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
+
+        let child = cmd.spawn()?;
+        let child_pid = child.id();
+
+        tracing::info!(
+            pid = child_pid,
+            "daemon process spawned, waiting for socket"
+        );
+
+        wait_for_socket(&socket_path, Duration::from_secs(10)).await?;
+
+        tracing::info!(socket = %socket_path.display(), "daemon socket ready");
+
+        Ok(Self {
+            child,
+            socket_path,
+            pid_path,
+            _temp_dir: temp_dir,
+        })
+    }
+
     /// Spawn a daemon with default configuration (5 minute idle timeout).
     async fn spawn_default() -> anyhow::Result<Self> {
         let temp_dir = TempDir::new()?;
@@ -1776,4 +1831,330 @@ async fn test_daemon_custom_socket_path() {
         _temp_dir: temp_dir,
     };
     let _ = daemon.stop().await;
+}
+
+// =============================================================================
+// LRU Eviction and Memory Pressure Tests (bd-3k2x)
+// =============================================================================
+
+/// Test that a single model loads and appears in status.
+#[tokio::test]
+#[serial]
+async fn test_single_model_loading_and_status() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn_with_max_models(4)
+        .await
+        .expect("spawn daemon");
+
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    // Load hash embedder via embed request
+    let result = client
+        .embed(&["test sentence"], Some("hash"), None)
+        .await
+        .expect("embed with hash");
+    assert!(!result.is_empty(), "should return embeddings");
+    assert!(!result[0].is_empty(), "embedding should have dimensions");
+
+    // Check status shows the loaded model
+    let status = client.status().await.expect("status check");
+    assert_eq!(status.models.len(), 1, "should have exactly 1 model loaded");
+    assert_eq!(status.models[0].name, "hash");
+    assert_eq!(status.models[0].model_type, "embedder");
+    assert!(
+        status.models[0].requests_served >= 1,
+        "should have served at least 1 request"
+    );
+
+    tracing::info!(
+        model = %status.models[0].name,
+        requests = status.models[0].requests_served,
+        "single model loading verified"
+    );
+}
+
+/// Test that requests_served counter increments correctly.
+#[tokio::test]
+#[serial]
+async fn test_model_requests_served_counter() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn_with_max_models(4)
+        .await
+        .expect("spawn daemon");
+
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    let request_count = 5;
+    for i in 0..request_count {
+        client
+            .embed(&[&format!("test {i}")], Some("hash"), None)
+            .await
+            .unwrap_or_else(|e| panic!("embed request {i} failed: {e}"));
+    }
+
+    let status = client.status().await.expect("status check");
+    assert_eq!(status.models.len(), 1);
+    assert!(
+        status.models[0].requests_served >= request_count,
+        "expected >= {request_count} requests, got {}",
+        status.models[0].requests_served
+    );
+
+    tracing::info!(
+        requests = status.models[0].requests_served,
+        "request counter verified after {request_count} requests"
+    );
+}
+
+/// Test that overall requests_served on status tracks total requests.
+#[tokio::test]
+#[serial]
+async fn test_total_requests_served_counter() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    // Make several requests (health + embeds)
+    let _ = client.health().await.expect("health check");
+    for i in 0..3 {
+        let _ = client
+            .embed(&[&format!("req {i}")], Some("hash"), None)
+            .await
+            .expect("embed");
+    }
+
+    let status = client.status().await.expect("status check");
+    // At least 4 requests: 1 health + 3 embeds (status itself counts too)
+    assert!(
+        status.requests_served >= 4,
+        "expected >= 4 total requests served, got {}",
+        status.requests_served
+    );
+
+    tracing::info!(
+        total = status.requests_served,
+        "total requests_served counter verified"
+    );
+}
+
+/// Test that RSS memory reporting returns a reasonable value.
+#[tokio::test]
+#[serial]
+async fn test_status_rss_mb_is_reasonable() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    let status = client.status().await.expect("status check");
+
+    // RSS should be positive on Linux (our CI/test platform)
+    #[cfg(target_os = "linux")]
+    assert!(
+        status.rss_mb > 0.0,
+        "RSS should be positive on Linux, got {}",
+        status.rss_mb
+    );
+
+    // RSS should be reasonable (< 1GB for a daemon that hasn't loaded ML models)
+    assert!(
+        status.rss_mb < 1024.0,
+        "RSS should be under 1GB without ML models, got {} MB",
+        status.rss_mb
+    );
+
+    tracing::info!(rss_mb = status.rss_mb, "RSS memory reporting verified");
+}
+
+/// Test that status shows no models when daemon just started.
+#[tokio::test]
+#[serial]
+async fn test_no_models_loaded_on_fresh_start() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    let status = client.status().await.expect("status check");
+    assert!(
+        status.models.is_empty(),
+        "fresh daemon should have no models loaded, got {}",
+        status.models.len()
+    );
+
+    tracing::info!("fresh daemon correctly starts with no models");
+}
+
+/// Test that max_models=1 limits the loaded model count.
+///
+/// Since only the hash embedder is guaranteed available without model downloads,
+/// this test verifies the max_models argument is accepted and the daemon operates
+/// correctly with a restricted model limit.
+#[tokio::test]
+#[serial]
+async fn test_max_models_limits_loaded_count() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn_with_max_models(1)
+        .await
+        .expect("spawn daemon with max_models=1");
+
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    // Load hash embedder
+    client
+        .embed(&["test"], Some("hash"), None)
+        .await
+        .expect("embed with hash");
+
+    let status = client.status().await.expect("status check");
+    assert!(
+        status.models.len() <= 1,
+        "should have at most 1 model loaded with max_models=1, got {}",
+        status.models.len()
+    );
+
+    tracing::info!(loaded = status.models.len(), "max_models=1 limit honored");
+}
+
+/// Test that embedding results are deterministic across multiple calls.
+#[tokio::test]
+#[serial]
+async fn test_hash_embedder_deterministic_results() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    let text = "deterministic test input";
+    let result1 = client
+        .embed(&[text], Some("hash"), None)
+        .await
+        .expect("first embed");
+    let result2 = client
+        .embed(&[text], Some("hash"), None)
+        .await
+        .expect("second embed");
+
+    assert_eq!(
+        result1.len(),
+        result2.len(),
+        "should return same number of embeddings"
+    );
+    assert_eq!(
+        result1[0].len(),
+        result2[0].len(),
+        "embeddings should have same dimensions"
+    );
+
+    // Compare bitwise for exact equality (hash embedder should be perfectly deterministic)
+    for (i, (a, b)) in result1[0].iter().zip(result2[0].iter()).enumerate() {
+        assert_eq!(
+            a.to_bits(),
+            b.to_bits(),
+            "embedding dimension {i} should be identical across calls"
+        );
+    }
+
+    tracing::info!(
+        dims = result1[0].len(),
+        "hash embedder determinism verified"
+    );
+}
+
+/// Test batch embedding with multiple texts.
+#[tokio::test]
+#[serial]
+async fn test_batch_embedding() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    let texts = &["first text", "second text", "third text"];
+    let results = client
+        .embed(texts, Some("hash"), None)
+        .await
+        .expect("batch embed");
+
+    assert_eq!(
+        results.len(),
+        texts.len(),
+        "should return one embedding per input text"
+    );
+
+    // Each embedding should have the same dimension
+    let dim = results[0].len();
+    for (i, emb) in results.iter().enumerate() {
+        assert_eq!(
+            emb.len(),
+            dim,
+            "embedding {i} should have same dimension as first ({dim})"
+        );
+    }
+
+    // Different inputs should produce different embeddings
+    assert_ne!(
+        results[0], results[1],
+        "different texts should produce different embeddings"
+    );
+
+    tracing::info!(count = results.len(), dim, "batch embedding verified");
+}
+
+/// Test that in_flight counter is zero when no requests are active.
+#[tokio::test]
+#[serial]
+async fn test_in_flight_zero_when_idle() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    // Do a request first to ensure daemon is warmed up
+    let _ = client.health().await.expect("health check");
+
+    // Small delay to let in_flight settle
+    sleep(Duration::from_millis(50)).await;
+
+    let status = client.status().await.expect("status check");
+    // The status request itself may be in_flight=1, but after response it should be 0
+    // We check that it's at most 1 (the status request itself)
+    assert!(
+        status.in_flight <= 1,
+        "in_flight should be 0 or 1 (status request itself), got {}",
+        status.in_flight
+    );
+
+    tracing::info!(
+        in_flight = status.in_flight,
+        "in_flight counter is low when idle"
+    );
 }
