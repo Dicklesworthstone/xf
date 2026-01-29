@@ -11,6 +11,9 @@
 //! - Error responses (bd-1nya)
 //! - Client auto-spawn and retry logic (bd-2zll)
 //! - Config file and environment variable handling (bd-35ft)
+//! - LRU eviction and memory pressure (bd-3k2x)
+//! - Daemon reranker error handling (bd-2cnh)
+//! - MRL dimension truncation via daemon (bd-ou8b)
 //!
 //! # Test Infrastructure
 //!
@@ -2157,4 +2160,486 @@ async fn test_in_flight_zero_when_idle() {
         in_flight = status.in_flight,
         "in_flight counter is low when idle"
     );
+}
+
+// =============================================================================
+// Daemon Reranker E2E Tests (bd-2cnh)
+// =============================================================================
+
+/// Test that reranking with 'none' reranker returns an error.
+///
+/// The "none" reranker is a sentinel indicating no reranking should be done.
+/// When explicitly requested, the daemon returns an UNKNOWN_MODEL error.
+#[tokio::test]
+#[serial]
+async fn test_rerank_none_reranker_returns_error() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    let result = client
+        .rerank("test query", &["doc one", "doc two"], Some("none"))
+        .await;
+
+    assert!(result.is_err(), "'none' reranker should return error");
+    let err_str = result.unwrap_err().to_string();
+    tracing::info!(
+        error = err_str.as_str(),
+        "'none' reranker correctly rejected"
+    );
+}
+
+/// Test that reranking with an unknown model returns an error.
+#[tokio::test]
+#[serial]
+async fn test_rerank_unknown_model_returns_error() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    let result = client
+        .rerank(
+            "machine learning",
+            &["doc1", "doc2"],
+            Some("totally-fake-reranker-xyz"),
+        )
+        .await;
+
+    assert!(result.is_err(), "unknown reranker should return error");
+    let err_str = result.unwrap_err().to_string();
+    tracing::info!(error = err_str.as_str(), "unknown reranker error verified");
+}
+
+/// Test rerank with empty documents list.
+#[tokio::test]
+#[serial]
+async fn test_rerank_empty_documents() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    // Empty docs with "none" reranker - should still error on the reranker
+    let result = client.rerank("query", &[], Some("none")).await;
+
+    // Expected: error because "none" reranker is not a real reranker
+    assert!(
+        result.is_err(),
+        "empty documents with 'none' reranker should error"
+    );
+
+    tracing::info!("empty documents rerank correctly handled");
+}
+
+/// Test rerank protocol via raw request (using "none" model to test error path).
+#[tokio::test]
+#[serial]
+#[cfg(unix)]
+#[allow(clippy::cast_possible_truncation)]
+async fn test_rerank_protocol_error_path() {
+    use tokio::net::UnixStream;
+
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+
+    let mut stream = UnixStream::connect(&daemon.socket_path)
+        .await
+        .expect("connect to socket");
+
+    // Send a rerank request with "none" reranker via raw protocol
+    let request = Request::Rerank {
+        query: "test query".to_string(),
+        documents: vec!["document one".to_string(), "document two".to_string()],
+        model: "none".to_string(),
+    };
+
+    let envelope = Envelope::from_request(100, &request).expect("create envelope");
+    let bytes = rmp_serde::to_vec(&envelope).expect("serialize");
+
+    stream
+        .write_u32(bytes.len() as u32)
+        .await
+        .expect("write length");
+    stream.write_all(&bytes).await.expect("write payload");
+
+    // Read response
+    let len = stream.read_u32().await.expect("read response length");
+    let mut buf = vec![0u8; len as usize];
+    stream.read_exact(&mut buf).await.expect("read response");
+
+    let resp_envelope: Envelope = rmp_serde::from_slice(&buf).expect("decode envelope");
+    assert_eq!(resp_envelope.id, 100, "response ID should match request");
+
+    let response: Response =
+        rmp_serde::from_slice(&resp_envelope.payload).expect("decode response");
+
+    match response {
+        Response::Error { code, message } => {
+            assert_eq!(
+                code,
+                error_codes::UNKNOWN_MODEL,
+                "expected UNKNOWN_MODEL error for 'none' reranker"
+            );
+            tracing::info!(
+                code,
+                message = message.as_str(),
+                "rerank 'none' correctly returns UNKNOWN_MODEL error via protocol"
+            );
+        }
+        _ => panic!("expected Error response for 'none' reranker, got {response:?}"),
+    }
+}
+
+/// Test that daemon remains healthy after reranker errors.
+#[tokio::test]
+#[serial]
+async fn test_daemon_healthy_after_reranker_errors() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    // Trigger multiple reranker errors
+    for model in &["none", "fake-model-1", "fake-model-2"] {
+        let _ = client.rerank("query", &["doc"], Some(model)).await;
+    }
+
+    // Daemon should still be healthy
+    let health = client.health().await.expect("health after errors");
+    assert!(
+        health.uptime_secs < 30,
+        "daemon should still be running after errors"
+    );
+
+    // Embed should still work
+    let embed = client
+        .embed(&["still works"], Some("hash"), None)
+        .await
+        .expect("embed after reranker errors");
+    assert!(!embed.is_empty());
+
+    tracing::info!(
+        uptime = health.uptime_secs,
+        "daemon remains healthy after reranker errors"
+    );
+}
+
+/// Test rerank with empty model string (equivalent to "none").
+#[tokio::test]
+#[serial]
+async fn test_rerank_empty_model_string() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    // The "default" model name goes through client API
+    // When reranker model is "default", it depends on registry behavior
+    let result = client.rerank("test query", &["doc"], None).await;
+
+    // Result depends on what the "default" reranker resolves to
+    // The important thing is the daemon doesn't crash
+    tracing::info!(
+        success = result.is_ok(),
+        "rerank with default model handled without crash"
+    );
+
+    // Daemon should still be healthy regardless
+    let health = client.health().await.expect("health check");
+    assert!(health.uptime_secs < 30);
+}
+
+// =============================================================================
+// MRL Dimension Truncation E2E Tests (bd-ou8b)
+// =============================================================================
+
+/// Test that embedding with dims=None returns full native dimensions.
+///
+/// The hash embedder has a native dimension of 384. Without MRL truncation,
+/// the full embedding should be returned.
+#[tokio::test]
+#[serial]
+async fn test_embed_without_dims_returns_full_dimensions() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    let result = client
+        .embed(&["test text for full dimensions"], Some("hash"), None)
+        .await
+        .expect("embed without dims");
+
+    assert_eq!(result.len(), 1);
+    // Hash embedder defaults to 384 dimensions
+    assert_eq!(
+        result[0].len(),
+        384,
+        "hash embedder should return 384 dimensions by default"
+    );
+
+    tracing::info!(
+        dims = result[0].len(),
+        "full dimensions verified without MRL"
+    );
+}
+
+/// Test that embedding with dims equal to native dimension succeeds.
+///
+/// When dims matches the model's native dimension, embeddings are returned
+/// without any truncation.
+#[tokio::test]
+#[serial]
+async fn test_embed_dims_equals_native_succeeds() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    // Request exactly the native dimension (384 for hash embedder)
+    let result = client
+        .embed(&["test text"], Some("hash"), Some(384))
+        .await
+        .expect("embed with native dims");
+
+    assert_eq!(result.len(), 1);
+    assert_eq!(
+        result[0].len(),
+        384,
+        "should return embeddings at native dimension"
+    );
+
+    tracing::info!("dims=native (384) correctly returns full embeddings");
+}
+
+/// Test that non-MRL embedder rejects truncation to different dimension.
+///
+/// The hash embedder does not support MRL. Requesting dims != native should
+/// return an INVALID_REQUEST error.
+#[tokio::test]
+#[serial]
+async fn test_embed_non_mrl_rejects_truncation() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    // Hash embedder is 384 dims, doesn't support MRL
+    // Requesting 128 should fail with INVALID_REQUEST
+    let result = client.embed(&["test text"], Some("hash"), Some(128)).await;
+
+    assert!(
+        result.is_err(),
+        "non-MRL embedder should reject dimension truncation"
+    );
+
+    let err_str = result.unwrap_err().to_string();
+    tracing::info!(
+        error = err_str.as_str(),
+        "non-MRL embedder correctly rejects truncation"
+    );
+}
+
+/// Test dimension truncation via raw protocol.
+///
+/// Sends an embed request with dims parameter via raw protocol to verify
+/// the envelope correctly carries the dims field end-to-end.
+#[tokio::test]
+#[serial]
+#[cfg(unix)]
+#[allow(clippy::cast_possible_truncation)]
+async fn test_dims_parameter_protocol_roundtrip() {
+    use tokio::net::UnixStream;
+
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+
+    let mut stream = UnixStream::connect(&daemon.socket_path)
+        .await
+        .expect("connect to socket");
+
+    // Send embed request with dims=384 (native, should succeed)
+    let request = Request::Embed {
+        texts: vec!["protocol test".to_string()],
+        model: "hash".to_string(),
+        dims: Some(384),
+    };
+
+    let envelope = Envelope::from_request(200, &request).expect("create envelope");
+    let bytes = rmp_serde::to_vec(&envelope).expect("serialize");
+
+    stream
+        .write_u32(bytes.len() as u32)
+        .await
+        .expect("write length");
+    stream.write_all(&bytes).await.expect("write payload");
+
+    let len = stream.read_u32().await.expect("read response length");
+    let mut buf = vec![0u8; len as usize];
+    stream.read_exact(&mut buf).await.expect("read response");
+
+    let resp_envelope: Envelope = rmp_serde::from_slice(&buf).expect("decode envelope");
+    assert_eq!(resp_envelope.id, 200);
+
+    let response: Response =
+        rmp_serde::from_slice(&resp_envelope.payload).expect("decode response");
+
+    match response {
+        Response::Embeddings { vectors } => {
+            assert_eq!(vectors.len(), 1);
+            assert_eq!(vectors[0].len(), 384);
+            tracing::info!("dims=384 protocol roundtrip succeeded");
+        }
+        Response::Error { code, message } => {
+            panic!("unexpected error {code}: {message}");
+        }
+        _ => panic!("unexpected response: {response:?}"),
+    }
+}
+
+/// Test that non-MRL truncation error includes model name.
+///
+/// Verifies the error response contains useful information about
+/// which model doesn't support MRL.
+#[tokio::test]
+#[serial]
+#[cfg(unix)]
+#[allow(clippy::cast_possible_truncation)]
+async fn test_non_mrl_truncation_error_message() {
+    use tokio::net::UnixStream;
+
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+
+    let mut stream = UnixStream::connect(&daemon.socket_path)
+        .await
+        .expect("connect to socket");
+
+    // Request truncation on non-MRL embedder
+    let request = Request::Embed {
+        texts: vec!["test".to_string()],
+        model: "hash".to_string(),
+        dims: Some(128), // Not native, hash doesn't support MRL
+    };
+
+    let envelope = Envelope::from_request(201, &request).expect("create envelope");
+    let bytes = rmp_serde::to_vec(&envelope).expect("serialize");
+
+    stream
+        .write_u32(bytes.len() as u32)
+        .await
+        .expect("write length");
+    stream.write_all(&bytes).await.expect("write payload");
+
+    let len = stream.read_u32().await.expect("read response length");
+    let mut buf = vec![0u8; len as usize];
+    stream.read_exact(&mut buf).await.expect("read response");
+
+    let resp_envelope: Envelope = rmp_serde::from_slice(&buf).expect("decode envelope");
+    let response: Response =
+        rmp_serde::from_slice(&resp_envelope.payload).expect("decode response");
+
+    match response {
+        Response::Error { code, message } => {
+            assert_eq!(
+                code,
+                error_codes::INVALID_REQUEST,
+                "should return INVALID_REQUEST for non-MRL truncation"
+            );
+            assert!(
+                message.contains("MRL") || message.contains("truncation"),
+                "error message should mention MRL: {message}"
+            );
+            tracing::info!(
+                code,
+                message = message.as_str(),
+                "non-MRL truncation error message verified"
+            );
+        }
+        _ => panic!("expected Error response, got {response:?}"),
+    }
+}
+
+/// Test that daemon remains functional after MRL truncation errors.
+#[tokio::test]
+#[serial]
+async fn test_daemon_healthy_after_mrl_errors() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    // Trigger MRL errors with non-MRL embedder
+    for dims in [64, 128, 256, 512] {
+        let _ = client.embed(&["test"], Some("hash"), Some(dims)).await;
+    }
+
+    // Daemon should still be healthy and serving valid requests
+    let health = client.health().await.expect("health after MRL errors");
+    assert!(health.uptime_secs < 30);
+
+    let embed = client
+        .embed(&["still works"], Some("hash"), None)
+        .await
+        .expect("embed after MRL errors");
+    assert_eq!(embed[0].len(), 384);
+
+    tracing::info!(
+        uptime = health.uptime_secs,
+        "daemon healthy after MRL truncation errors"
+    );
+}
+
+/// Test batch embedding with dims parameter (native dims).
+#[tokio::test]
+#[serial]
+async fn test_batch_embed_with_native_dims() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let daemon = DaemonProcess::spawn().await.expect("spawn daemon");
+    let mut client = DaemonClient::with_socket_path(daemon.socket_path.clone());
+
+    let texts = &["text one", "text two", "text three"];
+    let result = client
+        .embed(texts, Some("hash"), Some(384))
+        .await
+        .expect("batch embed with native dims");
+
+    assert_eq!(result.len(), 3, "should return 3 embeddings");
+    for (i, emb) in result.iter().enumerate() {
+        assert_eq!(emb.len(), 384, "embedding {i} should have 384 dims");
+    }
+
+    tracing::info!("batch embed with native dims verified");
 }
