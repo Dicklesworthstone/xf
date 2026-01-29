@@ -9,11 +9,12 @@
 //! Bead: bd-3qov
 //!
 //! Test Categories:
-//! 1. MRL Dimension Sweep Tests - verify quality at each dimension
-//! 2. MRL Re-normalization Tests - verify unit vectors after truncation
-//! 3. Search Quality Tests - verify semantic search returns relevant results
-//! 4. Cross-Model Comparison - verify all models produce usable results
-//! 5. CLI Integration Tests - verify commands work end-to-end
+//! 1. Hash Embedder Pipeline Tests - CI-runnable, no model downloads
+//! 2. MRL Dimension Sweep Tests - verify quality at each dimension
+//! 3. MRL Re-normalization Tests - verify unit vectors after truncation
+//! 4. Search Quality Tests - verify semantic search returns relevant results
+//! 5. Cross-Model Comparison - verify all models produce usable results
+//! 6. CLI Integration Tests - verify commands work end-to-end
 
 use std::time::Instant;
 
@@ -41,6 +42,502 @@ fn is_normalized(vec: &[f32], tolerance: f32) -> bool {
 /// Vector norm (L2)
 fn vector_norm(vec: &[f32]) -> f32 {
     vec.iter().map(|x| x * x).sum::<f32>().sqrt()
+}
+
+// =============================================================================
+// Hash Embedder Pipeline Tests (CI-runnable, no model downloads)
+// =============================================================================
+
+mod hash_embedder_pipeline {
+    use super::*;
+    use xf::embedder::Embedder;
+    use xf::hash_embedder::HashEmbedder;
+    use xf::vector::InMemoryVectorIndex;
+
+    #[test]
+    fn test_hash_embedder_produces_normalized_vectors() {
+        let embedder = HashEmbedder::default();
+
+        let texts = [
+            "machine learning algorithms",
+            "the quick brown fox",
+            "database indexing strategies",
+            "🚀 emoji in text",
+            "a",
+        ];
+
+        for text in &texts {
+            let embedding = embedder.embed(text).expect("embed should succeed");
+            assert_eq!(embedding.len(), 384, "should be 384 dimensions");
+
+            let norm = vector_norm(&embedding);
+            assert!(
+                is_normalized(&embedding, 0.01),
+                "embedding for {:?} should be L2-normalized, got norm={:.6}",
+                text,
+                norm
+            );
+        }
+    }
+
+    #[test]
+    fn test_hash_embedder_rejects_empty_string() {
+        let embedder = HashEmbedder::default();
+        let result = embedder.embed("");
+        assert!(
+            result.is_err(),
+            "empty string should return error, not a valid embedding"
+        );
+    }
+
+    #[test]
+    fn test_hash_embedder_deterministic() {
+        let embedder = HashEmbedder::default();
+        let text = "reproducible embeddings are essential for testing";
+
+        let emb1 = embedder.embed(text).expect("first embed");
+        let emb2 = embedder.embed(text).expect("second embed");
+
+        assert_eq!(emb1.len(), emb2.len());
+        for (i, (a, b)) in emb1.iter().zip(emb2.iter()).enumerate() {
+            assert_eq!(
+                a.to_bits(),
+                b.to_bits(),
+                "dimension {i} should be bitwise identical"
+            );
+        }
+    }
+
+    #[test]
+    fn test_hash_embedder_different_texts_different_vectors() {
+        let embedder = HashEmbedder::default();
+
+        let emb_a = embedder.embed("hello world").unwrap();
+        let emb_b = embedder.embed("goodbye moon").unwrap();
+
+        // Different texts should produce different embeddings
+        let identical = emb_a
+            .iter()
+            .zip(emb_b.iter())
+            .all(|(a, b)| a.to_bits() == b.to_bits());
+        assert!(
+            !identical,
+            "different texts should produce different embeddings"
+        );
+    }
+
+    #[test]
+    fn test_hash_embedder_batch_equals_individual() {
+        let embedder = HashEmbedder::default();
+        let texts = ["alpha", "beta", "gamma", "delta"];
+
+        let batch = embedder.embed_batch(&texts).expect("batch embed");
+        assert_eq!(batch.len(), texts.len());
+
+        for (i, text) in texts.iter().enumerate() {
+            let individual = embedder.embed(text).expect("individual embed");
+            assert_eq!(batch[i].len(), individual.len());
+            for (j, (a, b)) in batch[i].iter().zip(individual.iter()).enumerate() {
+                assert_eq!(
+                    a.to_bits(),
+                    b.to_bits(),
+                    "text {:?} dim {j}: batch and individual should be identical",
+                    text
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_vector_index_add_and_search() {
+        let embedder = HashEmbedder::default();
+        let mut index = InMemoryVectorIndex::new(384);
+
+        let docs = [
+            ("doc0", "tweet", "machine learning is transformative"),
+            ("doc1", "tweet", "artificial intelligence research"),
+            ("doc2", "tweet", "cooking pasta recipe"),
+            ("doc3", "like", "weather forecast for tomorrow"),
+            ("doc4", "tweet", "deep neural network architectures"),
+        ];
+
+        for (id, doc_type, text) in &docs {
+            let emb = embedder.embed(text).unwrap();
+            index.add(id.to_string(), doc_type, emb);
+        }
+
+        assert_eq!(index.len(), 5);
+        assert_eq!(index.dimension(), 384);
+
+        // Search with a query
+        let query_emb = embedder.embed("machine learning neural networks").unwrap();
+        let results = index.search_top_k(&query_emb, 3, None);
+
+        assert_eq!(results.len(), 3, "should return top 3 results");
+
+        // Results should be sorted by score descending
+        for window in results.windows(2) {
+            assert!(
+                window[0].score >= window[1].score,
+                "results should be sorted descending: {} >= {}",
+                window[0].score,
+                window[1].score
+            );
+        }
+    }
+
+    #[test]
+    fn test_vector_index_type_filtering() {
+        let embedder = HashEmbedder::default();
+        let mut index = InMemoryVectorIndex::new(384);
+
+        let docs = [
+            ("t1", "tweet", "hello world"),
+            ("t2", "tweet", "rust programming"),
+            ("l1", "like", "hello world liked"),
+            ("d1", "dm", "hello private message"),
+        ];
+
+        for (id, doc_type, text) in &docs {
+            let emb = embedder.embed(text).unwrap();
+            index.add(id.to_string(), doc_type, emb);
+        }
+
+        let query = embedder.embed("hello").unwrap();
+
+        // Filter to tweets only
+        let tweet_results = index.search_top_k(&query, 10, Some(&["tweet"]));
+        for r in &tweet_results {
+            assert_eq!(r.doc_type, "tweet", "filter should return only tweets");
+        }
+        assert_eq!(tweet_results.len(), 2, "should find 2 tweets");
+
+        // Filter to likes only
+        let like_results = index.search_top_k(&query, 10, Some(&["like"]));
+        assert_eq!(like_results.len(), 1, "should find 1 like");
+        assert_eq!(like_results[0].doc_type, "like");
+
+        // No filter returns all
+        let all_results = index.search_top_k(&query, 10, None);
+        assert_eq!(all_results.len(), 4, "no filter should return all docs");
+    }
+
+    #[test]
+    fn test_vector_index_top_k_limiting() {
+        let embedder = HashEmbedder::default();
+        let mut index = InMemoryVectorIndex::new(384);
+
+        for i in 0..20 {
+            let emb = embedder.embed(&format!("document number {i}")).unwrap();
+            index.add(format!("doc{i}"), "tweet", emb);
+        }
+
+        let query = embedder.embed("document").unwrap();
+
+        // k=5 should return exactly 5
+        let results = index.search_top_k(&query, 5, None);
+        assert_eq!(results.len(), 5, "should limit to top 5");
+
+        // k=100 should return all 20
+        let all = index.search_top_k(&query, 100, None);
+        assert_eq!(all.len(), 20, "k > len should return all");
+
+        // k=1 should return exactly 1
+        let one = index.search_top_k(&query, 1, None);
+        assert_eq!(one.len(), 1, "k=1 should return exactly 1");
+    }
+
+    #[test]
+    fn test_vector_index_empty() {
+        let index = InMemoryVectorIndex::new(384);
+        assert!(index.is_empty());
+        assert_eq!(index.len(), 0);
+
+        let embedder = HashEmbedder::default();
+        let query = embedder.embed("anything").unwrap();
+        let results = index.search_top_k(&query, 10, None);
+        assert!(results.is_empty(), "empty index should return no results");
+    }
+
+    #[test]
+    fn test_vector_index_type_counts() {
+        let embedder = HashEmbedder::default();
+        let mut index = InMemoryVectorIndex::new(384);
+
+        let docs = [
+            ("t1", "tweet", "one"),
+            ("t2", "tweet", "two"),
+            ("t3", "tweet", "three"),
+            ("l1", "like", "four"),
+            ("d1", "dm", "five"),
+            ("d2", "dm", "six"),
+        ];
+
+        for (id, doc_type, text) in &docs {
+            let emb = embedder.embed(text).unwrap();
+            index.add(id.to_string(), doc_type, emb);
+        }
+
+        let counts = index.type_counts();
+        assert_eq!(counts.get("tweet"), Some(&3));
+        assert_eq!(counts.get("like"), Some(&1));
+        assert_eq!(counts.get("dm"), Some(&2));
+    }
+
+    #[test]
+    fn test_self_similarity_is_maximum() {
+        let embedder = HashEmbedder::default();
+        let text = "self similarity test";
+        let emb = embedder.embed(text).unwrap();
+
+        let self_sim = cosine_similarity(&emb, &emb);
+        assert!(
+            (self_sim - 1.0).abs() < 0.001,
+            "self-similarity should be ~1.0, got {:.6}",
+            self_sim
+        );
+    }
+
+    #[test]
+    fn test_search_self_retrieval() {
+        // The document most similar to its own embedding should be itself
+        let embedder = HashEmbedder::default();
+        let mut index = InMemoryVectorIndex::new(384);
+
+        let docs = [
+            ("target", "tweet", "unique target document for retrieval"),
+            (
+                "other1",
+                "tweet",
+                "completely different topic about cooking",
+            ),
+            ("other2", "tweet", "another unrelated text about weather"),
+        ];
+
+        for (id, doc_type, text) in &docs {
+            let emb = embedder.embed(text).unwrap();
+            index.add(id.to_string(), doc_type, emb);
+        }
+
+        // Query with the exact text of "target"
+        let query = embedder
+            .embed("unique target document for retrieval")
+            .unwrap();
+        let results = index.search_top_k(&query, 1, None);
+
+        assert_eq!(results.len(), 1);
+        assert_eq!(
+            results[0].doc_id, "target",
+            "document should be its own best match"
+        );
+        assert!(
+            results[0].score > 0.99,
+            "self-retrieval score should be ~1.0, got {:.6}",
+            results[0].score
+        );
+    }
+
+    #[test]
+    fn test_pipeline_roundtrip_embed_index_search() {
+        // Full pipeline: create embedder -> embed documents -> build index -> search -> verify
+        let embedder = HashEmbedder::default();
+        let mut index = InMemoryVectorIndex::new(embedder.dimension());
+
+        // Corpus of documents
+        let corpus = [
+            ("d1", "tweet", "rust programming language systems"),
+            ("d2", "tweet", "python data science machine learning"),
+            ("d3", "like", "javascript web development frontend"),
+            ("d4", "dm", "database sql query optimization"),
+            ("d5", "tweet", "rust cargo package manager"),
+            ("d6", "tweet", "python pandas dataframe analysis"),
+            ("d7", "like", "react typescript component design"),
+            ("d8", "dm", "postgresql index performance tuning"),
+        ];
+
+        // Embed and index all documents
+        let start = Instant::now();
+        for (id, doc_type, text) in &corpus {
+            let emb = embedder.embed(text).unwrap();
+            index.add(id.to_string(), doc_type, emb);
+        }
+        let index_time = start.elapsed();
+
+        assert_eq!(index.len(), 8);
+        assert!(!index.is_empty());
+
+        // Search for "rust" related
+        let query = embedder.embed("rust programming cargo").unwrap();
+        let results = index.search_top_k(&query, 3, None);
+        assert_eq!(results.len(), 3);
+
+        // All scores should be valid cosine similarities
+        for r in &results {
+            assert!(
+                r.score >= -1.0 && r.score <= 1.0,
+                "score should be valid cosine similarity: {}",
+                r.score
+            );
+        }
+
+        // Search with type filter
+        let tweet_results = index.search_top_k(&query, 10, Some(&["tweet"]));
+        assert!(tweet_results.len() <= 4, "only 4 tweets in corpus");
+        for r in &tweet_results {
+            assert_eq!(r.doc_type, "tweet");
+        }
+
+        println!(
+            "Pipeline roundtrip: indexed {} docs in {:?}",
+            corpus.len(),
+            index_time
+        );
+    }
+}
+
+// =============================================================================
+// Utility Function Tests (CI-runnable)
+// =============================================================================
+
+mod utility_functions {
+    use super::*;
+
+    #[test]
+    fn test_cosine_similarity_identical_vectors() {
+        let v = vec![1.0, 0.0, 0.0];
+        let sim = cosine_similarity(&v, &v);
+        assert!(
+            (sim - 1.0).abs() < 1e-6,
+            "identical vectors should have similarity 1.0, got {sim}"
+        );
+    }
+
+    #[test]
+    fn test_cosine_similarity_orthogonal_vectors() {
+        let a = vec![1.0, 0.0, 0.0];
+        let b = vec![0.0, 1.0, 0.0];
+        let sim = cosine_similarity(&a, &b);
+        assert!(
+            sim.abs() < 1e-6,
+            "orthogonal vectors should have similarity ~0, got {sim}"
+        );
+    }
+
+    #[test]
+    fn test_cosine_similarity_opposite_vectors() {
+        let a = vec![1.0, 0.0, 0.0];
+        let b = vec![-1.0, 0.0, 0.0];
+        let sim = cosine_similarity(&a, &b);
+        assert!(
+            (sim + 1.0).abs() < 1e-6,
+            "opposite vectors should have similarity -1.0, got {sim}"
+        );
+    }
+
+    #[test]
+    fn test_cosine_similarity_empty_vectors() {
+        let empty: Vec<f32> = vec![];
+        let sim = cosine_similarity(&empty, &empty);
+        assert!(
+            sim.abs() < 1e-6,
+            "empty vectors should return ~0, got {sim}"
+        );
+    }
+
+    #[test]
+    fn test_cosine_similarity_mismatched_lengths() {
+        let a = vec![1.0, 2.0];
+        let b = vec![1.0, 2.0, 3.0];
+        let sim = cosine_similarity(&a, &b);
+        assert!(
+            sim.abs() < 1e-6,
+            "mismatched lengths should return ~0, got {sim}"
+        );
+    }
+
+    #[test]
+    fn test_is_normalized_unit_vector() {
+        let unit = vec![1.0, 0.0, 0.0];
+        assert!(is_normalized(&unit, 0.01));
+
+        let unit2 = vec![
+            1.0 / 3.0_f32.sqrt(),
+            1.0 / 3.0_f32.sqrt(),
+            1.0 / 3.0_f32.sqrt(),
+        ];
+        assert!(is_normalized(&unit2, 0.01));
+    }
+
+    #[test]
+    fn test_is_normalized_non_unit_vector() {
+        let non_unit = vec![2.0, 0.0, 0.0];
+        assert!(!is_normalized(&non_unit, 0.01));
+    }
+
+    #[test]
+    fn test_vector_norm() {
+        let v = vec![3.0, 4.0];
+        assert!((vector_norm(&v) - 5.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_vector_norm_unit() {
+        let v = vec![1.0, 0.0, 0.0];
+        assert!((vector_norm(&v) - 1.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_vector_norm_zero() {
+        let v = vec![0.0, 0.0, 0.0];
+        assert!(vector_norm(&v).abs() < 1e-6);
+    }
+}
+
+// =============================================================================
+// Model Registry Hash Embedder Tests (CI-runnable)
+// =============================================================================
+
+mod model_registry_hash {
+    use xf::model_registry::{EmbedderConfig, ModelRegistry};
+
+    #[test]
+    fn test_hash_embedder_via_registry() {
+        let registry = ModelRegistry::new();
+        let config = EmbedderConfig::new("hash");
+        let embedder = registry.embedder(&config).expect("create hash embedder");
+
+        assert_eq!(embedder.dimension(), 384);
+        assert!(!embedder.is_semantic());
+        assert!(!embedder.supports_mrl());
+
+        let emb = embedder.embed("test text").expect("embed");
+        assert_eq!(emb.len(), 384);
+    }
+
+    #[test]
+    fn test_hash_embedder_aliases() {
+        let registry = ModelRegistry::new();
+
+        for alias in &["hash", "fnv1a", "hash-fnv1a-384"] {
+            let config = EmbedderConfig::new(*alias);
+            let embedder = registry
+                .embedder(&config)
+                .unwrap_or_else(|e| panic!("alias {:?} should work: {}", alias, e));
+            assert_eq!(embedder.dimension(), 384, "alias {:?}", alias);
+        }
+    }
+
+    #[test]
+    fn test_hash_embedder_info() {
+        let registry = ModelRegistry::new();
+        let config = EmbedderConfig::new("hash");
+        let embedder = registry.embedder(&config).unwrap();
+
+        let info = embedder.info();
+        assert_eq!(info.dimension, 384);
+        assert!(!info.is_semantic);
+        assert!(!info.supports_mrl);
+    }
 }
 
 // =============================================================================
