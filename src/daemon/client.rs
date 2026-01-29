@@ -202,9 +202,14 @@ impl DaemonClient {
         let exe = std::env::current_exe()?;
 
         // Spawn the daemon as a background process
-        // The daemon command should be: xf daemon start
+        // Pass the socket path to ensure daemon listens on the same socket client expects
         let child = Command::new(&exe)
-            .args(["daemon", "start"])
+            .args([
+                "daemon",
+                "start",
+                "--socket",
+                &self.config.socket_path.to_string_lossy(),
+            ])
             .stdin(Stdio::null())
             .stdout(Stdio::null())
             .stderr(Stdio::null())
