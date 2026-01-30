@@ -581,8 +581,15 @@ mod daemon_client_tests {
 
     #[test]
     fn test_daemon_pid_when_not_running() {
-        let client = DaemonClient::with_socket_path(PathBuf::from("/tmp/nonexistent-test.sock"));
-        // PID should be None when daemon isn't running
+        // Use a custom config with BOTH a nonexistent socket AND a nonexistent pid file
+        // to ensure the test doesn't read from a real daemon's pid file
+        let config = ClientConfig {
+            socket_path: PathBuf::from("/tmp/nonexistent-test.sock"),
+            pid_path: PathBuf::from("/tmp/nonexistent-test.pid"),
+            ..ClientConfig::default()
+        };
+        let client = DaemonClient::with_config(config);
+        // PID should be None when daemon isn't running (no pid file exists)
         assert!(client.daemon_pid().is_none());
     }
 

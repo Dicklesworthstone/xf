@@ -399,10 +399,7 @@ impl TwoTierMetrics {
     ///
     /// Returns an error if the file cannot be opened or written to.
     pub fn log_to_file(&self, path: &Path) -> std::io::Result<()> {
-        let file = OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(path)?;
+        let file = OpenOptions::new().create(true).append(true).open(path)?;
         let mut writer = BufWriter::new(file);
         serde_json::to_writer(&mut writer, self)?;
         writeln!(writer)?;
@@ -473,10 +470,7 @@ pub fn compute_rank_changes(
 /// Returns None if either list is empty.
 #[must_use]
 #[allow(clippy::cast_precision_loss, clippy::cast_possible_wrap)]
-pub fn kendall_tau(
-    initial: &[VectorSearchResult],
-    refined: &[VectorSearchResult],
-) -> Option<f64> {
+pub fn kendall_tau(initial: &[VectorSearchResult], refined: &[VectorSearchResult]) -> Option<f64> {
     if initial.is_empty() || refined.is_empty() {
         return None;
     }
@@ -514,10 +508,8 @@ pub fn kendall_tau(
             let key_i = common[i];
             let key_j = common[j];
 
-            let initial_diff =
-                initial_ranks[key_i] as i64 - initial_ranks[key_j] as i64;
-            let refined_diff =
-                refined_ranks[key_i] as i64 - refined_ranks[key_j] as i64;
+            let initial_diff = initial_ranks[key_i] as i64 - initial_ranks[key_j] as i64;
+            let refined_diff = refined_ranks[key_i] as i64 - refined_ranks[key_j] as i64;
 
             if (initial_diff > 0 && refined_diff > 0) || (initial_diff < 0 && refined_diff < 0) {
                 concordant += 1;
@@ -1121,8 +1113,8 @@ mod tests {
 
         let (promoted, demoted, stable) = compute_rank_changes(&initial, &refined);
         assert_eq!(promoted, 1); // c moved up
-        assert_eq!(demoted, 1);  // a moved down
-        assert_eq!(stable, 1);   // b stayed at rank 1
+        assert_eq!(demoted, 1); // a moved down
+        assert_eq!(stable, 1); // b stayed at rank 1
     }
 
     #[test]
@@ -1134,7 +1126,10 @@ mod tests {
         ];
 
         let tau = kendall_tau(&results, &results).unwrap();
-        assert!((tau - 1.0).abs() < 0.001, "Identical rankings should have tau = 1.0");
+        assert!(
+            (tau - 1.0).abs() < 0.001,
+            "Identical rankings should have tau = 1.0"
+        );
     }
 
     #[test]
@@ -1151,7 +1146,10 @@ mod tests {
         ];
 
         let tau = kendall_tau(&initial, &refined).unwrap();
-        assert!((tau - (-1.0)).abs() < 0.001, "Reversed rankings should have tau = -1.0");
+        assert!(
+            (tau - (-1.0)).abs() < 0.001,
+            "Reversed rankings should have tau = -1.0"
+        );
     }
 
     #[test]

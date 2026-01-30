@@ -407,7 +407,7 @@ impl Output {
     /// Note: This does NOT call strip_markup() because data formats (JSON, TOON)
     /// contain valid brackets that would be incorrectly stripped by the markup regex.
     pub fn print_data(&self, text: &str) {
-        println!("{}", text);
+        println!("{text}");
     }
 
     /// Print JSON (always unformatted, no styling)
