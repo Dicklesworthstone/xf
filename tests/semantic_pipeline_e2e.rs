@@ -1139,3 +1139,282 @@ mod edge_cases {
         }
     }
 }
+
+// =============================================================================
+// Two-Tier Progressive Search Tests (CI-runnable, uses hash embedder)
+// =============================================================================
+
+mod two_tier {
+    use xf::embedder::Embedder;
+    use xf::hash_embedder::HashEmbedder;
+    use xf::hybrid::{self, SearchMode};
+    use xf::storage::Storage;
+    use xf::vector::{
+        InMemoryVectorIndex, VECTOR_INDEX_FAST_FILENAME, VECTOR_INDEX_QUALITY_FILENAME,
+        VectorIndex, VectorSearchResult, write_vector_index_named,
+    };
+
+    /// Build two in-memory vector indexes with the same documents but different embeddings.
+    fn build_two_tier_indexes() -> (InMemoryVectorIndex, InMemoryVectorIndex) {
+        let embedder = HashEmbedder::default();
+        let mut fast_index = InMemoryVectorIndex::new(384);
+        let mut quality_index = InMemoryVectorIndex::new(384);
+
+        let docs = [
+            ("doc0", "tweet", "machine learning algorithms"),
+            ("doc1", "tweet", "artificial intelligence research"),
+            ("doc2", "tweet", "cooking pasta recipe italian"),
+            ("doc3", "like", "weather forecast tomorrow rain"),
+            ("doc4", "tweet", "deep neural network architectures"),
+        ];
+
+        for (id, doc_type, text) in &docs {
+            let fast_emb = embedder.embed(text).unwrap();
+            fast_index.add(id.to_string(), doc_type, fast_emb.clone());
+            // Quality uses same hash embedder but on slightly different text
+            // to simulate different model characteristics
+            let quality_emb = embedder.embed(&format!("{text} semantic meaning")).unwrap();
+            quality_index.add(id.to_string(), doc_type, quality_emb);
+        }
+
+        (fast_index, quality_index)
+    }
+
+    #[test]
+    fn test_two_tier_hash_only() {
+        // Verify blending produces valid results using hash embedder for both tiers
+        let embedder = HashEmbedder::default();
+        let (fast_index, quality_index) = build_two_tier_indexes();
+
+        let query = embedder.embed("machine learning neural networks").unwrap();
+
+        let fast_results = fast_index.search_top_k(&query, 5, None);
+        let quality_results = quality_index.search_top_k(&query, 5, None);
+
+        assert!(!fast_results.is_empty(), "fast results should not be empty");
+        assert!(
+            !quality_results.is_empty(),
+            "quality results should not be empty"
+        );
+
+        // Normalize
+        let mut fast_norm = fast_results;
+        let mut quality_norm = quality_results;
+        hybrid::min_max_normalize(&mut fast_norm);
+        hybrid::min_max_normalize(&mut quality_norm);
+
+        // Blend with default factor
+        let blended = hybrid::blend_two_tier(&fast_norm, &quality_norm, 0.7);
+        assert!(!blended.is_empty(), "blended results should not be empty");
+
+        // Results should be sorted by score descending
+        for window in blended.windows(2) {
+            assert!(
+                window[0].score >= window[1].score,
+                "blended results should be sorted: {:.4} >= {:.4}",
+                window[0].score,
+                window[1].score
+            );
+        }
+    }
+
+    #[test]
+    fn test_two_tier_degradation_no_quality() {
+        // Missing quality index should return fast-only results
+        let embedder = HashEmbedder::default();
+        let mut fast_index = InMemoryVectorIndex::new(384);
+
+        let docs = [
+            ("doc0", "tweet", "hello world"),
+            ("doc1", "tweet", "test document"),
+        ];
+
+        for (id, doc_type, text) in &docs {
+            let emb = embedder.embed(text).unwrap();
+            fast_index.add(id.to_string(), doc_type, emb);
+        }
+
+        let query = embedder.embed("hello test").unwrap();
+        let fast_results = fast_index.search_top_k(&query, 5, None);
+
+        // With no quality results, blend should just return fast results scaled
+        let mut fast_norm = fast_results;
+        hybrid::min_max_normalize(&mut fast_norm);
+
+        let quality_results: Vec<VectorSearchResult> = vec![];
+        let blended = hybrid::blend_two_tier(&fast_norm, &quality_results, 0.7);
+
+        // Should have same number of results as fast
+        assert_eq!(blended.len(), fast_norm.len());
+
+        // All results should have score = original * (1 - blend_factor)
+        for (blended_hit, fast_hit) in blended.iter().zip(fast_norm.iter()) {
+            assert_eq!(blended_hit.doc_id, fast_hit.doc_id);
+            let expected = fast_hit.score * 0.3; // 1 - 0.7
+            assert!(
+                (blended_hit.score - expected).abs() < 0.001,
+                "fast-only score should be original * (1-blend): {:.4} vs {:.4}",
+                blended_hit.score,
+                expected
+            );
+        }
+    }
+
+    #[test]
+    fn test_two_tier_blend_factor_zero_matches_fast() {
+        // blend_factor=0 should give same ordering as fast-only
+        let embedder = HashEmbedder::default();
+        let (fast_index, quality_index) = build_two_tier_indexes();
+
+        let query = embedder.embed("machine learning").unwrap();
+        let fast_results = fast_index.search_top_k(&query, 5, None);
+        let quality_results = quality_index.search_top_k(&query, 5, None);
+
+        let mut fast_norm = fast_results;
+        let mut quality_norm = quality_results;
+        hybrid::min_max_normalize(&mut fast_norm);
+        hybrid::min_max_normalize(&mut quality_norm);
+
+        let blended = hybrid::blend_two_tier(&fast_norm, &quality_norm, 0.0);
+
+        // With blend_factor=0, quality weight=0, fast weight=1.0
+        // So scores should match fast scores exactly
+        for (blended_hit, fast_hit) in blended.iter().zip(fast_norm.iter()) {
+            assert_eq!(blended_hit.doc_id, fast_hit.doc_id);
+            assert!(
+                (blended_hit.score - fast_hit.score).abs() < 0.001,
+                "blend_factor=0 should match fast: {:.4} vs {:.4}",
+                blended_hit.score,
+                fast_hit.score
+            );
+        }
+    }
+
+    #[test]
+    fn test_two_tier_blend_factor_one_matches_quality() {
+        // blend_factor=1 should give same ordering as quality-only
+        let embedder = HashEmbedder::default();
+        let (fast_index, quality_index) = build_two_tier_indexes();
+
+        let query = embedder.embed("machine learning").unwrap();
+        let fast_results = fast_index.search_top_k(&query, 5, None);
+        let quality_results = quality_index.search_top_k(&query, 5, None);
+
+        let mut fast_norm = fast_results;
+        let mut quality_norm = quality_results;
+        hybrid::min_max_normalize(&mut fast_norm);
+        hybrid::min_max_normalize(&mut quality_norm);
+
+        let blended = hybrid::blend_two_tier(&fast_norm, &quality_norm, 1.0);
+
+        // With blend_factor=1, fast weight=0, quality weight=1.0
+        // Quality-only docs should preserve their scores
+        for quality_hit in &quality_norm {
+            let blended_hit = blended
+                .iter()
+                .find(|h| h.doc_id == quality_hit.doc_id && h.doc_type == quality_hit.doc_type);
+            if let Some(bh) = blended_hit {
+                assert!(
+                    (bh.score - quality_hit.score).abs() < 0.001,
+                    "blend_factor=1 should match quality for {}: {:.4} vs {:.4}",
+                    quality_hit.doc_id,
+                    bh.score,
+                    quality_hit.score
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_two_tier_named_index_roundtrip() {
+        // Test writing and loading named index files for two-tier mode
+        let storage = Storage::open_memory().unwrap();
+        let temp_dir = tempfile::tempdir().unwrap();
+        let embedder = HashEmbedder::default();
+
+        let docs = [
+            ("doc0", "tweet", "machine learning algorithms"),
+            ("doc1", "tweet", "cooking pasta recipe"),
+        ];
+
+        // Store embeddings with different model_ids
+        for (id, doc_type, text) in &docs {
+            let emb = embedder.embed(text).unwrap();
+            storage
+                .store_embedding_with_model(id, doc_type, &emb, None, "fast")
+                .unwrap();
+            // Quality uses different text for different embedding
+            let quality_emb = embedder.embed(&format!("{text} quality semantic")).unwrap();
+            storage
+                .store_embedding_with_model(id, doc_type, &quality_emb, None, "quality")
+                .unwrap();
+        }
+
+        // Write named indexes
+        let fast_stats = write_vector_index_named(
+            temp_dir.path(),
+            &storage,
+            VECTOR_INDEX_FAST_FILENAME,
+            Some("fast"),
+        )
+        .unwrap();
+        let quality_stats = write_vector_index_named(
+            temp_dir.path(),
+            &storage,
+            VECTOR_INDEX_QUALITY_FILENAME,
+            Some("quality"),
+        )
+        .unwrap();
+
+        assert_eq!(fast_stats.record_count, 2);
+        assert_eq!(quality_stats.record_count, 2);
+
+        // Load named indexes
+        let fast_idx = VectorIndex::load_named(temp_dir.path(), VECTOR_INDEX_FAST_FILENAME)
+            .unwrap()
+            .expect("fast index should exist");
+        let quality_idx = VectorIndex::load_named(temp_dir.path(), VECTOR_INDEX_QUALITY_FILENAME)
+            .unwrap()
+            .expect("quality index should exist");
+
+        assert_eq!(fast_idx.len(), 2);
+        assert_eq!(quality_idx.len(), 2);
+
+        // Search and blend
+        let query = embedder.embed("machine learning").unwrap();
+        let fast_results = fast_idx.search_top_k(&query, 5, None);
+        let quality_results = quality_idx.search_top_k(&query, 5, None);
+
+        let mut fast_norm = fast_results;
+        let mut quality_norm = quality_results;
+        hybrid::min_max_normalize(&mut fast_norm);
+        hybrid::min_max_normalize(&mut quality_norm);
+
+        let blended = hybrid::blend_two_tier(&fast_norm, &quality_norm, 0.7);
+        assert_eq!(blended.len(), 2);
+    }
+
+    #[test]
+    fn test_search_mode_two_tier_parsing() {
+        assert_eq!(
+            "two-tier".parse::<SearchMode>().unwrap(),
+            SearchMode::TwoTier
+        );
+        assert_eq!(
+            "progressive".parse::<SearchMode>().unwrap(),
+            SearchMode::TwoTier
+        );
+        assert_eq!("2tier".parse::<SearchMode>().unwrap(), SearchMode::TwoTier);
+    }
+
+    #[test]
+    fn test_two_tier_config_defaults() {
+        use xf::config::TwoTierConfig;
+
+        let cfg = TwoTierConfig::default();
+        assert!(cfg.fast_model.is_none());
+        assert!(cfg.quality_model.is_none());
+        assert!((cfg.blend_factor - 0.7).abs() < f32::EPSILON);
+        assert_eq!(cfg.quality_timeout_ms, 500);
+    }
+}

@@ -35,8 +35,8 @@ use xf::repl;
 use xf::search;
 use xf::stats_analytics::{self, ContentStats, EngagementStats, TemporalStats};
 use xf::vector::{
-    VECTOR_INDEX_FAST_FILENAME, VECTOR_INDEX_FILENAME, VECTOR_INDEX_QUALITY_FILENAME,
-    VectorIndex, write_vector_index, write_vector_index_named,
+    VECTOR_INDEX_FAST_FILENAME, VECTOR_INDEX_FILENAME, VECTOR_INDEX_QUALITY_FILENAME, VectorIndex,
+    write_vector_index, write_vector_index_named,
 };
 use xf::{
     ArchiveParser, ArchiveStats, CONTENT_DIVIDER_WIDTH, Cli, Commands, DataType, ExportFormat,
@@ -156,10 +156,7 @@ impl VectorIndexCache {
         self.fast_index
             .get_or_init(|| {
                 let _guard = self.fast_init_lock.lock().ok()?;
-                match VectorIndex::load_named(
-                    index_path,
-                    xf::vector::VECTOR_INDEX_FAST_FILENAME,
-                ) {
+                match VectorIndex::load_named(index_path, xf::vector::VECTOR_INDEX_FAST_FILENAME) {
                     Ok(Some(idx)) => {
                         let meta = CacheMeta {
                             db_mtime: SystemTime::UNIX_EPOCH,
@@ -167,10 +164,7 @@ impl VectorIndexCache {
                             type_counts: idx.type_counts(),
                         };
                         let _ = self.fast_meta.set(meta);
-                        info!(
-                            "Fast vector index loaded: {} embeddings",
-                            idx.len()
-                        );
+                        info!("Fast vector index loaded: {} embeddings", idx.len());
                         Some(idx)
                     }
                     Ok(None) => {
@@ -191,10 +185,8 @@ impl VectorIndexCache {
         self.quality_index
             .get_or_init(|| {
                 let _guard = self.quality_init_lock.lock().ok()?;
-                match VectorIndex::load_named(
-                    index_path,
-                    xf::vector::VECTOR_INDEX_QUALITY_FILENAME,
-                ) {
+                match VectorIndex::load_named(index_path, xf::vector::VECTOR_INDEX_QUALITY_FILENAME)
+                {
                     Ok(Some(idx)) => {
                         let meta = CacheMeta {
                             db_mtime: SystemTime::UNIX_EPOCH,
@@ -202,10 +194,7 @@ impl VectorIndexCache {
                             type_counts: idx.type_counts(),
                         };
                         let _ = self.quality_meta.set(meta);
-                        info!(
-                            "Quality vector index loaded: {} embeddings",
-                            idx.len()
-                        );
+                        info!("Quality vector index loaded: {} embeddings", idx.len());
                         Some(idx)
                     }
                     Ok(None) => {
@@ -1017,7 +1006,7 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, output: &Output) -> Result<()> {
     search_engine.reload()?;
 
     // Generate embeddings for semantic search
-    let two_tier_config = config.semantic.two_tier.clone();
+    let two_tier_config = config.semantic.two_tier;
     let embed_config = xf::EmbeddingConfig {
         show_progress: !cli.quiet,
         use_semantic: args.semantic,
@@ -1456,7 +1445,7 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
             let fast_model = two_tier_cfg
                 .fast_model
                 .as_deref()
-                .or(config.semantic.effective_model(args.model.as_deref()));
+                .or_else(|| config.semantic.effective_model(args.model.as_deref()));
             #[allow(unused_assignments)]
             let mut fast_embedder_box: Option<Box<dyn Embedder>> = None;
             #[allow(unused_assignments)]
@@ -1500,7 +1489,7 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
                 let quality_model = two_tier_cfg
                     .quality_model
                     .as_deref()
-                    .or(config.semantic.effective_model(args.model.as_deref()));
+                    .or_else(|| config.semantic.effective_model(args.model.as_deref()));
                 #[allow(unused_assignments)]
                 let mut quality_embedder_box: Option<Box<dyn Embedder>> = None;
                 #[allow(unused_assignments)]
@@ -1525,28 +1514,26 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
                     .as_ref()
                     .map(|types| types.iter().map(|t| t.as_str()).collect());
 
-                if !canonical_query.is_empty() {
-                    if let Ok(query_embedding) = quality_embedder.embed(&canonical_query) {
-                        let quality_hits = q_index.search_top_k(
-                            &query_embedding,
-                            candidate_count,
-                            type_strs.as_deref(),
-                        );
+                if canonical_query.is_empty() {
+                    fast_semantic
+                } else if let Ok(query_embedding) = quality_embedder.embed(&canonical_query) {
+                    let quality_hits = q_index.search_top_k(
+                        &query_embedding,
+                        candidate_count,
+                        type_strs.as_deref(),
+                    );
 
-                        // Normalize and blend fast + quality
-                        let mut fast_normalized = fast_semantic.clone();
-                        let mut quality_normalized = quality_hits;
-                        hybrid::min_max_normalize(&mut fast_normalized);
-                        hybrid::min_max_normalize(&mut quality_normalized);
+                    // Normalize and blend fast + quality
+                    let mut fast_normalized = fast_semantic;
+                    let mut quality_normalized = quality_hits;
+                    hybrid::min_max_normalize(&mut fast_normalized);
+                    hybrid::min_max_normalize(&mut quality_normalized);
 
-                        hybrid::blend_two_tier(
-                            &fast_normalized,
-                            &quality_normalized,
-                            two_tier_cfg.blend_factor,
-                        )
-                    } else {
-                        fast_semantic
-                    }
+                    hybrid::blend_two_tier(
+                        &fast_normalized,
+                        &quality_normalized,
+                        two_tier_cfg.blend_factor,
+                    )
                 } else {
                     fast_semantic
                 }

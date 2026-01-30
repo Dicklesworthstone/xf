@@ -279,10 +279,7 @@ pub fn blend_two_tier(
     for hit in fast {
         let key = (hit.doc_id.as_str(), hit.doc_type);
         let fast_score = hit.score * fast_weight;
-        let quality_score = quality_map
-            .remove(&key)
-            .map(|s| s * quality_weight)
-            .unwrap_or(0.0);
+        let quality_score = quality_map.remove(&key).map_or(0.0, |s| s * quality_weight);
 
         blended.push(VectorSearchResult {
             doc_id: hit.doc_id.clone(),
@@ -726,10 +723,7 @@ mod tests {
             "progressive".parse::<SearchMode>().unwrap(),
             SearchMode::TwoTier
         );
-        assert_eq!(
-            "2tier".parse::<SearchMode>().unwrap(),
-            SearchMode::TwoTier
-        );
+        assert_eq!("2tier".parse::<SearchMode>().unwrap(), SearchMode::TwoTier);
     }
 
     #[test]

@@ -658,6 +658,7 @@ mod tests {
             rerank: true,
             daemon: false,
             rerank_top: 50,
+            two_tier: TwoTierConfig::default(),
         };
         let toml_str = toml::to_string(&sc).unwrap();
         let parsed: SemanticConfig = toml::from_str(&toml_str).unwrap();
@@ -723,10 +724,7 @@ mod tests {
             parsed.fast_model.as_deref(),
             Some("potion-multilingual-128M")
         );
-        assert_eq!(
-            parsed.quality_model.as_deref(),
-            Some("all-MiniLM-L6-v2")
-        );
+        assert_eq!(parsed.quality_model.as_deref(), Some("all-MiniLM-L6-v2"));
         assert!((parsed.blend_factor - 0.5).abs() < f32::EPSILON);
         assert_eq!(parsed.quality_timeout_ms, 1000);
     }

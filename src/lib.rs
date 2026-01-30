@@ -309,6 +309,13 @@ pub fn generate_embeddings_with_config(storage: &Storage, config: &EmbeddingConf
     use std::collections::{HashMap, HashSet};
     use std::time::Instant;
 
+    use tracing::{info, warn};
+
+    // Type alias for embedding records: (doc_id, doc_type, embedding, content_hash)
+    type EmbedRecord = (String, String, Vec<f32>, Option<[u8; 32]>);
+
+    const EMBED_CHUNK_SIZE: usize = 1000;
+
     // Two-tier mode: run two separate embedding passes
     if config.two_tier {
         if config.show_progress {
@@ -369,12 +376,7 @@ pub fn generate_embeddings_with_config(storage: &Storage, config: &EmbeddingConf
 
         return Ok(());
     }
-    use tracing::{info, warn};
 
-    // Type alias for embedding records: (doc_id, doc_type, embedding, content_hash)
-    type EmbedRecord = (String, String, Vec<f32>, Option<[u8; 32]>);
-
-    const EMBED_CHUNK_SIZE: usize = 1000;
     let embed_start = Instant::now();
 
     // Create the appropriate embedder based on config

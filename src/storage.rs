@@ -141,7 +141,7 @@ impl Storage {
             self.create_schema()?;
 
             // v4: Add model_id column to embeddings table
-            if current_version >= 3 && current_version < 4 {
+            if (3..4).contains(&current_version) {
                 self.migrate_v4_add_model_id()?;
             }
 
@@ -2311,6 +2311,10 @@ impl Storage {
     /// # Errors
     ///
     /// Returns an error if the database query fails.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the stored embedding bytes are not a multiple of 2 (corrupted data).
     pub fn load_all_embeddings_filtered(
         &self,
         model_id: Option<&str>,
@@ -3627,7 +3631,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert!(schema_sql.contains("PRIMARY KEY (doc_id, doc_type)"));
+        assert!(schema_sql.contains("PRIMARY KEY (doc_id, doc_type, model_id)"));
     }
 
     #[test]
@@ -3906,7 +3910,10 @@ mod tests {
         // All three should coexist (different PKs)
         let all = storage.load_all_embeddings().unwrap();
         let doc1_count = all.iter().filter(|(id, _, _)| id == "doc1").count();
-        assert_eq!(doc1_count, 3, "should have 3 embeddings for doc1 (default, fast, quality)");
+        assert_eq!(
+            doc1_count, 3,
+            "should have 3 embeddings for doc1 (default, fast, quality)"
+        );
     }
 
     #[test]
@@ -3972,6 +3979,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::type_complexity)]
     fn test_store_embeddings_batch_with_model() {
         let storage = Storage::open_memory().unwrap();
         let batch: Vec<(String, String, Vec<f32>, Option<[u8; 32]>)> = vec![
