@@ -403,8 +403,11 @@ impl Output {
     /// Use this for actual command output (JSON, CSV, TOON data) that should
     /// never be suppressed. Quiet mode should only suppress diagnostic messages,
     /// not the data output of a command.
+    ///
+    /// Note: This does NOT call strip_markup() because data formats (JSON, TOON)
+    /// contain valid brackets that would be incorrectly stripped by the markup regex.
     pub fn print_data(&self, text: &str) {
-        println!("{}", Self::strip_markup(text));
+        println!("{}", text);
     }
 
     /// Print JSON (always unformatted, no styling)
