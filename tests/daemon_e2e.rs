@@ -1184,11 +1184,11 @@ async fn test_unknown_model_returns_error() {
     let err = result.unwrap_err();
     tracing::info!(error = %err, "Unknown model error received");
 
-    // Error should mention model load failure
+    // Error should indicate unknown model
     let err_str = err.to_string();
     assert!(
-        err_str.contains("load") || err_str.contains("MODEL") || err_str.contains("not found"),
-        "Error should indicate model issue: {err_str}"
+        err_str.contains("unknown") || err_str.contains("not found"),
+        "Error should indicate unknown model: {err_str}"
     );
 }
 

@@ -469,8 +469,8 @@ pub struct ModelsInfoArgs {
 
 #[derive(Args, Debug)]
 #[command(after_help = r#"Examples:
-  xf daemon start                    # Start the daemon in foreground
-  xf daemon start --background       # Start detached (auto-shutdown on idle)
+  xf daemon start                    # Start the daemon (background, auto-shutdown on idle)
+  xf daemon start --foreground       # Run in foreground (blocks until shutdown)
   xf daemon stop                     # Stop the running daemon
   xf daemon status                   # Show daemon status and loaded models
 "#)]
@@ -494,7 +494,7 @@ pub enum DaemonCommand {
 #[derive(Args, Debug)]
 pub struct DaemonStartArgs {
     /// Run in foreground (default: detach and exit)
-    #[arg(long, short = 'f')]
+    #[arg(long)]
     pub foreground: bool,
 
     /// Path to socket file
