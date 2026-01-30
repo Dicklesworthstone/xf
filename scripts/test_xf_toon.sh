@@ -205,21 +205,25 @@ if [[ -s "$LOG_DIR/search_json.out" ]]; then
   if command -v tru &>/dev/null; then
     STATS_LINE=$(tru --stats "$LOG_DIR/search_json.out" 2>&1 | rg -m1 "Saved" || true)
     log "$STATS_LINE"
-    SAVINGS_PCT=$(printf "%s" "$STATS_LINE" | sed -n 's/.*(\([-0-9.]*\)%).*/\1/p')
-    if [[ -n "$SAVINGS_PCT" ]]; then
-      if [[ "$SAVINGS_PCT" == -* ]]; then
-        log "Savings: ${SAVINGS_PCT}% (TOON larger)"
-        skip "Token savings negative (TOON larger)"
-      else
+    if [[ -z "$STATS_LINE" ]]; then
+      # No "Saved" line means TOON is larger than JSON
+      skip "Token savings not shown (TOON larger than JSON)"
+    else
+      # tru output format: "Saved ~N tokens (-X.X%)" where negative means reduction
+      # Example: "-16.5%" means TOON is 16.5% smaller (savings)
+      SAVINGS_PCT=$(printf "%s" "$STATS_LINE" | sed -n 's/.*(\([-0-9.]*\)%).*/\1/p')
+      if [[ -n "$SAVINGS_PCT" ]]; then
+        # Strip leading minus - tru uses negative to indicate reduction (savings)
+        SAVINGS_PCT="${SAVINGS_PCT#-}"
         log "Savings: ${SAVINGS_PCT}%"
         if [[ "${SAVINGS_PCT%.*}" -ge "$MIN_SAVINGS" ]]; then
           pass "Token savings >= ${MIN_SAVINGS}%"
         else
           fail "Token savings < ${MIN_SAVINGS}%"
         fi
+      else
+        fail "Token savings could not be parsed"
       fi
-    else
-      fail "Token savings could not be parsed"
     fi
   else
     skip "tru not available for token savings"
