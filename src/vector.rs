@@ -241,6 +241,10 @@ fn dot_product_f16_simd(query: &[f32], embedding: &[u8]) -> Option<f32> {
 
 /// Default filename for the vector index file.
 pub const VECTOR_INDEX_FILENAME: &str = "vector.idx";
+/// Filename for the fast-tier vector index (two-tier search).
+pub const VECTOR_INDEX_FAST_FILENAME: &str = "vector.fast.idx";
+/// Filename for the quality-tier vector index (two-tier search).
+pub const VECTOR_INDEX_QUALITY_FILENAME: &str = "vector.quality.idx";
 
 /// Write a vector index file from embeddings.
 ///
@@ -387,6 +391,126 @@ pub fn write_vector_index(
     #[allow(clippy::cast_possible_truncation)]
     Ok(WriteVectorIndexStats {
         // Safe: record_count comes from embeddings.len() which is already usize
+        record_count: record_count as usize,
+        file_size,
+    })
+}
+
+/// Write a named vector index file from embeddings filtered by model ID.
+///
+/// Generalized form of `write_vector_index` that writes to a specific filename
+/// and optionally filters embeddings by `model_id`.
+///
+/// # Errors
+///
+/// Returns an error if loading embeddings fails or if file I/O fails.
+pub fn write_vector_index_named(
+    index_path: &std::path::Path,
+    storage: &Storage,
+    filename: &str,
+    model_id_filter: Option<&str>,
+) -> Result<WriteVectorIndexStats> {
+    use std::fs::File;
+    use std::io::{BufWriter, Write};
+
+    let mut embeddings = storage.load_all_embeddings_raw_filtered(model_id_filter)?;
+    if embeddings.is_empty() {
+        return Ok(WriteVectorIndexStats {
+            record_count: 0,
+            file_size: 0,
+        });
+    }
+
+    let embedding_bytes = embeddings[0].2.len();
+    ensure!(
+        embedding_bytes > 0 && embedding_bytes % 2 == 0,
+        "invalid embedding byte length: {embedding_bytes}"
+    );
+
+    for (doc_id, doc_type, embedding_f16) in &embeddings {
+        if encode_doc_type(doc_type).is_none() {
+            return Err(anyhow::anyhow!(
+                "unknown embedding doc_type '{doc_type}' for doc_id '{doc_id}'"
+            ));
+        }
+        if embedding_f16.len() != embedding_bytes {
+            return Err(anyhow::anyhow!(
+                "embedding byte length mismatch for doc_id '{doc_id}' (type '{doc_type}'): expected {embedding_bytes}, got {}",
+                embedding_f16.len()
+            ));
+        }
+    }
+
+    embeddings.sort_by(|a, b| {
+        let type_a = encode_doc_type(&a.1).unwrap_or(255);
+        let type_b = encode_doc_type(&b.1).unwrap_or(255);
+        type_a.cmp(&type_b).then_with(|| a.0.cmp(&b.0))
+    });
+
+    let dimension = embedding_bytes / 2;
+    let record_count = embeddings.len() as u64;
+
+    let offsets_start = VECTOR_INDEX_HEADER_LEN as u64;
+    let offsets_bytes = record_count * 8;
+    let records_start = offsets_start + offsets_bytes;
+
+    let mut offsets: Vec<u64> = Vec::with_capacity(embeddings.len());
+    let mut record_data: Vec<u8> = Vec::new();
+    let mut current_offset = records_start;
+
+    for (doc_id, doc_type, embedding_f16) in &embeddings {
+        offsets.push(current_offset);
+
+        let doc_type_code = encode_doc_type(doc_type).ok_or_else(|| {
+            anyhow::anyhow!("unknown embedding doc_type '{doc_type}' for doc_id '{doc_id}'")
+        })?;
+        let doc_id_bytes = doc_id.as_bytes();
+        let doc_id_len = u16::try_from(doc_id_bytes.len())
+            .map_err(|_| anyhow::anyhow!("doc_id exceeds maximum length of 65535 bytes"))?;
+
+        record_data.push(doc_type_code);
+        record_data.push(0);
+        record_data.extend_from_slice(&doc_id_len.to_le_bytes());
+        record_data.extend_from_slice(doc_id_bytes);
+        record_data.extend_from_slice(embedding_f16);
+
+        let record_len = 4 + doc_id_bytes.len() + embedding_bytes;
+        current_offset += record_len as u64;
+    }
+
+    let final_path = index_path.join(filename);
+    let temp_path = index_path.join(format!("{filename}.tmp"));
+
+    let file = File::create(&temp_path)?;
+    let mut writer = BufWriter::new(file);
+
+    let dimension_u32 = u32::try_from(dimension)
+        .map_err(|_| anyhow::anyhow!("embedding dimension exceeds u32 maximum"))?;
+    writer.write_all(&VECTOR_INDEX_MAGIC)?;
+    writer.write_all(&VECTOR_INDEX_VERSION.to_le_bytes())?;
+    writer.write_all(&[VECTOR_INDEX_DOC_TYPE_ENCODING])?;
+    writer.write_all(&[0u8])?;
+    writer.write_all(&dimension_u32.to_le_bytes())?;
+    writer.write_all(&record_count.to_le_bytes())?;
+    writer.write_all(&offsets_start.to_le_bytes())?;
+    writer.write_all(&[0u8; 4])?;
+
+    for offset in &offsets {
+        writer.write_all(&offset.to_le_bytes())?;
+    }
+
+    writer.write_all(&record_data)?;
+
+    writer.flush()?;
+    let file = writer.into_inner()?;
+    file.sync_all()?;
+    drop(file);
+
+    let file_size = std::fs::metadata(&temp_path)?.len();
+    std::fs::rename(&temp_path, &final_path)?;
+
+    #[allow(clippy::cast_possible_truncation)]
+    Ok(WriteVectorIndexStats {
         record_count: record_count as usize,
         file_size,
     })
@@ -730,6 +854,23 @@ impl VectorIndex {
         // Fall back to storage (slow path, loads into memory)
         let index = InMemoryVectorIndex::load_from_storage(storage)?;
         Ok(Self::InMemory(index))
+    }
+
+    /// Try to load a named index file via mmap.
+    ///
+    /// Returns `Ok(None)` if the file does not exist.
+    /// Returns `Ok(Some(..))` if the file was opened successfully.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file exists but cannot be read or is invalid.
+    pub fn load_named(index_path: &std::path::Path, filename: &str) -> Result<Option<Self>> {
+        let file_path = index_path.join(filename);
+        if !file_path.exists() {
+            return Ok(None);
+        }
+        let mmap_index = MmapVectorIndex::open(&file_path)?;
+        Ok(Some(Self::Mmap(mmap_index)))
     }
 
     /// Get number of records.
@@ -2031,5 +2172,97 @@ mod tests {
             assert_eq!(results1[i].doc_id, results2[i].doc_id);
             assert_eq!(results1[i].doc_id, results3[i].doc_id);
         }
+    }
+
+    #[test]
+    fn test_write_and_load_named_index() {
+        let storage = Storage::open_memory().unwrap();
+        let temp_dir = tempfile::tempdir().unwrap();
+
+        // Store embeddings with model_id "fast"
+        let emb = create_test_vector(1, 384);
+        storage
+            .store_embedding_with_model("doc1", "tweet", &emb, None, "fast")
+            .unwrap();
+        let emb2 = create_test_vector(2, 384);
+        storage
+            .store_embedding_with_model("doc2", "tweet", &emb2, None, "fast")
+            .unwrap();
+
+        // Write named index
+        let stats = write_vector_index_named(
+            temp_dir.path(),
+            &storage,
+            VECTOR_INDEX_FAST_FILENAME,
+            Some("fast"),
+        )
+        .unwrap();
+        assert_eq!(stats.record_count, 2);
+        assert!(stats.file_size > 0);
+
+        // Load via VectorIndex::load_named
+        let loaded = VectorIndex::load_named(temp_dir.path(), VECTOR_INDEX_FAST_FILENAME)
+            .unwrap()
+            .expect("named index should exist");
+        assert_eq!(loaded.len(), 2);
+    }
+
+    #[test]
+    fn test_named_coexists_with_default() {
+        let storage = Storage::open_memory().unwrap();
+        let temp_dir = tempfile::tempdir().unwrap();
+
+        // Store "default" embeddings
+        let emb = create_test_vector(1, 384);
+        storage
+            .store_embedding("doc1", "tweet", &emb, None)
+            .unwrap();
+
+        // Store "fast" embeddings
+        let fast_emb = create_test_vector(2, 384);
+        storage
+            .store_embedding_with_model("doc1", "tweet", &fast_emb, None, "fast")
+            .unwrap();
+        storage
+            .store_embedding_with_model("doc2", "tweet", &fast_emb, None, "fast")
+            .unwrap();
+
+        // Write both
+        let default_stats = write_vector_index(temp_dir.path(), &storage).unwrap();
+        let fast_stats = write_vector_index_named(
+            temp_dir.path(),
+            &storage,
+            VECTOR_INDEX_FAST_FILENAME,
+            Some("fast"),
+        )
+        .unwrap();
+
+        // Default includes all embeddings (default + fast)
+        assert_eq!(default_stats.record_count, 3);
+        // Fast only includes fast embeddings
+        assert_eq!(fast_stats.record_count, 2);
+
+        // Both files should exist
+        assert!(temp_dir.path().join(VECTOR_INDEX_FILENAME).exists());
+        assert!(temp_dir.path().join(VECTOR_INDEX_FAST_FILENAME).exists());
+
+        // Load both
+        let default_idx = VectorIndex::load_named(temp_dir.path(), VECTOR_INDEX_FILENAME)
+            .unwrap()
+            .expect("default index should exist");
+        let fast_idx = VectorIndex::load_named(temp_dir.path(), VECTOR_INDEX_FAST_FILENAME)
+            .unwrap()
+            .expect("fast index should exist");
+
+        assert_eq!(default_idx.len(), 3);
+        assert_eq!(fast_idx.len(), 2);
+    }
+
+    #[test]
+    fn test_load_named_nonexistent() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let result =
+            VectorIndex::load_named(temp_dir.path(), VECTOR_INDEX_QUALITY_FILENAME).unwrap();
+        assert!(result.is_none());
     }
 }

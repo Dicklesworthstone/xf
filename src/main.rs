@@ -34,7 +34,10 @@ use xf::output::{Output, OutputFormat as OutFmt, Verbosity};
 use xf::repl;
 use xf::search;
 use xf::stats_analytics::{self, ContentStats, EngagementStats, TemporalStats};
-use xf::vector::{VECTOR_INDEX_FILENAME, VectorIndex, write_vector_index};
+use xf::vector::{
+    VECTOR_INDEX_FAST_FILENAME, VECTOR_INDEX_FILENAME, VECTOR_INDEX_QUALITY_FILENAME,
+    VectorIndex, write_vector_index, write_vector_index_named,
+};
 use xf::{
     ArchiveParser, ArchiveStats, CONTENT_DIVIDER_WIDTH, Cli, Commands, DataType, ExportFormat,
     ExportTarget, HEADER_DIVIDER_WIDTH, ListTarget, OutputFormat, SearchEngine, SearchResult,
@@ -49,6 +52,14 @@ struct VectorIndexCache {
     index: OnceLock<VectorIndex>,
     meta: OnceLock<CacheMeta>,
     init_lock: Mutex<()>,
+    /// Fast-tier index for two-tier search.
+    fast_index: OnceLock<Option<VectorIndex>>,
+    fast_meta: OnceLock<CacheMeta>,
+    fast_init_lock: Mutex<()>,
+    /// Quality-tier index for two-tier search.
+    quality_index: OnceLock<Option<VectorIndex>>,
+    quality_meta: OnceLock<CacheMeta>,
+    quality_init_lock: Mutex<()>,
 }
 
 impl VectorIndexCache {
@@ -57,6 +68,12 @@ impl VectorIndexCache {
             index: OnceLock::new(),
             meta: OnceLock::new(),
             init_lock: Mutex::new(()),
+            fast_index: OnceLock::new(),
+            fast_meta: OnceLock::new(),
+            fast_init_lock: Mutex::new(()),
+            quality_index: OnceLock::new(),
+            quality_meta: OnceLock::new(),
+            quality_init_lock: Mutex::new(()),
         }
     }
 
@@ -132,6 +149,76 @@ impl VectorIndexCache {
             .get()
             .map(|idx| (idx, true))
             .ok_or_else(|| anyhow::anyhow!("VectorIndex cache not initialized"))
+    }
+
+    /// Load the fast-tier vector index (returns None if file doesn't exist).
+    fn load_fast(&self, index_path: &Path) -> Option<&VectorIndex> {
+        self.fast_index
+            .get_or_init(|| {
+                let _guard = self.fast_init_lock.lock().ok()?;
+                match VectorIndex::load_named(
+                    index_path,
+                    xf::vector::VECTOR_INDEX_FAST_FILENAME,
+                ) {
+                    Ok(Some(idx)) => {
+                        let meta = CacheMeta {
+                            db_mtime: SystemTime::UNIX_EPOCH,
+                            embedding_count: idx.len(),
+                            type_counts: idx.type_counts(),
+                        };
+                        let _ = self.fast_meta.set(meta);
+                        info!(
+                            "Fast vector index loaded: {} embeddings",
+                            idx.len()
+                        );
+                        Some(idx)
+                    }
+                    Ok(None) => {
+                        info!("Fast vector index not found");
+                        None
+                    }
+                    Err(e) => {
+                        warn!("Failed to load fast vector index: {e}");
+                        None
+                    }
+                }
+            })
+            .as_ref()
+    }
+
+    /// Load the quality-tier vector index (returns None if file doesn't exist).
+    fn load_quality(&self, index_path: &Path) -> Option<&VectorIndex> {
+        self.quality_index
+            .get_or_init(|| {
+                let _guard = self.quality_init_lock.lock().ok()?;
+                match VectorIndex::load_named(
+                    index_path,
+                    xf::vector::VECTOR_INDEX_QUALITY_FILENAME,
+                ) {
+                    Ok(Some(idx)) => {
+                        let meta = CacheMeta {
+                            db_mtime: SystemTime::UNIX_EPOCH,
+                            embedding_count: idx.len(),
+                            type_counts: idx.type_counts(),
+                        };
+                        let _ = self.quality_meta.set(meta);
+                        info!(
+                            "Quality vector index loaded: {} embeddings",
+                            idx.len()
+                        );
+                        Some(idx)
+                    }
+                    Ok(None) => {
+                        info!("Quality vector index not found");
+                        None
+                    }
+                    Err(e) => {
+                        warn!("Failed to load quality vector index: {e}");
+                        None
+                    }
+                }
+            })
+            .as_ref()
     }
 }
 
@@ -929,11 +1016,15 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, output: &Output) -> Result<()> {
     search_engine.reload()?;
 
     // Generate embeddings for semantic search
+    let two_tier_config = config.semantic.two_tier.clone();
     let embed_config = xf::EmbeddingConfig {
         show_progress: !cli.quiet,
         use_semantic: args.semantic,
         model: None,
         dimensions: None,
+        two_tier: args.two_tier,
+        fast_model: two_tier_config.fast_model,
+        quality_model: two_tier_config.quality_model,
     };
     xf::generate_embeddings_with_config(&storage, &embed_config)?;
 
@@ -945,6 +1036,37 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, output: &Output) -> Result<()> {
             format_number_usize(vector_stats.record_count),
             format_bytes(vector_stats.file_size)
         ));
+    }
+
+    // Write named vector index files for two-tier search
+    if args.two_tier {
+        let fast_stats = write_vector_index_named(
+            &index_path,
+            &storage,
+            VECTOR_INDEX_FAST_FILENAME,
+            Some("fast"),
+        )?;
+        if !cli.quiet && fast_stats.record_count > 0 {
+            output.print(&format!(
+                "  [green]✓[/] Fast vector index written ({} records, {})",
+                format_number_usize(fast_stats.record_count),
+                format_bytes(fast_stats.file_size)
+            ));
+        }
+
+        let quality_stats = write_vector_index_named(
+            &index_path,
+            &storage,
+            VECTOR_INDEX_QUALITY_FILENAME,
+            Some("quality"),
+        )?;
+        if !cli.quiet && quality_stats.record_count > 0 {
+            output.print(&format!(
+                "  [green]✓[/] Quality vector index written ({} records, {})",
+                format_number_usize(quality_stats.record_count),
+                format_bytes(quality_stats.file_size)
+            ));
+        }
     }
 
     let total_elapsed = format_duration(index_start.elapsed());

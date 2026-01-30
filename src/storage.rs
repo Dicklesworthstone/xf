@@ -15,7 +15,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use tracing::info;
 
-const SCHEMA_VERSION: i32 = 3;
+const SCHEMA_VERSION: i32 = 4;
 // SQLite default limit on host parameters is usually 999 or 32766.
 // We use a safe batch size to avoid "too many SQL variables" errors.
 const SQLITE_BATCH_SIZE: usize = 900;
@@ -41,6 +41,7 @@ pub struct Storage {
     conn: Connection,
 }
 
+/// Embedding record: (doc_id, doc_type, embedding, content_hash).
 type EmbeddingRecord = (String, String, Vec<f32>, Option<[u8; 32]>);
 
 /// Summary of FTS rebuild results.
@@ -138,6 +139,12 @@ impl Storage {
             }
 
             self.create_schema()?;
+
+            // v4: Add model_id column to embeddings table
+            if current_version >= 3 && current_version < 4 {
+                self.migrate_v4_add_model_id()?;
+            }
+
             self.set_schema_version(SCHEMA_VERSION)?;
         }
 
@@ -163,6 +170,37 @@ impl Storage {
             "INSERT OR REPLACE INTO meta (key, value) VALUES ('schema_version', ?)",
             params![version.to_string()],
         )?;
+        Ok(())
+    }
+
+    /// Migrate from schema v3 to v4: add model_id column to embeddings.
+    fn migrate_v4_add_model_id(&self) -> Result<()> {
+        // Check if model_id column already exists (idempotent)
+        let has_model_id: bool = self
+            .conn
+            .prepare("SELECT model_id FROM embeddings LIMIT 0")
+            .is_ok();
+
+        if has_model_id {
+            return Ok(());
+        }
+
+        info!("Migrating embeddings table: adding model_id column");
+        self.conn.execute_batch(
+            r"
+            -- Add model_id column with default value
+            ALTER TABLE embeddings ADD COLUMN model_id TEXT NOT NULL DEFAULT 'default';
+
+            -- Drop old primary key index and create new composite one
+            DROP INDEX IF EXISTS sqlite_autoindex_embeddings_1;
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_embeddings_pk
+                ON embeddings(doc_id, doc_type, model_id);
+
+            -- Add model_id index for filtered queries
+            CREATE INDEX IF NOT EXISTS idx_embeddings_model ON embeddings(model_id);
+            ",
+        )?;
+
         Ok(())
     }
 
@@ -304,10 +342,12 @@ impl Storage {
                 embedding BLOB NOT NULL,
                 content_hash BLOB,
                 created_at TEXT NOT NULL,
-                PRIMARY KEY (doc_id, doc_type)
+                model_id TEXT NOT NULL DEFAULT 'default',
+                PRIMARY KEY (doc_id, doc_type, model_id)
             );
             CREATE INDEX IF NOT EXISTS idx_embeddings_type ON embeddings(doc_type);
             CREATE INDEX IF NOT EXISTS idx_embeddings_hash ON embeddings(content_hash);
+            CREATE INDEX IF NOT EXISTS idx_embeddings_model ON embeddings(model_id);
             ",
         )?;
 
@@ -1862,6 +1902,25 @@ impl Storage {
         embedding: &[f32],
         content_hash: Option<&[u8; 32]>,
     ) -> Result<()> {
+        self.store_embedding_with_model(doc_id, doc_type, embedding, content_hash, "default")
+    }
+
+    /// Store an embedding for a document with a specific model ID.
+    ///
+    /// The `model_id` distinguishes embeddings from different models
+    /// (e.g., "fast", "quality", "default").
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database insert fails.
+    pub fn store_embedding_with_model(
+        &self,
+        doc_id: &str,
+        doc_type: &str,
+        embedding: &[f32],
+        content_hash: Option<&[u8; 32]>,
+        model_id: &str,
+    ) -> Result<()> {
         use half::f16;
 
         // Convert f32 to f16 for storage (50% smaller)
@@ -1873,8 +1932,8 @@ impl Storage {
         self.conn.execute(
             r"
             INSERT OR REPLACE INTO embeddings
-            (doc_id, doc_type, embedding, content_hash, created_at)
-            VALUES (?, ?, ?, ?, ?)
+            (doc_id, doc_type, embedding, content_hash, created_at, model_id)
+            VALUES (?, ?, ?, ?, ?, ?)
             ",
             params![
                 doc_id,
@@ -1882,6 +1941,7 @@ impl Storage {
                 f16_bytes,
                 content_hash.map(<[u8; 32]>::as_slice),
                 Utc::now().to_rfc3339(),
+                model_id,
             ],
         )?;
 
@@ -1896,6 +1956,19 @@ impl Storage {
     ///
     /// Returns an error if any database insert fails.
     pub fn store_embeddings_batch(&self, embeddings: &[EmbeddingRecord]) -> Result<usize> {
+        self.store_embeddings_batch_with_model(embeddings, "default")
+    }
+
+    /// Store multiple embeddings in a batch with a specific model ID.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if any database insert fails.
+    pub fn store_embeddings_batch_with_model(
+        &self,
+        embeddings: &[EmbeddingRecord],
+        model_id: &str,
+    ) -> Result<usize> {
         use half::f16;
 
         let tx = self.conn.unchecked_transaction()?;
@@ -1905,8 +1978,8 @@ impl Storage {
             let mut stmt = tx.prepare(
                 r"
                 INSERT OR REPLACE INTO embeddings
-                (doc_id, doc_type, embedding, content_hash, created_at)
-                VALUES (?, ?, ?, ?, ?)
+                (doc_id, doc_type, embedding, content_hash, created_at, model_id)
+                VALUES (?, ?, ?, ?, ?, ?)
                 ",
             )?;
 
@@ -1924,6 +1997,7 @@ impl Storage {
                     f16_bytes,
                     content_hash.as_ref().map(<[u8; 32]>::as_slice),
                     &now,
+                    model_id,
                 ])?;
                 count += 1;
             }
@@ -2226,31 +2300,66 @@ impl Storage {
     ///
     /// Panics if stored embedding bytes are not aligned to 2-byte F16 chunks.
     pub fn load_all_embeddings(&self) -> Result<Vec<(String, String, Vec<f32>)>> {
+        self.load_all_embeddings_filtered(None)
+    }
+
+    /// Load all embeddings, optionally filtered by model ID.
+    ///
+    /// When `model_id` is `Some`, only embeddings with that model are returned.
+    /// When `None`, all embeddings are returned (backward-compatible).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database query fails.
+    pub fn load_all_embeddings_filtered(
+        &self,
+        model_id: Option<&str>,
+    ) -> Result<Vec<(String, String, Vec<f32>)>> {
         use half::f16;
 
-        let mut stmt = self
-            .conn
-            .prepare("SELECT doc_id, doc_type, embedding FROM embeddings")?;
+        let query = if model_id.is_some() {
+            "SELECT doc_id, doc_type, embedding FROM embeddings WHERE model_id = ?"
+        } else {
+            "SELECT doc_id, doc_type, embedding FROM embeddings"
+        };
 
-        let rows = stmt.query_map([], |row| {
-            let doc_id: String = row.get(0)?;
-            let doc_type: String = row.get(1)?;
-            let bytes: Vec<u8> = row.get(2)?;
+        let mut stmt = self.conn.prepare(query)?;
 
-            // Convert F16 bytes to f32
-            let floats: Vec<f32> = bytes
-                .chunks_exact(2)
-                .map(|chunk| {
-                    let arr: [u8; 2] = chunk.try_into().unwrap();
-                    f16::from_le_bytes(arr).to_f32()
-                })
-                .collect();
+        let rows = if let Some(mid) = model_id {
+            stmt.query_map(params![mid], |row| {
+                let doc_id: String = row.get(0)?;
+                let doc_type: String = row.get(1)?;
+                let bytes: Vec<u8> = row.get(2)?;
+                let floats: Vec<f32> = bytes
+                    .chunks_exact(2)
+                    .map(|chunk| {
+                        let arr: [u8; 2] = chunk.try_into().unwrap();
+                        f16::from_le_bytes(arr).to_f32()
+                    })
+                    .collect();
+                Ok((doc_id, doc_type, floats))
+            })?
+            .filter_map(std::result::Result::ok)
+            .collect()
+        } else {
+            stmt.query_map([], |row| {
+                let doc_id: String = row.get(0)?;
+                let doc_type: String = row.get(1)?;
+                let bytes: Vec<u8> = row.get(2)?;
+                let floats: Vec<f32> = bytes
+                    .chunks_exact(2)
+                    .map(|chunk| {
+                        let arr: [u8; 2] = chunk.try_into().unwrap();
+                        f16::from_le_bytes(arr).to_f32()
+                    })
+                    .collect();
+                Ok((doc_id, doc_type, floats))
+            })?
+            .filter_map(std::result::Result::ok)
+            .collect()
+        };
 
-            Ok((doc_id, doc_type, floats))
-        })?;
-
-        let embeddings: Vec<_> = rows.filter_map(std::result::Result::ok).collect();
-        Ok(embeddings)
+        Ok(rows)
     }
 
     /// Load all embeddings in raw F16 byte format for vector index writing.
@@ -2262,19 +2371,47 @@ impl Storage {
     ///
     /// Returns an error if the database query fails.
     pub fn load_all_embeddings_raw(&self) -> Result<Vec<(String, String, Vec<u8>)>> {
-        let mut stmt = self
-            .conn
-            .prepare("SELECT doc_id, doc_type, embedding FROM embeddings")?;
+        self.load_all_embeddings_raw_filtered(None)
+    }
 
-        let rows = stmt.query_map([], |row| {
-            let doc_id: String = row.get(0)?;
-            let doc_type: String = row.get(1)?;
-            let bytes: Vec<u8> = row.get(2)?;
-            Ok((doc_id, doc_type, bytes))
-        })?;
+    /// Load all embeddings in raw F16 format, optionally filtered by model ID.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database query fails.
+    pub fn load_all_embeddings_raw_filtered(
+        &self,
+        model_id: Option<&str>,
+    ) -> Result<Vec<(String, String, Vec<u8>)>> {
+        let query = if model_id.is_some() {
+            "SELECT doc_id, doc_type, embedding FROM embeddings WHERE model_id = ?"
+        } else {
+            "SELECT doc_id, doc_type, embedding FROM embeddings"
+        };
 
-        let embeddings: Vec<_> = rows.filter_map(std::result::Result::ok).collect();
-        Ok(embeddings)
+        let mut stmt = self.conn.prepare(query)?;
+
+        let rows = if let Some(mid) = model_id {
+            stmt.query_map(params![mid], |row| {
+                let doc_id: String = row.get(0)?;
+                let doc_type: String = row.get(1)?;
+                let bytes: Vec<u8> = row.get(2)?;
+                Ok((doc_id, doc_type, bytes))
+            })?
+            .filter_map(std::result::Result::ok)
+            .collect()
+        } else {
+            stmt.query_map([], |row| {
+                let doc_id: String = row.get(0)?;
+                let doc_type: String = row.get(1)?;
+                let bytes: Vec<u8> = row.get(2)?;
+                Ok((doc_id, doc_type, bytes))
+            })?
+            .filter_map(std::result::Result::ok)
+            .collect()
+        };
+
+        Ok(rows)
     }
 
     /// Load embeddings filtered by document type.
@@ -3746,5 +3883,114 @@ mod tests {
             .find(|c| c.name == "FTS orphaned rows (tweets)")
             .expect("orphan check missing");
         assert_eq!(orphaned.status, CheckStatus::Warning);
+    }
+
+    #[test]
+    fn test_store_embedding_with_model_id() {
+        let storage = Storage::open_memory().unwrap();
+        let embedding = vec![0.1_f32, 0.2, 0.3, 0.4];
+
+        // Store with default model_id
+        storage
+            .store_embedding("doc1", "tweet", &embedding, None)
+            .unwrap();
+
+        // Store same doc with different model_id
+        storage
+            .store_embedding_with_model("doc1", "tweet", &embedding, None, "fast")
+            .unwrap();
+        storage
+            .store_embedding_with_model("doc1", "tweet", &embedding, None, "quality")
+            .unwrap();
+
+        // All three should coexist (different PKs)
+        let all = storage.load_all_embeddings().unwrap();
+        let doc1_count = all.iter().filter(|(id, _, _)| id == "doc1").count();
+        assert_eq!(doc1_count, 3, "should have 3 embeddings for doc1 (default, fast, quality)");
+    }
+
+    #[test]
+    fn test_load_filtered_by_model() {
+        let storage = Storage::open_memory().unwrap();
+        let emb_fast = vec![1.0_f32, 0.0, 0.0, 0.0];
+        let emb_quality = vec![0.0_f32, 1.0, 0.0, 0.0];
+
+        storage
+            .store_embedding_with_model("doc1", "tweet", &emb_fast, None, "fast")
+            .unwrap();
+        storage
+            .store_embedding_with_model("doc1", "tweet", &emb_quality, None, "quality")
+            .unwrap();
+        storage
+            .store_embedding_with_model("doc2", "like", &emb_fast, None, "fast")
+            .unwrap();
+
+        // Filter by "fast" model
+        let fast_only = storage.load_all_embeddings_filtered(Some("fast")).unwrap();
+        assert_eq!(fast_only.len(), 2);
+
+        // Filter by "quality" model
+        let quality_only = storage
+            .load_all_embeddings_filtered(Some("quality"))
+            .unwrap();
+        assert_eq!(quality_only.len(), 1);
+        assert_eq!(quality_only[0].0, "doc1");
+
+        // No filter returns all
+        let all = storage.load_all_embeddings_filtered(None).unwrap();
+        assert_eq!(all.len(), 3);
+
+        // Raw filtered
+        let fast_raw = storage
+            .load_all_embeddings_raw_filtered(Some("fast"))
+            .unwrap();
+        assert_eq!(fast_raw.len(), 2);
+    }
+
+    #[test]
+    fn test_schema_migration_v4() {
+        // Open in-memory creates schema at current version (v4) with model_id column.
+        // Verify the column exists and works.
+        let storage = Storage::open_memory().unwrap();
+        let version = storage.get_schema_version();
+        assert_eq!(version, 4);
+
+        // Store with model_id should work
+        storage
+            .store_embedding_with_model("d1", "tweet", &[0.5; 4], None, "fast")
+            .unwrap();
+        storage
+            .store_embedding_with_model("d1", "tweet", &[0.5; 4], None, "quality")
+            .unwrap();
+
+        let fast = storage.load_all_embeddings_filtered(Some("fast")).unwrap();
+        assert_eq!(fast.len(), 1);
+        let quality = storage
+            .load_all_embeddings_filtered(Some("quality"))
+            .unwrap();
+        assert_eq!(quality.len(), 1);
+    }
+
+    #[test]
+    fn test_store_embeddings_batch_with_model() {
+        let storage = Storage::open_memory().unwrap();
+        let batch: Vec<(String, String, Vec<f32>, Option<[u8; 32]>)> = vec![
+            ("d1".into(), "tweet".into(), vec![0.1; 4], None),
+            ("d2".into(), "like".into(), vec![0.2; 4], None),
+        ];
+
+        let count = storage
+            .store_embeddings_batch_with_model(&batch, "fast")
+            .unwrap();
+        assert_eq!(count, 2);
+
+        let fast = storage.load_all_embeddings_filtered(Some("fast")).unwrap();
+        assert_eq!(fast.len(), 2);
+
+        // Default model should have zero
+        let default_embs = storage
+            .load_all_embeddings_filtered(Some("default"))
+            .unwrap();
+        assert_eq!(default_embs.len(), 0);
     }
 }

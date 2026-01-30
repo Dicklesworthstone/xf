@@ -242,6 +242,12 @@ pub struct EmbeddingConfig {
     pub model: Option<String>,
     /// Optional MRL dimension override.
     pub dimensions: Option<usize>,
+    /// Enable two-tier embedding generation (fast + quality models).
+    pub two_tier: bool,
+    /// Fast model name for two-tier mode.
+    pub fast_model: Option<String>,
+    /// Quality model name for two-tier mode.
+    pub quality_model: Option<String>,
 }
 
 impl Default for EmbeddingConfig {
@@ -251,6 +257,9 @@ impl Default for EmbeddingConfig {
             use_semantic: false,
             model: None,
             dimensions: None,
+            two_tier: false,
+            fast_model: None,
+            quality_model: None,
         }
     }
 }
@@ -264,6 +273,9 @@ pub fn generate_embeddings(storage: &Storage, show_progress: bool) -> Result<()>
             use_semantic: false,
             model: None,
             dimensions: None,
+            two_tier: false,
+            fast_model: None,
+            quality_model: None,
         },
     )
 }
@@ -296,6 +308,67 @@ pub fn generate_embeddings_with_config(storage: &Storage, config: &EmbeddingConf
     use rayon::prelude::*;
     use std::collections::{HashMap, HashSet};
     use std::time::Instant;
+
+    // Two-tier mode: run two separate embedding passes
+    if config.two_tier {
+        if config.show_progress {
+            println!();
+            println!(
+                "{}",
+                "Two-tier embedding: generating fast + quality embeddings..."
+                    .bold()
+                    .cyan()
+            );
+        }
+
+        // Pass 1: Fast model
+        let fast_model = config
+            .fast_model
+            .clone()
+            .unwrap_or_else(|| "hash-fnv1a-384".to_string());
+        if config.show_progress {
+            println!(
+                "  {} Fast pass (model: {})",
+                "→".cyan(),
+                fast_model.dimmed()
+            );
+        }
+        let fast_config = EmbeddingConfig {
+            show_progress: config.show_progress,
+            use_semantic: false,
+            model: Some(fast_model),
+            dimensions: config.dimensions,
+            two_tier: false,
+            fast_model: None,
+            quality_model: None,
+        };
+        generate_embeddings_for_model(storage, &fast_config, "fast")?;
+
+        // Pass 2: Quality model
+        let quality_model = config
+            .quality_model
+            .clone()
+            .unwrap_or_else(|| "all-MiniLM-L6-v2".to_string());
+        if config.show_progress {
+            println!(
+                "  {} Quality pass (model: {})",
+                "→".cyan(),
+                quality_model.dimmed()
+            );
+        }
+        let quality_config = EmbeddingConfig {
+            show_progress: config.show_progress,
+            use_semantic: true,
+            model: Some(quality_model),
+            dimensions: config.dimensions,
+            two_tier: false,
+            fast_model: None,
+            quality_model: None,
+        };
+        generate_embeddings_for_model(storage, &quality_config, "quality")?;
+
+        return Ok(());
+    }
     use tracing::{info, warn};
 
     // Type alias for embedding records: (doc_id, doc_type, embedding, content_hash)
@@ -564,6 +637,268 @@ pub fn generate_embeddings_with_config(storage: &Storage, config: &EmbeddingConf
         if skipped_count > 0 {
             println!(
                 "  {} {} skipped (empty or unchanged)",
+                "·".dimmed(),
+                format_number_usize(skipped_count).dimmed()
+            );
+        }
+    }
+
+    Ok(())
+}
+
+/// Generate embeddings for a specific model and store with the given `model_id`.
+///
+/// Used by two-tier mode to run separate passes for fast and quality models.
+///
+/// # Errors
+///
+/// Returns an error if embedding generation or storage fails.
+#[allow(clippy::too_many_lines)]
+fn generate_embeddings_for_model(
+    storage: &Storage,
+    config: &EmbeddingConfig,
+    model_id: &str,
+) -> Result<()> {
+    use crate::canonicalize::{canonicalize_for_embedding, content_hash};
+    use crate::embedder::Embedder;
+    use crate::hash_embedder::HashEmbedder;
+    use crate::model_registry::{EmbedderConfig as RegistryConfig, ModelRegistry};
+    use colored::Colorize;
+    use indicatif::{ProgressBar, ProgressStyle};
+    use rayon::prelude::*;
+    use std::collections::{HashMap, HashSet};
+    use std::time::Instant;
+
+    type EmbedRecord = (String, String, Vec<f32>, Option<[u8; 32]>);
+    const EMBED_CHUNK_SIZE: usize = 1000;
+    let embed_start = Instant::now();
+
+    let registry = ModelRegistry::new();
+    let embedder_box: Box<dyn Embedder> = if let Some(model) = &config.model {
+        let mut cfg = RegistryConfig::new(model);
+        cfg.dimensions = config.dimensions;
+        cfg.show_progress = config.show_progress;
+        registry
+            .embedder(&cfg)
+            .map_err(|e| anyhow::anyhow!("Failed to load embedder {model}: {e}"))?
+    } else if config.use_semantic {
+        let mut cfg = RegistryConfig::new("all-MiniLM-L6-v2");
+        cfg.dimensions = config.dimensions;
+        cfg.show_progress = config.show_progress;
+        registry
+            .embedder(&cfg)
+            .map_err(|e| anyhow::anyhow!("Failed to load semantic model: {e}"))?
+    } else {
+        Box::new(HashEmbedder::default())
+    };
+    let embedder: &dyn Embedder = embedder_box.as_ref();
+    let store_batch_size = if embedder.is_semantic() { 50 } else { 100 };
+
+    // Fetch all documents
+    let tweets = storage.get_all_tweets(None)?;
+    let likes = storage.get_all_likes(None)?;
+    let dms = storage.get_all_dms(None)?;
+    let grok_msgs = storage.get_all_grok_messages(None)?;
+
+    let capacity = tweets.len() + likes.len() + dms.len() + grok_msgs.len();
+    let mut docs: Vec<(String, String, &'static str)> = Vec::with_capacity(capacity);
+
+    for tweet in &tweets {
+        docs.push((tweet.id.clone(), tweet.full_text.clone(), "tweet"));
+    }
+    for like in &likes {
+        if let Some(ref text) = like.full_text {
+            if !text.is_empty() {
+                docs.push((like.tweet_id.clone(), text.clone(), "like"));
+            }
+        }
+    }
+    for dm in &dms {
+        if !dm.text.is_empty() {
+            docs.push((dm.id.clone(), dm.text.clone(), "dm"));
+        }
+    }
+    for msg in &grok_msgs {
+        if !msg.message.is_empty() {
+            let doc_id = format!(
+                "{}_{}_{}_{}",
+                msg.chat_id,
+                msg.created_at.timestamp(),
+                msg.created_at.timestamp_subsec_nanos(),
+                msg.sender
+            );
+            docs.push((doc_id, msg.message.clone(), "grok"));
+        }
+    }
+
+    if docs.is_empty() {
+        if config.show_progress {
+            println!("    {} No documents to embed", "⚠".yellow());
+        }
+        return Ok(());
+    }
+
+    // For two-tier, we load hashes scoped to this model_id
+    // (but content hashes are global, so we still check)
+    let existing_hashes_by_doc = storage.load_embedding_hashes_by_doc()?;
+    let mut existing_hashes: HashSet<[u8; 32]> = HashSet::new();
+    for by_type in existing_hashes_by_doc.values() {
+        for hash_val in by_type.values() {
+            existing_hashes.insert(*hash_val);
+        }
+    }
+
+    let pb = if config.show_progress {
+        let pb = ProgressBar::new(docs.len() as u64);
+        let style = ProgressStyle::default_bar()
+            .template("    {spinner:.green} [{bar:40.cyan/blue}] {pos}/{len} ({eta})")
+            .unwrap_or_else(|_| ProgressStyle::default_bar())
+            .progress_chars("█▓░");
+        pb.set_style(style);
+        Some(pb)
+    } else {
+        None
+    };
+
+    let mut stored_count = 0;
+    let mut reused_count = 0;
+    let mut skipped_count = 0;
+
+    for chunk in docs.chunks(EMBED_CHUNK_SIZE) {
+        let mut batch: Vec<EmbedRecord> = Vec::new();
+        let mut candidates: Vec<(String, &'static str, String, [u8; 32])> = Vec::new();
+
+        for (doc_id, text, doc_type) in chunk {
+            let canonical = canonicalize_for_embedding(text);
+            if canonical.is_empty() {
+                skipped_count += 1;
+                if let Some(ref pb) = pb {
+                    pb.inc(1);
+                }
+                continue;
+            }
+            let hash = content_hash(&canonical);
+            if let Some(existing_hash) = existing_hashes_by_doc
+                .get(doc_id)
+                .and_then(|by_type| by_type.get(*doc_type))
+            {
+                if existing_hash == &hash {
+                    skipped_count += 1;
+                    if let Some(ref pb) = pb {
+                        pb.inc(1);
+                    }
+                    continue;
+                }
+            }
+            candidates.push((doc_id.clone(), *doc_type, canonical, hash));
+            if let Some(ref pb) = pb {
+                pb.inc(1);
+            }
+        }
+
+        let mut batch_cache: HashMap<[u8; 32], Vec<f32>> = HashMap::new();
+        let mut needed_hashes: Vec<[u8; 32]> = Vec::new();
+        let mut needed_hashes_set: HashSet<[u8; 32]> = HashSet::new();
+        for (_, _, _, hash) in &candidates {
+            if existing_hashes.contains(hash) && needed_hashes_set.insert(*hash) {
+                needed_hashes.push(*hash);
+            }
+        }
+
+        if !needed_hashes.is_empty() {
+            let fetched = storage.load_embeddings_by_hashes(&needed_hashes)?;
+            for (hash, embedding) in fetched {
+                batch_cache.insert(hash, embedding);
+            }
+        }
+
+        let mut new_hashes: Vec<(String, String, [u8; 32])> = Vec::new();
+        let mut new_hashes_set: HashSet<[u8; 32]> = HashSet::new();
+        for (doc_id, _doc_type, canonical, hash) in &candidates {
+            if batch_cache.contains_key(hash) {
+                continue;
+            }
+            if new_hashes_set.insert(*hash) {
+                new_hashes.push((doc_id.clone(), canonical.clone(), *hash));
+            }
+        }
+
+        if !new_hashes.is_empty() {
+            let computed_embeddings: Vec<([u8; 32], Vec<f32>)> = new_hashes
+                .par_iter()
+                .filter_map(
+                    |(doc_id, canonical, hash)| match embedder.embed(canonical) {
+                        Ok(embedding) => Some((*hash, embedding)),
+                        Err(e) => {
+                            tracing::warn!("Failed to embed doc {}: {}", doc_id, e);
+                            None
+                        }
+                    },
+                )
+                .collect();
+
+            for (hash, embedding) in computed_embeddings {
+                batch_cache.insert(hash, embedding);
+            }
+        }
+
+        let mut seen_new_hashes: HashSet<[u8; 32]> = HashSet::new();
+        for (doc_id, doc_type, _canonical, hash) in candidates {
+            if let Some(existing_embedding) = batch_cache.get(&hash) {
+                batch.push((
+                    doc_id,
+                    doc_type.to_string(),
+                    existing_embedding.clone(),
+                    Some(hash),
+                ));
+
+                if existing_hashes.contains(&hash) || !seen_new_hashes.insert(hash) {
+                    reused_count += 1;
+                }
+            } else {
+                skipped_count += 1;
+            }
+        }
+
+        if !batch.is_empty() {
+            for chunk in batch.chunks(store_batch_size) {
+                storage.store_embeddings_batch_with_model(chunk, model_id)?;
+                stored_count += chunk.len();
+            }
+        }
+    }
+
+    if let Some(pb) = pb {
+        pb.finish_and_clear();
+    }
+
+    let embed_elapsed = format_duration(embed_start.elapsed());
+    let generated_count = stored_count.saturating_sub(reused_count);
+    if config.show_progress {
+        println!(
+            "    {} {} embeddings stored (model_id={}) {}",
+            "✓".green(),
+            format_number_usize(stored_count).bold(),
+            model_id,
+            format!("({embed_elapsed})").dimmed()
+        );
+        if reused_count > 0 {
+            println!(
+                "    {} {} reused from identical content",
+                "·".dimmed(),
+                format_number_usize(reused_count).dimmed()
+            );
+        }
+        if generated_count > 0 && reused_count > 0 {
+            println!(
+                "    {} {} generated",
+                "·".dimmed(),
+                format_number_usize(generated_count).dimmed()
+            );
+        }
+        if skipped_count > 0 {
+            println!(
+                "    {} {} skipped (empty or unchanged)",
                 "·".dimmed(),
                 format_number_usize(skipped_count).dimmed()
             );

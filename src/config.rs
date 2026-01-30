@@ -142,6 +142,34 @@ pub struct SemanticConfig {
 
     /// Number of candidates to rerank.
     pub rerank_top: usize,
+
+    /// Two-tier progressive search configuration.
+    pub two_tier: TwoTierConfig,
+}
+
+/// Two-tier progressive search configuration.
+///
+/// Controls the fast+quality two-pass search mode where results from a
+/// fast model are refined by a quality model.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct TwoTierConfig {
+    /// Fast embedding model (e.g., "potion-multilingual-128M").
+    /// Environment variable: `XF_TWO_TIER_FAST_MODEL`
+    pub fast_model: Option<String>,
+
+    /// Quality embedding model (e.g., "all-MiniLM-L6-v2").
+    /// Environment variable: `XF_TWO_TIER_QUALITY_MODEL`
+    pub quality_model: Option<String>,
+
+    /// Blend factor for combining fast and quality scores.
+    /// 0.0 = fast-only, 1.0 = quality-only, 0.7 = 70% quality + 30% fast.
+    /// Environment variable: `XF_TWO_TIER_BLEND`
+    pub blend_factor: f32,
+
+    /// Timeout in milliseconds for quality model inference.
+    /// Environment variable: `XF_TWO_TIER_QUALITY_TIMEOUT_MS`
+    pub quality_timeout_ms: u64,
 }
 
 impl Default for SearchConfig {
@@ -187,6 +215,18 @@ impl Default for SemanticConfig {
             rerank: false,
             daemon: true,
             rerank_top: 100,
+            two_tier: TwoTierConfig::default(),
+        }
+    }
+}
+
+impl Default for TwoTierConfig {
+    fn default() -> Self {
+        Self {
+            fast_model: None,
+            quality_model: None,
+            blend_factor: 0.7,
+            quality_timeout_ms: 500,
         }
     }
 }
@@ -347,6 +387,24 @@ impl Config {
         if let Ok(val) = std::env::var("XF_DAEMON") {
             self.semantic.daemon = val != "0" && val.to_lowercase() != "false";
         }
+
+        // Two-tier overrides
+        if let Ok(model) = std::env::var("XF_TWO_TIER_FAST_MODEL") {
+            self.semantic.two_tier.fast_model = Some(model);
+        }
+        if let Ok(model) = std::env::var("XF_TWO_TIER_QUALITY_MODEL") {
+            self.semantic.two_tier.quality_model = Some(model);
+        }
+        if let Ok(blend) = std::env::var("XF_TWO_TIER_BLEND") {
+            if let Ok(val) = blend.parse() {
+                self.semantic.two_tier.blend_factor = val;
+            }
+        }
+        if let Ok(timeout) = std::env::var("XF_TWO_TIER_QUALITY_TIMEOUT_MS") {
+            if let Ok(val) = timeout.parse() {
+                self.semantic.two_tier.quality_timeout_ms = val;
+            }
+        }
     }
 
     fn expand_tilde_paths(&mut self) {
@@ -402,6 +460,16 @@ impl Config {
         self.semantic.rerank = other.semantic.rerank;
         self.semantic.daemon = other.semantic.daemon;
         self.semantic.rerank_top = other.semantic.rerank_top;
+
+        // Two-tier
+        if other.semantic.two_tier.fast_model.is_some() {
+            self.semantic.two_tier.fast_model = other.semantic.two_tier.fast_model;
+        }
+        if other.semantic.two_tier.quality_model.is_some() {
+            self.semantic.two_tier.quality_model = other.semantic.two_tier.quality_model;
+        }
+        self.semantic.two_tier.blend_factor = other.semantic.two_tier.blend_factor;
+        self.semantic.two_tier.quality_timeout_ms = other.semantic.two_tier.quality_timeout_ms;
     }
 
     /// Get the database path, using defaults if not configured.
@@ -630,6 +698,76 @@ mod tests {
         assert_eq!(base.semantic.model.as_deref(), Some("custom-model"));
         assert_eq!(base.semantic.reranker.as_deref(), Some("custom-reranker"));
         assert!(base.semantic.rerank);
+    }
+
+    #[test]
+    fn test_two_tier_config_defaults() {
+        let ttc = TwoTierConfig::default();
+        assert!(ttc.fast_model.is_none());
+        assert!(ttc.quality_model.is_none());
+        assert!((ttc.blend_factor - 0.7).abs() < f32::EPSILON);
+        assert_eq!(ttc.quality_timeout_ms, 500);
+    }
+
+    #[test]
+    fn test_two_tier_config_toml_roundtrip() {
+        let ttc = TwoTierConfig {
+            fast_model: Some("potion-multilingual-128M".to_string()),
+            quality_model: Some("all-MiniLM-L6-v2".to_string()),
+            blend_factor: 0.5,
+            quality_timeout_ms: 1000,
+        };
+        let toml_str = toml::to_string(&ttc).unwrap();
+        let parsed: TwoTierConfig = toml::from_str(&toml_str).unwrap();
+        assert_eq!(
+            parsed.fast_model.as_deref(),
+            Some("potion-multilingual-128M")
+        );
+        assert_eq!(
+            parsed.quality_model.as_deref(),
+            Some("all-MiniLM-L6-v2")
+        );
+        assert!((parsed.blend_factor - 0.5).abs() < f32::EPSILON);
+        assert_eq!(parsed.quality_timeout_ms, 1000);
+    }
+
+    #[test]
+    fn test_two_tier_config_nested_in_semantic() {
+        let toml_str = r#"
+            model = "all-MiniLM-L6-v2"
+            rerank = false
+
+            [two_tier]
+            fast_model = "hash-fnv1a-384"
+            blend_factor = 0.3
+        "#;
+        let parsed: SemanticConfig = toml::from_str(toml_str).unwrap();
+        assert_eq!(parsed.model.as_deref(), Some("all-MiniLM-L6-v2"));
+        assert_eq!(
+            parsed.two_tier.fast_model.as_deref(),
+            Some("hash-fnv1a-384")
+        );
+        assert!((parsed.two_tier.blend_factor - 0.3).abs() < f32::EPSILON);
+        // quality_model should be default (None)
+        assert!(parsed.two_tier.quality_model.is_none());
+        // quality_timeout_ms should be default
+        assert_eq!(parsed.two_tier.quality_timeout_ms, 500);
+    }
+
+    #[test]
+    fn test_config_merge_two_tier() {
+        let mut base = Config::default();
+        let mut other = Config::default();
+        other.semantic.two_tier.fast_model = Some("fast-model".to_string());
+        other.semantic.two_tier.blend_factor = 0.9;
+
+        base.merge(other);
+
+        assert_eq!(
+            base.semantic.two_tier.fast_model.as_deref(),
+            Some("fast-model")
+        );
+        assert!((base.semantic.two_tier.blend_factor - 0.9).abs() < f32::EPSILON);
     }
 
     #[test]
