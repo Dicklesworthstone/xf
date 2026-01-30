@@ -566,7 +566,7 @@ mod tests {
             self.dim
         }
 
-        fn id(&self) -> &str {
+        fn id(&self) -> &'static str {
             "mock-mrl"
         }
 

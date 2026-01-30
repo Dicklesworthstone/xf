@@ -55,11 +55,9 @@ struct VectorIndexCache {
     /// Fast-tier index for two-tier search.
     fast_index: OnceLock<Option<VectorIndex>>,
     fast_meta: OnceLock<CacheMeta>,
-    fast_init_lock: Mutex<()>,
     /// Quality-tier index for two-tier search.
     quality_index: OnceLock<Option<VectorIndex>>,
     quality_meta: OnceLock<CacheMeta>,
-    quality_init_lock: Mutex<()>,
 }
 
 impl VectorIndexCache {
@@ -70,10 +68,8 @@ impl VectorIndexCache {
             init_lock: Mutex::new(()),
             fast_index: OnceLock::new(),
             fast_meta: OnceLock::new(),
-            fast_init_lock: Mutex::new(()),
             quality_index: OnceLock::new(),
             quality_meta: OnceLock::new(),
-            quality_init_lock: Mutex::new(()),
         }
     }
 
@@ -155,7 +151,6 @@ impl VectorIndexCache {
     fn load_fast(&self, index_path: &Path) -> Option<&VectorIndex> {
         self.fast_index
             .get_or_init(|| {
-                let _guard = self.fast_init_lock.lock().ok()?;
                 match VectorIndex::load_named(index_path, xf::vector::VECTOR_INDEX_FAST_FILENAME) {
                     Ok(Some(idx)) => {
                         let meta = CacheMeta {
@@ -184,7 +179,6 @@ impl VectorIndexCache {
     fn load_quality(&self, index_path: &Path) -> Option<&VectorIndex> {
         self.quality_index
             .get_or_init(|| {
-                let _guard = self.quality_init_lock.lock().ok()?;
                 match VectorIndex::load_named(index_path, xf::vector::VECTOR_INDEX_QUALITY_FILENAME)
                 {
                     Ok(Some(idx)) => {
@@ -1535,6 +1529,7 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
                         two_tier_cfg.blend_factor,
                     )
                 } else {
+                    warn!("Quality embedding failed; returning Phase 1 results only");
                     fast_semantic
                 }
             } else {
