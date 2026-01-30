@@ -311,6 +311,233 @@ pub fn blend_two_tier(
     blended
 }
 
+// =============================================================================
+// Two-Tier Search Metrics
+// =============================================================================
+
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use std::fs::OpenOptions;
+use std::io::{BufWriter, Write};
+use std::path::Path;
+use tracing::warn;
+
+/// Metrics collected during a two-tier search operation.
+///
+/// These metrics are useful for understanding search performance and
+/// tuning the blend factor. Logged to JSONL for offline analysis.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TwoTierMetrics {
+    /// The search query (truncated for privacy).
+    pub query: String,
+    /// Time for fast phase (ms).
+    pub fast_latency_ms: f64,
+    /// Time for quality phase (ms), if executed.
+    pub refine_latency_ms: Option<f64>,
+    /// Total search time (ms).
+    pub total_latency_ms: f64,
+    /// Kendall tau correlation between fast and quality rankings (-1 to 1).
+    pub rank_correlation: Option<f64>,
+    /// Number of items that moved up in ranking after refinement.
+    pub items_promoted: usize,
+    /// Number of items that moved down in ranking after refinement.
+    pub items_demoted: usize,
+    /// Reason refinement was skipped, if applicable.
+    pub skip_reason: Option<SkipReason>,
+    /// Whether the daemon was used for quality embeddings.
+    pub daemon_used: bool,
+    /// Blend factor used (0.0 = fast-only, 1.0 = quality-only).
+    pub blend_factor: f32,
+    /// Number of results returned.
+    pub result_count: usize,
+    /// Timestamp of the search.
+    pub timestamp: DateTime<Utc>,
+}
+
+/// Reason why refinement was skipped.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum SkipReason {
+    /// Fast results had high confidence.
+    HighConfidence,
+    /// Refinement timed out.
+    Timeout,
+    /// User cancelled (Ctrl+C).
+    UserCancelled,
+    /// Quality index not ready.
+    IndexNotReady,
+    /// Daemon unavailable.
+    DaemonUnavailable,
+    /// Quality embedding failed.
+    EmbeddingFailed,
+}
+
+impl TwoTierMetrics {
+    /// Create a new metrics instance with basic timing info.
+    #[must_use]
+    pub fn new(query: &str, blend_factor: f32) -> Self {
+        Self {
+            query: truncate_query(query, 100),
+            fast_latency_ms: 0.0,
+            refine_latency_ms: None,
+            total_latency_ms: 0.0,
+            rank_correlation: None,
+            items_promoted: 0,
+            items_demoted: 0,
+            skip_reason: None,
+            daemon_used: false,
+            blend_factor,
+            result_count: 0,
+            timestamp: Utc::now(),
+        }
+    }
+
+    /// Log metrics to a JSONL file.
+    ///
+    /// Creates the file if it doesn't exist. Each call appends one line.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file cannot be opened or written to.
+    pub fn log_to_file(&self, path: &Path) -> std::io::Result<()> {
+        let file = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(path)?;
+        let mut writer = BufWriter::new(file);
+        serde_json::to_writer(&mut writer, self)?;
+        writeln!(writer)?;
+        writer.flush()?;
+        Ok(())
+    }
+
+    /// Log metrics to the default metrics file.
+    ///
+    /// Default path: `~/.local/share/xf/two_tier_metrics.jsonl`
+    pub fn log_to_default(&self) {
+        if let Some(data_dir) = dirs::data_local_dir() {
+            let metrics_path = data_dir.join("xf").join("two_tier_metrics.jsonl");
+            if let Err(e) = self.log_to_file(&metrics_path) {
+                warn!(error = %e, "Failed to log two-tier metrics");
+            }
+        }
+    }
+}
+
+/// Truncate a query string for privacy in metrics logging.
+fn truncate_query(query: &str, max_len: usize) -> String {
+    if query.len() <= max_len {
+        query.to_string()
+    } else {
+        format!("{}...", &query[..max_len])
+    }
+}
+
+/// Compute rank changes between two result lists.
+///
+/// Returns (promoted, demoted, stable) counts.
+#[must_use]
+pub fn compute_rank_changes(
+    initial: &[VectorSearchResult],
+    refined: &[VectorSearchResult],
+) -> (usize, usize, usize) {
+    use std::collections::HashMap;
+
+    // Build rank map for initial results
+    let initial_ranks: HashMap<(&str, &str), usize> = initial
+        .iter()
+        .enumerate()
+        .map(|(i, r)| ((r.doc_id.as_str(), r.doc_type), i))
+        .collect();
+
+    let mut promoted = 0;
+    let mut demoted = 0;
+    let mut stable = 0;
+
+    for (new_rank, result) in refined.iter().enumerate() {
+        if let Some(&old_rank) = initial_ranks.get(&(result.doc_id.as_str(), result.doc_type)) {
+            match new_rank.cmp(&old_rank) {
+                std::cmp::Ordering::Less => promoted += 1,
+                std::cmp::Ordering::Greater => demoted += 1,
+                std::cmp::Ordering::Equal => stable += 1,
+            }
+        }
+        // Items only in refined (new entries) are neither promoted nor demoted
+    }
+
+    (promoted, demoted, stable)
+}
+
+/// Compute Kendall tau correlation between two rankings.
+///
+/// Returns a value between -1 (perfect inversion) and 1 (perfect agreement).
+/// Returns None if either list is empty.
+#[must_use]
+#[allow(clippy::cast_precision_loss, clippy::cast_possible_wrap)]
+pub fn kendall_tau(
+    initial: &[VectorSearchResult],
+    refined: &[VectorSearchResult],
+) -> Option<f64> {
+    if initial.is_empty() || refined.is_empty() {
+        return None;
+    }
+
+    // Build rank maps
+    let initial_ranks: std::collections::HashMap<(&str, &str), usize> = initial
+        .iter()
+        .enumerate()
+        .map(|(i, r)| ((r.doc_id.as_str(), r.doc_type), i))
+        .collect();
+
+    let refined_ranks: std::collections::HashMap<(&str, &str), usize> = refined
+        .iter()
+        .enumerate()
+        .map(|(i, r)| ((r.doc_id.as_str(), r.doc_type), i))
+        .collect();
+
+    // Find common items
+    let common: Vec<_> = initial_ranks
+        .keys()
+        .filter(|k| refined_ranks.contains_key(k))
+        .collect();
+
+    let n = common.len();
+    if n < 2 {
+        return None;
+    }
+
+    // Count concordant and discordant pairs
+    let mut concordant = 0i64;
+    let mut discordant = 0i64;
+
+    for i in 0..n {
+        for j in (i + 1)..n {
+            let key_i = common[i];
+            let key_j = common[j];
+
+            let initial_diff =
+                initial_ranks[key_i] as i64 - initial_ranks[key_j] as i64;
+            let refined_diff =
+                refined_ranks[key_i] as i64 - refined_ranks[key_j] as i64;
+
+            if (initial_diff > 0 && refined_diff > 0) || (initial_diff < 0 && refined_diff < 0) {
+                concordant += 1;
+            } else if (initial_diff > 0 && refined_diff < 0)
+                || (initial_diff < 0 && refined_diff > 0)
+            {
+                discordant += 1;
+            }
+            // Ties (diff = 0) are neither concordant nor discordant
+        }
+    }
+
+    let pairs = n * (n - 1) / 2;
+    if pairs == 0 {
+        return None;
+    }
+
+    Some((concordant - discordant) as f64 / pairs as f64)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
