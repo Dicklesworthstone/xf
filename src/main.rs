@@ -1073,7 +1073,24 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, output: &Output) -> Result<()> {
 fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> {
     let db_path = get_db_path(cli);
     let index_path = get_index_path(cli);
-    let config = Config::load();
+    let mut config = Config::load();
+
+    // Determine effective search mode and blend factor from CLI flags
+    let effective_mode = if args.fast_only || args.quality_only || args.blend_factor.is_some() {
+        // These flags imply two-tier mode
+        SearchMode::TwoTier
+    } else {
+        args.mode
+    };
+
+    // Override blend factor based on CLI flags
+    if args.fast_only {
+        config.semantic.two_tier.blend_factor = 0.0;
+    } else if args.quality_only {
+        config.semantic.two_tier.blend_factor = 1.0;
+    } else if let Some(factor) = args.blend_factor {
+        config.semantic.two_tier.blend_factor = factor;
+    }
 
     if !db_path.exists() {
         anyhow::bail!(
@@ -1173,11 +1190,11 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
 
     // Load vector index for semantic/hybrid/two-tier search (cached per process)
     let vector_index = if matches!(
-        args.mode,
+        effective_mode,
         SearchMode::Semantic | SearchMode::Hybrid | SearchMode::TwoTier
     ) {
         let index = load_vector_index_cached(&storage, &db_path, &index_path)?;
-        if matches!(args.mode, SearchMode::Semantic)
+        if matches!(effective_mode, SearchMode::Semantic)
             && !has_embeddings_for_types(doc_types.as_deref())
         {
             anyhow::bail!(
@@ -1217,7 +1234,7 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
     let search_start = Instant::now();
 
     // Perform search based on mode
-    let mut results = match args.mode {
+    let mut results = match effective_mode {
         SearchMode::Lexical => {
             // Original lexical-only search
             let mut fetch_limit = limit_target.min(max_docs);
@@ -1649,17 +1666,17 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
         OutputFormat::Json => {
             if let Some(fields) = &args.fields {
                 let filtered = filter_results_fields(&results, fields)?;
-                output.print(&serde_json::to_string(&filtered)?);
+                output.print_data(&serde_json::to_string(&filtered)?);
             } else {
-                output.print(&serde_json::to_string(&results)?);
+                output.print_data(&serde_json::to_string(&results)?);
             }
         }
         OutputFormat::JsonPretty => {
             if let Some(fields) = &args.fields {
                 let filtered = filter_results_fields(&results, fields)?;
-                output.print(&serde_json::to_string_pretty(&filtered)?);
+                output.print_data(&serde_json::to_string_pretty(&filtered)?);
             } else {
-                output.print(&serde_json::to_string_pretty(&results)?);
+                output.print_data(&serde_json::to_string_pretty(&results)?);
             }
         }
         OutputFormat::Csv => {
@@ -1707,7 +1724,7 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
             } else {
                 serde_json::to_value(&results)?
             };
-            output.print(&toon_rust::encode(json, None));
+            output.print_data(&toon_rust::encode(json, None));
         }
     }
 
@@ -1862,17 +1879,17 @@ fn output_dm_context(
 ) -> Result<()> {
     match cli.format {
         OutputFormat::Json => {
-            output.print(&serde_json::to_string(contexts)?);
+            output.print_data(&serde_json::to_string(contexts)?);
         }
         OutputFormat::JsonPretty => {
-            output.print(&serde_json::to_string_pretty(contexts)?);
+            output.print_data(&serde_json::to_string_pretty(contexts)?);
         }
         OutputFormat::Text => {
             print_dm_context_text(contexts, highlight_enabled, output);
         }
         OutputFormat::Toon => {
             let json = serde_json::to_value(contexts)?;
-            output.print(&toon_rust::encode(json, None));
+            output.print_data(&toon_rust::encode(json, None));
         }
         _ => {
             anyhow::bail!("--context only supports text, json, json-pretty, or toon output.");
@@ -2314,14 +2331,14 @@ fn cmd_stats(cli: &Cli, args: &cli::StatsArgs, output: &Output) -> Result<()> {
                 } else {
                     serde_json::to_string(&extended)?
                 };
-                output.print(&json);
+                output.print_data(&json);
             } else {
                 let json = if matches!(cli.format, OutputFormat::JsonPretty) {
                     serde_json::to_string_pretty(&stats)?
                 } else {
                     serde_json::to_string(&stats)?
                 };
-                output.print(&json);
+                output.print_data(&json);
             }
         }
         OutputFormat::Toon => {
@@ -2336,10 +2353,10 @@ fn cmd_stats(cli: &Cli, args: &cli::StatsArgs, output: &Output) -> Result<()> {
                     content,
                 };
                 let json = serde_json::to_value(&extended)?;
-                output.print(&toon_rust::encode(json, None));
+                output.print_data(&toon_rust::encode(json, None));
             } else {
                 let json = serde_json::to_value(&stats)?;
-                output.print(&toon_rust::encode(json, None));
+                output.print_data(&toon_rust::encode(json, None));
             }
         }
         _ => {
@@ -2752,11 +2769,11 @@ fn cmd_tweet(cli: &Cli, args: &cli::TweetArgs, output: &Output) -> Result<()> {
                 } else {
                     serde_json::to_string(&t)?
                 };
-                output.print(&json);
+                output.print_data(&json);
             }
             OutputFormat::Toon => {
                 let json = serde_json::to_value(&t)?;
-                output.print(&toon_rust::encode(json, None));
+                output.print_data(&toon_rust::encode(json, None));
             }
             _ => {
                 output.print(&format!("[dim]{}[/]", "─".repeat(CONTENT_DIVIDER_WIDTH)));
@@ -3239,11 +3256,11 @@ fn cmd_tweet_thread(
             } else {
                 serde_json::to_string(&thread)?
             };
-            output.print(&json);
+            output.print_data(&json);
         }
         OutputFormat::Toon => {
             let json = serde_json::to_value(&thread)?;
-            output.print(&toon_rust::encode(json, None));
+            output.print_data(&toon_rust::encode(json, None));
         }
         _ => {
             output.print("[bold cyan]Thread[/]");
@@ -3719,7 +3736,7 @@ fn cmd_doctor(cli: &Cli, args: &cli::DoctorArgs, output: &Output) -> Result<()> 
                 suggestions,
                 runtime_ms,
             };
-            output.print(&serde_json::to_string(&doctor_output)?);
+            output.print_data(&serde_json::to_string(&doctor_output)?);
         }
         OutputFormat::JsonPretty => {
             let doctor_output = DoctorOutput {
@@ -3728,7 +3745,7 @@ fn cmd_doctor(cli: &Cli, args: &cli::DoctorArgs, output: &Output) -> Result<()> 
                 suggestions,
                 runtime_ms,
             };
-            output.print(&serde_json::to_string_pretty(&doctor_output)?);
+            output.print_data(&serde_json::to_string_pretty(&doctor_output)?);
         }
         OutputFormat::Toon => {
             let doctor_output = DoctorOutput {
@@ -3738,7 +3755,7 @@ fn cmd_doctor(cli: &Cli, args: &cli::DoctorArgs, output: &Output) -> Result<()> 
                 runtime_ms,
             };
             let json = serde_json::to_value(&doctor_output)?;
-            output.print(&toon_rust::encode(json, None));
+            output.print_data(&toon_rust::encode(json, None));
         }
         _ => {
             // Styled text output via DoctorRenderer
@@ -3892,7 +3909,7 @@ fn cmd_robot_docs(args: &cli::RobotDocsArgs, output: &Output) -> Result<()> {
     }
 
     let docs = xf::robot_docs::generate(&args.topic);
-    output.print(&serde_json::to_string_pretty(&docs)?);
+    output.print_data(&serde_json::to_string_pretty(&docs)?);
     Ok(())
 }
 

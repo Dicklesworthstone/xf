@@ -398,6 +398,15 @@ impl Output {
         fallback_console.print_renderable(renderable);
     }
 
+    /// Print data output (always prints, ignoring quiet mode).
+    ///
+    /// Use this for actual command output (JSON, CSV, TOON data) that should
+    /// never be suppressed. Quiet mode should only suppress diagnostic messages,
+    /// not the data output of a command.
+    pub fn print_data(&self, text: &str) {
+        println!("{}", Self::strip_markup(text));
+    }
+
     /// Print JSON (always unformatted, no styling)
     pub fn print_json<T: serde::Serialize>(&self, value: &T) -> Result<(), serde_json::Error> {
         let json = serde_json::to_string(value)?;

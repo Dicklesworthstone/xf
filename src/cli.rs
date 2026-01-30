@@ -271,6 +271,27 @@ pub struct SearchArgs {
     /// Force direct inference (no daemon)
     #[arg(long, conflicts_with = "daemon")]
     pub no_daemon: bool,
+
+    /// Two-tier search: use only fast (hash) results, skip quality refinement.
+    ///
+    /// Equivalent to --mode two-tier with blend_factor=0.0.
+    /// Fastest option, uses only hash-based similarity.
+    #[arg(long, conflicts_with_all = ["quality_only", "blend_factor"])]
+    pub fast_only: bool,
+
+    /// Two-tier search: wait for quality results only, skip fast phase display.
+    ///
+    /// Equivalent to --mode two-tier with blend_factor=1.0.
+    /// Highest quality, but no instant results.
+    #[arg(long, conflicts_with_all = ["fast_only", "blend_factor"])]
+    pub quality_only: bool,
+
+    /// Two-tier search: blend factor for combining fast and quality results.
+    ///
+    /// Range: 0.0 (fast-only) to 1.0 (quality-only). Default: 0.7.
+    /// Implies --mode two-tier if not already set.
+    #[arg(long, value_parser = validate_blend_factor, conflicts_with_all = ["fast_only", "quality_only"])]
+    pub blend_factor: Option<f32>,
 }
 
 #[derive(Args, Debug)]
@@ -534,6 +555,17 @@ fn validate_mrl_dims(s: &str) -> Result<usize, String> {
         return Err("dimension must be greater than 0".to_string());
     }
     Ok(dims)
+}
+
+/// Validate blend factor (must be between 0.0 and 1.0).
+fn validate_blend_factor(s: &str) -> Result<f32, String> {
+    let factor: f32 = s
+        .parse()
+        .map_err(|_| format!("invalid blend factor: {s}"))?;
+    if !(0.0..=1.0).contains(&factor) {
+        return Err("blend factor must be between 0.0 and 1.0".to_string());
+    }
+    Ok(factor)
 }
 
 #[derive(ValueEnum, Clone, Debug, PartialEq, Eq)]
