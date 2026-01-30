@@ -740,9 +740,10 @@ fn generate_embeddings_for_model(
         return Ok(());
     }
 
-    // For two-tier, we load hashes scoped to this model_id
-    // (but content hashes are global, so we still check)
-    let existing_hashes_by_doc = storage.load_embedding_hashes_by_doc()?;
+    // Load hashes scoped to this model_id to avoid cross-model dedup collisions.
+    // Without filtering, the quality pass would skip all docs because the fast
+    // pass already stored the same content hashes (different model, same text).
+    let existing_hashes_by_doc = storage.load_embedding_hashes_by_doc_for_model(model_id)?;
     let mut existing_hashes: HashSet<[u8; 32]> = HashSet::new();
     for by_type in existing_hashes_by_doc.values() {
         for hash_val in by_type.values() {
@@ -808,7 +809,7 @@ fn generate_embeddings_for_model(
         }
 
         if !needed_hashes.is_empty() {
-            let fetched = storage.load_embeddings_by_hashes(&needed_hashes)?;
+            let fetched = storage.load_embeddings_by_hashes_for_model(&needed_hashes, model_id)?;
             for (hash, embedding) in fetched {
                 batch_cache.insert(hash, embedding);
             }

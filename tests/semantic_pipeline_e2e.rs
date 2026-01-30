@@ -1313,15 +1313,19 @@ mod two_tier {
             let blended_hit = blended
                 .iter()
                 .find(|h| h.doc_id == quality_hit.doc_id && h.doc_type == quality_hit.doc_type);
-            if let Some(bh) = blended_hit {
-                assert!(
-                    (bh.score - quality_hit.score).abs() < 0.001,
-                    "blend_factor=1 should match quality for {}: {:.4} vs {:.4}",
-                    quality_hit.doc_id,
-                    bh.score,
-                    quality_hit.score
-                );
-            }
+            assert!(
+                blended_hit.is_some(),
+                "quality doc {} should exist in blended results",
+                quality_hit.doc_id
+            );
+            let bh = blended_hit.unwrap();
+            assert!(
+                (bh.score - quality_hit.score).abs() < 0.001,
+                "blend_factor=1 should match quality for {}: {:.4} vs {:.4}",
+                quality_hit.doc_id,
+                bh.score,
+                quality_hit.score
+            );
         }
     }
 

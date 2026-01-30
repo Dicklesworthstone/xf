@@ -2151,6 +2151,52 @@ impl Storage {
         Ok(map)
     }
 
+    /// Load content hashes keyed by (doc_id, doc_type) for a specific model.
+    ///
+    /// Only returns hashes for embeddings stored with the given `model_id`.
+    /// Used by two-tier embedding generation to avoid cross-model hash collisions.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database query fails or stored hashes are invalid.
+    pub fn load_embedding_hashes_by_doc_for_model(
+        &self,
+        model_id: &str,
+    ) -> Result<HashMap<String, HashMap<String, [u8; 32]>>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT doc_id, doc_type, content_hash FROM embeddings \
+             WHERE content_hash IS NOT NULL AND model_id = ?",
+        )?;
+
+        let rows = stmt.query_map(params![model_id], |row| {
+            let doc_id: String = row.get(0)?;
+            let doc_type: String = row.get(1)?;
+            let bytes: Vec<u8> = row.get(2)?;
+            let hash: [u8; 32] = match bytes.as_slice().try_into() {
+                Ok(hash) => hash,
+                Err(_) => {
+                    return Err(rusqlite::Error::FromSqlConversionFailure(
+                        bytes.len(),
+                        rusqlite::types::Type::Blob,
+                        Box::new(std::io::Error::new(
+                            std::io::ErrorKind::InvalidData,
+                            "Invalid content_hash length",
+                        )),
+                    ));
+                }
+            };
+            Ok((doc_id, doc_type, hash))
+        })?;
+
+        let mut map: HashMap<String, HashMap<String, [u8; 32]>> = HashMap::new();
+        for row in rows {
+            let (doc_id, doc_type, hash) = row?;
+            map.entry(doc_id).or_default().insert(doc_type, hash);
+        }
+
+        Ok(map)
+    }
+
     /// Load content hashes for a specific set of document IDs and types.
     ///
     /// Returns a map keyed by `doc_id` -> `doc_type` -> `content_hash` for the
@@ -2277,6 +2323,90 @@ impl Storage {
                     .collect();
                 Ok((hash, floats))
             })?;
+
+            for row in rows {
+                let (hash, embedding) = row?;
+                results.entry(hash).or_insert(embedding);
+            }
+        }
+
+        Ok(results)
+    }
+
+    /// Load embeddings by content hashes, filtered to a specific model.
+    ///
+    /// Only returns embeddings that were stored with the given `model_id`.
+    /// Used by two-tier embedding generation to reuse embeddings within
+    /// the same model without cross-model contamination.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database query fails.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the stored embedding bytes are not a multiple of 2 (corrupted data).
+    pub fn load_embeddings_by_hashes_for_model(
+        &self,
+        hashes: &[[u8; 32]],
+        model_id: &str,
+    ) -> Result<HashMap<[u8; 32], Vec<f32>>> {
+        use half::f16;
+
+        if hashes.is_empty() {
+            return Ok(HashMap::new());
+        }
+
+        let mut results: HashMap<[u8; 32], Vec<f32>> = HashMap::new();
+
+        for chunk in hashes.chunks(SQLITE_BATCH_SIZE) {
+            let mut sql = String::from(
+                "SELECT content_hash, embedding FROM embeddings \
+                 WHERE model_id = ? AND content_hash IN (",
+            );
+            for i in 0..chunk.len() {
+                if i > 0 {
+                    sql.push(',');
+                }
+                sql.push('?');
+            }
+            sql.push(')');
+
+            let mut stmt = self.conn.prepare(&sql)?;
+            let mut param_values: Vec<Box<dyn rusqlite::types::ToSql>> =
+                Vec::with_capacity(1 + chunk.len());
+            param_values.push(Box::new(model_id.to_string()));
+            for h in chunk {
+                param_values.push(Box::new(h.to_vec()));
+            }
+            let rows = stmt.query_map(
+                rusqlite::params_from_iter(param_values.iter().map(AsRef::as_ref)),
+                |row| {
+                    let hash_bytes: Vec<u8> = row.get(0)?;
+                    let hash: [u8; 32] = match hash_bytes.as_slice().try_into() {
+                        Ok(hash) => hash,
+                        Err(_) => {
+                            return Err(rusqlite::Error::FromSqlConversionFailure(
+                                hash_bytes.len(),
+                                rusqlite::types::Type::Blob,
+                                Box::new(std::io::Error::new(
+                                    std::io::ErrorKind::InvalidData,
+                                    "Invalid content_hash length",
+                                )),
+                            ));
+                        }
+                    };
+                    let bytes: Vec<u8> = row.get(1)?;
+                    let floats: Vec<f32> = bytes
+                        .chunks_exact(2)
+                        .map(|chunk| {
+                            let arr: [u8; 2] = chunk.try_into().unwrap();
+                            f16::from_le_bytes(arr).to_f32()
+                        })
+                        .collect();
+                    Ok((hash, floats))
+                },
+            )?;
 
             for row in rows {
                 let (hash, embedding) = row?;
@@ -4000,5 +4130,62 @@ mod tests {
             .load_all_embeddings_filtered(Some("default"))
             .unwrap();
         assert_eq!(default_embs.len(), 0);
+    }
+
+    #[test]
+    fn test_load_hashes_and_embeddings_by_model() {
+        let storage = Storage::open_memory().unwrap();
+        let hash_a = [0xAA_u8; 32];
+        let hash_b = [0xBB_u8; 32];
+        let emb_fast = vec![1.0_f32, 0.0, 0.0, 0.0];
+        let emb_quality = vec![0.0_f32, 1.0, 0.0, 0.0];
+
+        // Store same doc with different models and different content hashes
+        storage
+            .store_embedding_with_model("doc1", "tweet", &emb_fast, Some(&hash_a), "fast")
+            .unwrap();
+        storage
+            .store_embedding_with_model("doc1", "tweet", &emb_quality, Some(&hash_b), "quality")
+            .unwrap();
+
+        // load_embedding_hashes_by_doc_for_model: should isolate by model
+        let fast_hashes = storage
+            .load_embedding_hashes_by_doc_for_model("fast")
+            .unwrap();
+        assert_eq!(fast_hashes.len(), 1);
+        assert_eq!(fast_hashes["doc1"]["tweet"], hash_a);
+
+        let quality_hashes = storage
+            .load_embedding_hashes_by_doc_for_model("quality")
+            .unwrap();
+        assert_eq!(quality_hashes.len(), 1);
+        assert_eq!(quality_hashes["doc1"]["tweet"], hash_b);
+
+        // Nonexistent model returns empty
+        let none_hashes = storage
+            .load_embedding_hashes_by_doc_for_model("nonexistent")
+            .unwrap();
+        assert!(none_hashes.is_empty());
+
+        // load_embeddings_by_hashes_for_model: should return only matching model
+        let fast_embs = storage
+            .load_embeddings_by_hashes_for_model(&[hash_a], "fast")
+            .unwrap();
+        assert_eq!(fast_embs.len(), 1);
+        // First component should be ~1.0 (fast embedding)
+        assert!(fast_embs[&hash_a][0] > 0.5);
+
+        let quality_embs = storage
+            .load_embeddings_by_hashes_for_model(&[hash_b], "quality")
+            .unwrap();
+        assert_eq!(quality_embs.len(), 1);
+        // Second component should be ~1.0 (quality embedding)
+        assert!(quality_embs[&hash_b][1] > 0.5);
+
+        // Cross-model lookup should return empty (hash_a belongs to fast, not quality)
+        let cross = storage
+            .load_embeddings_by_hashes_for_model(&[hash_a], "quality")
+            .unwrap();
+        assert!(cross.is_empty());
     }
 }
