@@ -1068,4 +1068,106 @@ mod tests {
         let b = blended.iter().find(|h| h.doc_id == "b").unwrap();
         assert!((b.score - 0.7).abs() < 0.001); // 1.0 * 0.7
     }
+
+    // ==========================================================================
+    // TwoTierMetrics tests
+    // ==========================================================================
+
+    #[test]
+    fn test_two_tier_metrics_new() {
+        let metrics = TwoTierMetrics::new("test query", 0.7);
+        assert_eq!(metrics.query, "test query");
+        assert!((metrics.blend_factor - 0.7).abs() < 0.001);
+        assert!(metrics.fast_latency_ms.abs() < f64::EPSILON);
+        assert!(metrics.refine_latency_ms.is_none());
+        assert!(metrics.skip_reason.is_none());
+    }
+
+    #[test]
+    fn test_two_tier_metrics_query_truncation() {
+        let long_query = "a".repeat(200);
+        let metrics = TwoTierMetrics::new(&long_query, 0.5);
+        assert_eq!(metrics.query.len(), 103); // 100 chars + "..."
+        assert!(metrics.query.ends_with("..."));
+    }
+
+    #[test]
+    fn test_compute_rank_changes_no_movement() {
+        let initial = vec![
+            make_semantic_hit("a", 1.0, "tweet"),
+            make_semantic_hit("b", 0.8, "tweet"),
+            make_semantic_hit("c", 0.6, "tweet"),
+        ];
+        let refined = initial.clone();
+
+        let (promoted, demoted, stable) = compute_rank_changes(&initial, &refined);
+        assert_eq!(promoted, 0);
+        assert_eq!(demoted, 0);
+        assert_eq!(stable, 3);
+    }
+
+    #[test]
+    fn test_compute_rank_changes_complete_reversal() {
+        let initial = vec![
+            make_semantic_hit("a", 1.0, "tweet"),
+            make_semantic_hit("b", 0.8, "tweet"),
+            make_semantic_hit("c", 0.6, "tweet"),
+        ];
+        let refined = vec![
+            make_semantic_hit("c", 1.0, "tweet"),
+            make_semantic_hit("b", 0.8, "tweet"),
+            make_semantic_hit("a", 0.6, "tweet"),
+        ];
+
+        let (promoted, demoted, stable) = compute_rank_changes(&initial, &refined);
+        assert_eq!(promoted, 1); // c moved up
+        assert_eq!(demoted, 1);  // a moved down
+        assert_eq!(stable, 1);   // b stayed at rank 1
+    }
+
+    #[test]
+    fn test_kendall_tau_identical() {
+        let results = vec![
+            make_semantic_hit("a", 1.0, "tweet"),
+            make_semantic_hit("b", 0.8, "tweet"),
+            make_semantic_hit("c", 0.6, "tweet"),
+        ];
+
+        let tau = kendall_tau(&results, &results).unwrap();
+        assert!((tau - 1.0).abs() < 0.001, "Identical rankings should have tau = 1.0");
+    }
+
+    #[test]
+    fn test_kendall_tau_reversed() {
+        let initial = vec![
+            make_semantic_hit("a", 1.0, "tweet"),
+            make_semantic_hit("b", 0.8, "tweet"),
+            make_semantic_hit("c", 0.6, "tweet"),
+        ];
+        let refined = vec![
+            make_semantic_hit("c", 1.0, "tweet"),
+            make_semantic_hit("b", 0.8, "tweet"),
+            make_semantic_hit("a", 0.6, "tweet"),
+        ];
+
+        let tau = kendall_tau(&initial, &refined).unwrap();
+        assert!((tau - (-1.0)).abs() < 0.001, "Reversed rankings should have tau = -1.0");
+    }
+
+    #[test]
+    fn test_kendall_tau_empty() {
+        let empty: Vec<VectorSearchResult> = vec![];
+        let results = vec![make_semantic_hit("a", 1.0, "tweet")];
+
+        assert!(kendall_tau(&empty, &results).is_none());
+        assert!(kendall_tau(&results, &empty).is_none());
+        assert!(kendall_tau(&empty, &empty).is_none());
+    }
+
+    #[test]
+    fn test_kendall_tau_single_item() {
+        let results = vec![make_semantic_hit("a", 1.0, "tweet")];
+        // Single item has no pairs to compare
+        assert!(kendall_tau(&results, &results).is_none());
+    }
 }
