@@ -660,6 +660,7 @@ fn cmd_import(cli: &Cli, args: &cli::ImportArgs, output: &Output) -> Result<()> 
             skip: None,
             jobs: 0,
             semantic: false, // Don't use semantic embeddings by default for import
+            two_tier: false,
         };
 
         cmd_index(cli, &index_args, output)?;
@@ -1187,8 +1188,11 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
         })
     };
 
-    // Load vector index for semantic/hybrid search (cached per process)
-    let vector_index = if matches!(args.mode, SearchMode::Semantic | SearchMode::Hybrid) {
+    // Load vector index for semantic/hybrid/two-tier search (cached per process)
+    let vector_index = if matches!(
+        args.mode,
+        SearchMode::Semantic | SearchMode::Hybrid | SearchMode::TwoTier
+    ) {
         let index = load_vector_index_cached(&storage, &db_path, &index_path)?;
         if matches!(args.mode, SearchMode::Semantic)
             && !has_embeddings_for_types(doc_types.as_deref())
@@ -1417,6 +1421,176 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
             let mut results = Vec::new();
             for (idx, hit) in fused.iter().enumerate() {
                 // Prefer lexical result (has full data)
+                if let Some(rank) = hit.lexical_rank {
+                    let mut result = lexical_results[rank].clone();
+                    result.score = hit.score;
+                    results.push(result);
+                } else if let Some(mut result) = fetched_by_index[idx].take() {
+                    result.score = hit.score;
+                    results.push(result);
+                }
+            }
+
+            if needs_post_filter {
+                apply_search_filters(
+                    &mut results,
+                    since,
+                    until,
+                    args.replies_only,
+                    args.no_replies,
+                );
+            }
+            results
+        }
+
+        SearchMode::TwoTier => {
+            // Two-tier progressive search: fast results refined by quality model
+            let two_tier_cfg = &config.semantic.two_tier;
+
+            // Phase 1: Fast semantic search + lexical search → RRF fuse
+            // Try fast index first, fall back to default index
+            let fast_index = VECTOR_INDEX_CACHE.load_fast(&index_path);
+            let use_index = fast_index.or(vector_index);
+
+            // Create fast embedder (hash-based by default)
+            let fast_model = two_tier_cfg
+                .fast_model
+                .as_deref()
+                .or(config.semantic.effective_model(args.model.as_deref()));
+            #[allow(unused_assignments)]
+            let mut fast_embedder_box: Option<Box<dyn Embedder>> = None;
+            #[allow(unused_assignments)]
+            let mut fast_hash_fallback: Option<HashEmbedder> = None;
+            let fast_embedder: &dyn Embedder = if let Some(model) = fast_model {
+                let registry = ModelRegistry::new();
+                let mut cfg = EmbedderConfig::new(model);
+                cfg.dimensions = config.semantic.effective_dimensions(args.dimensions);
+                cfg.show_progress = false;
+                let boxed = registry.embedder(&cfg)?;
+                fast_embedder_box = Some(boxed);
+                fast_embedder_box.as_ref().unwrap().as_ref()
+            } else if let Some(fe) = get_semantic_embedder() {
+                fe
+            } else {
+                fast_hash_fallback = Some(HashEmbedder::default());
+                fast_hash_fallback.as_ref().unwrap()
+            };
+
+            let canonical_query = canonicalize_for_embedding(&args.query);
+            let candidate_count = hybrid::candidate_count(args.limit, args.offset);
+
+            // Lexical results
+            let lexical_results =
+                search_engine.search(&args.query, doc_types.as_deref(), candidate_count)?;
+
+            // Fast semantic results
+            let fast_semantic = get_semantic_results(
+                use_index,
+                fast_embedder,
+                &canonical_query,
+                doc_types.as_deref(),
+                candidate_count,
+            );
+
+            // Phase 2: Quality refinement (if quality index exists)
+            let quality_index = VECTOR_INDEX_CACHE.load_quality(&index_path);
+
+            let final_semantic_results = if let Some(q_index) = quality_index {
+                // Create quality embedder
+                let quality_model = two_tier_cfg
+                    .quality_model
+                    .as_deref()
+                    .or(config.semantic.effective_model(args.model.as_deref()));
+                #[allow(unused_assignments)]
+                let mut quality_embedder_box: Option<Box<dyn Embedder>> = None;
+                #[allow(unused_assignments)]
+                let mut quality_hash_fallback: Option<HashEmbedder> = None;
+                let quality_embedder: &dyn Embedder = if let Some(model) = quality_model {
+                    let registry = ModelRegistry::new();
+                    let mut cfg = EmbedderConfig::new(model);
+                    cfg.dimensions = config.semantic.effective_dimensions(args.dimensions);
+                    cfg.show_progress = false;
+                    let boxed = registry.embedder(&cfg)?;
+                    quality_embedder_box = Some(boxed);
+                    quality_embedder_box.as_ref().unwrap().as_ref()
+                } else if let Some(fe) = get_semantic_embedder() {
+                    fe
+                } else {
+                    quality_hash_fallback = Some(HashEmbedder::default());
+                    quality_hash_fallback.as_ref().unwrap()
+                };
+
+                // Quality semantic search
+                let type_strs: Option<Vec<&str>> = doc_types
+                    .as_ref()
+                    .map(|types| types.iter().map(|t| t.as_str()).collect());
+
+                if !canonical_query.is_empty() {
+                    if let Ok(query_embedding) = quality_embedder.embed(&canonical_query) {
+                        let quality_hits = q_index.search_top_k(
+                            &query_embedding,
+                            candidate_count,
+                            type_strs.as_deref(),
+                        );
+
+                        // Normalize and blend fast + quality
+                        let mut fast_normalized = fast_semantic.clone();
+                        let mut quality_normalized = quality_hits;
+                        hybrid::min_max_normalize(&mut fast_normalized);
+                        hybrid::min_max_normalize(&mut quality_normalized);
+
+                        hybrid::blend_two_tier(
+                            &fast_normalized,
+                            &quality_normalized,
+                            two_tier_cfg.blend_factor,
+                        )
+                    } else {
+                        fast_semantic
+                    }
+                } else {
+                    fast_semantic
+                }
+            } else {
+                info!("Quality index not found; returning Phase 1 results only");
+                fast_semantic
+            };
+
+            // Re-fuse with lexical using the refined semantic results
+            let final_fused = hybrid::rrf_fuse(
+                &lexical_results,
+                &final_semantic_results,
+                args.limit.saturating_add(args.offset),
+                0,
+            );
+
+            // Convert fused hits back to SearchResults (same pattern as Hybrid)
+            let mut lookups = Vec::new();
+            let mut lookup_indices = Vec::new();
+            for (idx, hit) in final_fused.iter().enumerate() {
+                if hit.lexical_rank.is_none() {
+                    let lookup = if hit.doc_type.is_empty() {
+                        search::DocLookup::new(hit.doc_id)
+                    } else {
+                        search::DocLookup::with_type(hit.doc_id, hit.doc_type)
+                    };
+                    lookups.push(lookup);
+                    lookup_indices.push(idx);
+                }
+            }
+
+            let fetched = if lookups.is_empty() {
+                Vec::new()
+            } else {
+                search_engine.get_by_ids(&lookups)?
+            };
+
+            let mut fetched_by_index = vec![None; final_fused.len()];
+            for (idx, result) in lookup_indices.into_iter().zip(fetched) {
+                fetched_by_index[idx] = result;
+            }
+
+            let mut results = Vec::new();
+            for (idx, hit) in final_fused.iter().enumerate() {
                 if let Some(rank) = hit.lexical_rank {
                     let mut result = lexical_results[rank].clone();
                     result.score = hit.score;

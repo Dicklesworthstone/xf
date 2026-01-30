@@ -169,6 +169,13 @@ pub struct IndexArgs {
     /// semantic search where "happy" matches "joyful".
     #[arg(long, short = 's')]
     pub semantic: bool,
+
+    /// Generate two-tier embeddings (fast + quality) for progressive search.
+    ///
+    /// Builds both a fast index (hash-based) and a quality index (MiniLM)
+    /// to enable `--mode two-tier` search with score blending.
+    #[arg(long)]
+    pub two_tier: bool,
 }
 
 #[derive(Args, Debug)]

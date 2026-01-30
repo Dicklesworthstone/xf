@@ -60,6 +60,9 @@ pub enum SearchMode {
     #[default]
     #[value(alias = "rrf", alias = "both")]
     Hybrid,
+    /// Two-tier progressive search: fast results refined by quality model.
+    #[value(alias = "progressive", alias = "2tier")]
+    TwoTier,
 }
 
 impl std::fmt::Display for SearchMode {
@@ -68,6 +71,7 @@ impl std::fmt::Display for SearchMode {
             Self::Lexical => write!(f, "lexical"),
             Self::Semantic => write!(f, "semantic"),
             Self::Hybrid => write!(f, "hybrid"),
+            Self::TwoTier => write!(f, "two-tier"),
         }
     }
 }
@@ -80,8 +84,9 @@ impl std::str::FromStr for SearchMode {
             "lexical" | "keyword" | "bm25" => Ok(Self::Lexical),
             "semantic" | "vector" | "embedding" => Ok(Self::Semantic),
             "hybrid" | "rrf" | "both" => Ok(Self::Hybrid),
+            "two-tier" | "twotier" | "two_tier" | "progressive" | "2tier" => Ok(Self::TwoTier),
             _ => Err(format!(
-                "unknown search mode: '{s}'. Use 'lexical', 'semantic', or 'hybrid'"
+                "unknown search mode: '{s}'. Use 'lexical', 'semantic', 'hybrid', or 'two-tier'"
             )),
         }
     }
@@ -213,6 +218,100 @@ pub const fn candidate_count(limit: usize, offset: usize) -> usize {
     limit
         .saturating_add(offset)
         .saturating_mul(CANDIDATE_MULTIPLIER)
+}
+
+/// Normalize scores to [0, 1] using min-max scaling.
+///
+/// If all scores are equal or the input is empty, scores are set to 1.0.
+pub fn min_max_normalize(results: &mut [VectorSearchResult]) {
+    if results.is_empty() {
+        return;
+    }
+
+    let min = results
+        .iter()
+        .map(|r| r.score)
+        .fold(f32::INFINITY, f32::min);
+    let max = results
+        .iter()
+        .map(|r| r.score)
+        .fold(f32::NEG_INFINITY, f32::max);
+
+    let range = max - min;
+    if range.abs() < f32::EPSILON {
+        // All same score — assign 1.0
+        for r in results.iter_mut() {
+            r.score = 1.0;
+        }
+    } else {
+        for r in results.iter_mut() {
+            r.score = (r.score - min) / range;
+        }
+    }
+}
+
+/// Blend fast and quality search results with weighted scoring.
+///
+/// `blend_factor` controls the weight: 0.0 = fast-only, 1.0 = quality-only.
+/// Documents appearing in both lists get blended scores.
+/// Documents in only one list get that score scaled by the appropriate weight.
+///
+/// Results are sorted by blended score descending.
+#[must_use]
+pub fn blend_two_tier(
+    fast: &[VectorSearchResult],
+    quality: &[VectorSearchResult],
+    blend_factor: f32,
+) -> Vec<VectorSearchResult> {
+    let fast_weight = 1.0 - blend_factor;
+    let quality_weight = blend_factor;
+
+    // Build lookup from quality results by (doc_id, doc_type)
+    let mut quality_map: HashMap<(&str, &str), f32> = HashMap::with_capacity(quality.len());
+    for hit in quality {
+        quality_map.insert((hit.doc_id.as_str(), hit.doc_type), hit.score);
+    }
+
+    let mut seen: std::collections::HashSet<(String, &str)> = std::collections::HashSet::new();
+    let mut blended: Vec<VectorSearchResult> = Vec::with_capacity(fast.len() + quality.len());
+
+    // Process fast results, blending with quality if available
+    for hit in fast {
+        let key = (hit.doc_id.as_str(), hit.doc_type);
+        let fast_score = hit.score * fast_weight;
+        let quality_score = quality_map
+            .remove(&key)
+            .map(|s| s * quality_weight)
+            .unwrap_or(0.0);
+
+        blended.push(VectorSearchResult {
+            doc_id: hit.doc_id.clone(),
+            doc_type: hit.doc_type,
+            score: fast_score + quality_score,
+        });
+        seen.insert((hit.doc_id.clone(), hit.doc_type));
+    }
+
+    // Add quality-only results (not in fast)
+    for hit in quality {
+        if !seen.contains(&(hit.doc_id.clone(), hit.doc_type)) {
+            blended.push(VectorSearchResult {
+                doc_id: hit.doc_id.clone(),
+                doc_type: hit.doc_type,
+                score: hit.score * quality_weight,
+            });
+        }
+    }
+
+    // Sort by blended score descending, then doc_id ascending for determinism
+    blended.sort_by(|a, b| {
+        b.score
+            .total_cmp(&a.score)
+            .then_with(|| a.doc_id.cmp(&b.doc_id))
+            .then_with(|| a.doc_type.cmp(b.doc_type))
+    });
+
+    blended
 }
 
 #[cfg(test)]
@@ -603,5 +702,149 @@ mod tests {
         let fused_ptr = fused[0].doc_id.as_ptr();
         let semantic_ptr = semantic[0].doc_id.as_ptr();
         assert_eq!(fused_ptr, semantic_ptr);
+    }
+
+    // =========================================================================
+    // TwoTier search mode tests
+    // =========================================================================
+
+    #[test]
+    fn test_search_mode_two_tier_parsing() {
+        assert_eq!(
+            "two-tier".parse::<SearchMode>().unwrap(),
+            SearchMode::TwoTier
+        );
+        assert_eq!(
+            "twotier".parse::<SearchMode>().unwrap(),
+            SearchMode::TwoTier
+        );
+        assert_eq!(
+            "two_tier".parse::<SearchMode>().unwrap(),
+            SearchMode::TwoTier
+        );
+        assert_eq!(
+            "progressive".parse::<SearchMode>().unwrap(),
+            SearchMode::TwoTier
+        );
+        assert_eq!(
+            "2tier".parse::<SearchMode>().unwrap(),
+            SearchMode::TwoTier
+        );
+    }
+
+    #[test]
+    fn test_search_mode_two_tier_display() {
+        assert_eq!(SearchMode::TwoTier.to_string(), "two-tier");
+    }
+
+    #[test]
+    fn test_min_max_normalize_basic() {
+        let mut results = vec![
+            make_semantic_hit("a", 0.2, "tweet"),
+            make_semantic_hit("b", 0.8, "tweet"),
+            make_semantic_hit("c", 0.5, "tweet"),
+        ];
+        min_max_normalize(&mut results);
+
+        // min=0.2, max=0.8, range=0.6
+        // a: (0.2-0.2)/0.6 = 0.0
+        // b: (0.8-0.2)/0.6 = 1.0
+        // c: (0.5-0.2)/0.6 = 0.5
+        assert!((results[0].score - 0.0).abs() < 0.001);
+        assert!((results[1].score - 1.0).abs() < 0.001);
+        assert!((results[2].score - 0.5).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_min_max_normalize_all_same() {
+        let mut results = vec![
+            make_semantic_hit("a", 0.5, "tweet"),
+            make_semantic_hit("b", 0.5, "tweet"),
+        ];
+        min_max_normalize(&mut results);
+
+        // All same → all 1.0
+        assert!((results[0].score - 1.0).abs() < f32::EPSILON);
+        assert!((results[1].score - 1.0).abs() < f32::EPSILON);
+    }
+
+    #[test]
+    fn test_min_max_normalize_empty() {
+        let mut results: Vec<VectorSearchResult> = vec![];
+        min_max_normalize(&mut results); // Should not panic
+        assert!(results.is_empty());
+    }
+
+    #[test]
+    fn test_blend_two_tier_all_fast() {
+        let fast = vec![
+            make_semantic_hit("a", 1.0, "tweet"),
+            make_semantic_hit("b", 0.5, "tweet"),
+        ];
+        let quality: Vec<VectorSearchResult> = vec![];
+
+        // blend_factor=0 means fast-only
+        let blended = blend_two_tier(&fast, &quality, 0.0);
+        assert_eq!(blended.len(), 2);
+        assert_eq!(blended[0].doc_id, "a");
+        assert!((blended[0].score - 1.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_blend_two_tier_all_quality() {
+        let fast: Vec<VectorSearchResult> = vec![];
+        let quality = vec![
+            make_semantic_hit("a", 1.0, "tweet"),
+            make_semantic_hit("b", 0.5, "tweet"),
+        ];
+
+        // blend_factor=1.0 means quality-only
+        let blended = blend_two_tier(&fast, &quality, 1.0);
+        assert_eq!(blended.len(), 2);
+        assert_eq!(blended[0].doc_id, "a");
+        assert!((blended[0].score - 1.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_blend_two_tier_overlap() {
+        let fast = vec![
+            make_semantic_hit("a", 0.9, "tweet"),
+            make_semantic_hit("b", 0.5, "tweet"),
+        ];
+        let quality = vec![
+            make_semantic_hit("a", 0.8, "tweet"),
+            make_semantic_hit("c", 0.7, "tweet"),
+        ];
+
+        // blend_factor=0.5 → 50% fast + 50% quality
+        let blended = blend_two_tier(&fast, &quality, 0.5);
+        assert_eq!(blended.len(), 3); // a, b, c
+
+        // "a" should be first: 0.9*0.5 + 0.8*0.5 = 0.85
+        let a = blended.iter().find(|h| h.doc_id == "a").unwrap();
+        assert!((a.score - 0.85).abs() < 0.001);
+
+        // "c" quality-only: 0.7*0.5 = 0.35
+        let c = blended.iter().find(|h| h.doc_id == "c").unwrap();
+        assert!((c.score - 0.35).abs() < 0.001);
+
+        // "b" fast-only: 0.5*0.5 = 0.25
+        let b = blended.iter().find(|h| h.doc_id == "b").unwrap();
+        assert!((b.score - 0.25).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_blend_two_tier_disjoint() {
+        let fast = vec![make_semantic_hit("a", 1.0, "tweet")];
+        let quality = vec![make_semantic_hit("b", 1.0, "tweet")];
+
+        let blended = blend_two_tier(&fast, &quality, 0.7);
+        assert_eq!(blended.len(), 2);
+
+        let a = blended.iter().find(|h| h.doc_id == "a").unwrap();
+        assert!((a.score - 0.3).abs() < 0.001); // 1.0 * 0.3
+
+        let b = blended.iter().find(|h| h.doc_id == "b").unwrap();
+        assert!((b.score - 0.7).abs() < 0.001); // 1.0 * 0.7
     }
 }
