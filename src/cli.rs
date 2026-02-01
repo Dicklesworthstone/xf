@@ -176,6 +176,20 @@ pub struct IndexArgs {
     /// to enable `--mode two-tier` search with score blending.
     #[arg(long)]
     pub two_tier: bool,
+
+    /// Skip embedding generation entirely.
+    ///
+    /// Useful for quick indexing when only lexical search is needed.
+    /// You can generate embeddings later with `xf daemon` background jobs.
+    #[arg(long)]
+    pub no_embeddings: bool,
+
+    /// Force synchronous embedding (block until complete).
+    ///
+    /// By default, embeddings are generated in the background via the daemon.
+    /// Use this flag to wait for embedding completion before returning.
+    #[arg(long)]
+    pub sync_embeddings: bool,
 }
 
 #[derive(Args, Debug)]

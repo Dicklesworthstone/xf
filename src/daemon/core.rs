@@ -19,8 +19,9 @@ use tokio::net::{UnixListener, UnixStream};
 use tokio::sync::Mutex;
 
 use super::models::ModelManager;
-use super::protocol::{Envelope, PROTOCOL_VERSION, Request, Response, error_codes};
+use super::protocol::{EmbeddingJobInfo, Envelope, PROTOCOL_VERSION, Request, Response, error_codes};
 use super::resource::{ResourceConfig, apply_resource_settings, get_process_rss_mb};
+use super::worker::{EmbeddingJobConfig, EmbeddingWorker, EmbeddingWorkerHandle};
 
 /// Default maximum number of models to keep loaded.
 const DEFAULT_MAX_MODELS: usize = 4;
@@ -132,6 +133,8 @@ struct DaemonState {
     last_request: Instant,
     counters: Arc<DaemonCounters>,
     shutdown_requested: bool,
+    /// Handle to the background embedding worker.
+    worker_handle: Option<EmbeddingWorkerHandle>,
 }
 
 impl DaemonState {
@@ -146,6 +149,7 @@ impl DaemonState {
                 in_flight: AtomicU64::new(0),
             }),
             shutdown_requested: false,
+            worker_handle: None,
         }
     }
 
@@ -166,10 +170,30 @@ pub struct ModelDaemon {
 
 impl ModelDaemon {
     /// Create a new daemon with the given configuration.
+    ///
+    /// Note: The embedding worker is spawned when `run()` is called.
     #[must_use]
     pub fn new(config: DaemonConfig) -> Self {
         let state = Arc::new(Mutex::new(DaemonState::new(config.max_models)));
         Self { config, state }
+    }
+
+    /// Initialize and spawn the background embedding worker.
+    async fn init_worker(&self) {
+        let (worker, worker_handle) = EmbeddingWorker::new();
+
+        // Store handle in state
+        {
+            let mut state = self.state.lock().await;
+            state.worker_handle = Some(worker_handle);
+        }
+
+        // Spawn the worker task
+        tokio::spawn(async move {
+            worker.run().await;
+        });
+
+        tracing::info!("Embedding worker initialized");
     }
 
     /// Run the daemon, accepting connections until shutdown.
@@ -180,6 +204,9 @@ impl ModelDaemon {
     pub async fn run(&self) -> anyhow::Result<()> {
         // Apply resource settings (nice, ionice, memory limits, thread pools)
         apply_resource_settings(&self.config.resources)?;
+
+        // Initialize the background embedding worker
+        self.init_worker().await;
 
         // Clean up stale socket if it exists
         if self.config.socket_path.exists() {
@@ -498,7 +525,228 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
             s.shutdown_requested = true;
             Response::Shutdown { ok: true }
         }
+
+        Request::SubmitEmbeddingJob {
+            db_path,
+            index_path,
+            model_id: _model_id,
+            two_tier,
+            fast_model,
+            quality_model,
+        } => {
+            let mut s = state.lock().await;
+            s.touch();
+
+            // Validate paths
+            let db_path = std::path::PathBuf::from(&db_path);
+            let index_path = std::path::PathBuf::from(&index_path);
+
+            if !db_path.exists() {
+                return Response::error(
+                    error_codes::DB_NOT_FOUND,
+                    format!("Database not found: {}", db_path.display()),
+                );
+            }
+
+            // Open storage to count documents and create job entry
+            let storage = match crate::storage::Storage::open(&db_path) {
+                Ok(s) => s,
+                Err(e) => {
+                    return Response::error(
+                        error_codes::DB_NOT_FOUND,
+                        format!("Failed to open database: {}", e),
+                    );
+                }
+            };
+
+            // Count documents
+            let doc_count = match count_embeddable_docs(&storage) {
+                Ok(count) => count,
+                Err(e) => {
+                    return Response::error(
+                        error_codes::INTERNAL,
+                        format!("Failed to count documents: {}", e),
+                    );
+                }
+            };
+
+            // Cancel any existing jobs for this database
+            let db_path_str = db_path.to_string_lossy().to_string();
+            if let Err(e) = storage.cancel_embedding_jobs(&db_path_str, None) {
+                tracing::warn!("Failed to cancel existing jobs: {}", e);
+            }
+
+            // Create job entries
+            let job_id = if two_tier {
+                // Create fast job entry
+                storage.upsert_embedding_job(&db_path_str, "fast", doc_count).ok();
+                // Create quality job entry (this is the one we return)
+                match storage.upsert_embedding_job(&db_path_str, "quality", doc_count) {
+                    Ok(id) => id,
+                    Err(e) => {
+                        return Response::error(
+                            error_codes::JOB_ERROR,
+                            format!("Failed to create job: {}", e),
+                        );
+                    }
+                }
+            } else {
+                match storage.upsert_embedding_job(&db_path_str, "default", doc_count) {
+                    Ok(id) => id,
+                    Err(e) => {
+                        return Response::error(
+                            error_codes::JOB_ERROR,
+                            format!("Failed to create job: {}", e),
+                        );
+                    }
+                }
+            };
+
+            // Submit to worker
+            if let Some(ref handle) = s.worker_handle {
+                let config = EmbeddingJobConfig {
+                    db_path,
+                    index_path,
+                    two_tier,
+                    fast_model,
+                    quality_model,
+                };
+                if let Err(e) = handle.submit(config).await {
+                    return Response::error(
+                        error_codes::JOB_ERROR,
+                        format!("Failed to submit job: {}", e),
+                    );
+                }
+            } else {
+                return Response::error(
+                    error_codes::INTERNAL,
+                    "Embedding worker not available",
+                );
+            }
+
+            Response::JobSubmitted {
+                job_id,
+                estimated_docs: doc_count,
+            }
+        }
+
+        Request::EmbeddingJobStatus { db_path } => {
+            let mut s = state.lock().await;
+            s.touch();
+
+            let jobs = match db_path {
+                Some(path) => {
+                    let storage = match crate::storage::Storage::open(&path) {
+                        Ok(s) => s,
+                        Err(e) => {
+                            return Response::error(
+                                error_codes::DB_NOT_FOUND,
+                                format!("Failed to open database: {}", e),
+                            );
+                        }
+                    };
+                    match storage.get_job_status(&path) {
+                        Ok(jobs) => jobs,
+                        Err(e) => {
+                            return Response::error(
+                                error_codes::INTERNAL,
+                                format!("Failed to get job status: {}", e),
+                            );
+                        }
+                    }
+                }
+                None => {
+                    // No way to get all jobs without knowing which databases exist
+                    // Return empty list
+                    Vec::new()
+                }
+            };
+
+            let job_infos: Vec<EmbeddingJobInfo> = jobs
+                .into_iter()
+                .map(|j| {
+                    let progress_pct = if j.total_docs > 0 {
+                        (j.completed_docs as f32 / j.total_docs as f32) * 100.0
+                    } else {
+                        0.0
+                    };
+                    EmbeddingJobInfo {
+                        id: j.id,
+                        db_path: j.db_path,
+                        model_id: j.model_id,
+                        status: j.status.as_str().to_string(),
+                        total_docs: j.total_docs,
+                        completed_docs: j.completed_docs,
+                        progress_pct,
+                        created_at: j.created_at.timestamp(),
+                        started_at: j.started_at.map_or(0, |t| t.timestamp()),
+                        completed_at: j.completed_at.map_or(0, |t| t.timestamp()),
+                        error_message: j.error_message,
+                    }
+                })
+                .collect();
+
+            Response::JobStatus { jobs: job_infos }
+        }
+
+        Request::CancelEmbeddingJob { db_path, model_id } => {
+            let mut s = state.lock().await;
+            s.touch();
+
+            let db_path_buf = std::path::PathBuf::from(&db_path);
+
+            // Cancel in database
+            let storage = match crate::storage::Storage::open(&db_path_buf) {
+                Ok(s) => s,
+                Err(e) => {
+                    return Response::error(
+                        error_codes::DB_NOT_FOUND,
+                        format!("Failed to open database: {}", e),
+                    );
+                }
+            };
+
+            let cancelled = match storage.cancel_embedding_jobs(&db_path, model_id.as_deref()) {
+                Ok(count) => count,
+                Err(e) => {
+                    return Response::error(
+                        error_codes::JOB_ERROR,
+                        format!("Failed to cancel jobs: {}", e),
+                    );
+                }
+            };
+
+            // Signal worker to cancel
+            if let Some(ref handle) = s.worker_handle {
+                if let Err(e) = handle.cancel(db_path_buf, model_id).await {
+                    tracing::warn!("Failed to signal worker cancellation: {}", e);
+                }
+            }
+
+            Response::JobCancelled {
+                cancelled_count: cancelled,
+            }
+        }
     }
+}
+
+/// Count embeddable documents in storage.
+fn count_embeddable_docs(storage: &crate::storage::Storage) -> anyhow::Result<i64> {
+    let tweets = storage.get_all_tweets(None)?.len();
+    let likes = storage.get_all_likes(None)?
+        .iter()
+        .filter(|l| l.full_text.as_ref().is_some_and(|t| !t.is_empty()))
+        .count();
+    let dms = storage.get_all_dms(None)?
+        .iter()
+        .filter(|d| !d.text.is_empty())
+        .count();
+    let grok = storage.get_all_grok_messages(None)?
+        .iter()
+        .filter(|m| !m.message.is_empty())
+        .count();
+
+    Ok((tweets + likes + dms + grok) as i64)
 }
 
 #[cfg(test)]

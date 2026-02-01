@@ -83,6 +83,36 @@ pub enum Request {
 
     /// Request graceful shutdown.
     Shutdown,
+
+    /// Submit a background embedding job.
+    SubmitEmbeddingJob {
+        /// Path to the SQLite database containing documents.
+        db_path: String,
+        /// Path to the index directory (for writing vector index).
+        index_path: String,
+        /// Model ID for storing embeddings ("fast", "quality", or custom).
+        model_id: String,
+        /// Use two-tier embedding (fast + quality).
+        two_tier: bool,
+        /// Fast tier model name (if two_tier).
+        fast_model: Option<String>,
+        /// Quality tier model name (if two_tier).
+        quality_model: Option<String>,
+    },
+
+    /// Get status of embedding jobs for a database.
+    EmbeddingJobStatus {
+        /// Path to the database (or None for all jobs).
+        db_path: Option<String>,
+    },
+
+    /// Cancel embedding jobs.
+    CancelEmbeddingJob {
+        /// Path to the database.
+        db_path: String,
+        /// Specific model to cancel (or None for all models).
+        model_id: Option<String>,
+    },
 }
 
 /// Daemon responses.
@@ -137,6 +167,26 @@ pub enum Response {
         /// Whether shutdown was accepted.
         ok: bool,
     },
+
+    /// Embedding job submitted successfully.
+    JobSubmitted {
+        /// Job ID assigned by the daemon.
+        job_id: i64,
+        /// Number of documents to embed.
+        estimated_docs: i64,
+    },
+
+    /// Embedding job status response.
+    JobStatus {
+        /// List of jobs matching the query.
+        jobs: Vec<EmbeddingJobInfo>,
+    },
+
+    /// Job cancellation response.
+    JobCancelled {
+        /// Number of jobs cancelled.
+        cancelled_count: usize,
+    },
 }
 
 /// Information about a loaded model.
@@ -152,6 +202,33 @@ pub struct LoadedModelInfo {
     pub requests_served: u64,
     /// Last request time (unix timestamp, 0 if never used).
     pub last_used: u64,
+}
+
+/// Information about an embedding job (for protocol responses).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmbeddingJobInfo {
+    /// Job ID.
+    pub id: i64,
+    /// Database path.
+    pub db_path: String,
+    /// Model ID (e.g., "fast", "quality").
+    pub model_id: String,
+    /// Job status ("pending", "in_progress", "completed", "failed").
+    pub status: String,
+    /// Total documents to process.
+    pub total_docs: i64,
+    /// Documents completed so far.
+    pub completed_docs: i64,
+    /// Progress percentage (0.0 to 100.0).
+    pub progress_pct: f32,
+    /// Creation timestamp (unix).
+    pub created_at: i64,
+    /// Start timestamp (unix), 0 if not started.
+    pub started_at: i64,
+    /// Completion timestamp (unix), 0 if not completed.
+    pub completed_at: i64,
+    /// Error message if failed.
+    pub error_message: Option<String>,
 }
 
 /// Error codes for daemon responses.
@@ -172,6 +249,10 @@ pub mod error_codes {
     pub const VERSION_MISMATCH: u16 = 7;
     /// Server overloaded (too many in-flight requests).
     pub const OVERLOADED: u16 = 8;
+    /// Job-related error.
+    pub const JOB_ERROR: u16 = 9;
+    /// Database not found or inaccessible.
+    pub const DB_NOT_FOUND: u16 = 10;
 }
 
 impl Response {
@@ -429,6 +510,134 @@ mod tests {
                 assert_eq!(queue_len, 0);
             }
             _ => panic!("expected Status response"),
+        }
+    }
+
+    #[test]
+    fn test_submit_embedding_job_roundtrip() {
+        let req = Request::SubmitEmbeddingJob {
+            db_path: "/path/to/xf.db".to_string(),
+            index_path: "/path/to/index".to_string(),
+            model_id: "quality".to_string(),
+            two_tier: true,
+            fast_model: Some("hash-fnv1a-384".to_string()),
+            quality_model: Some("all-MiniLM-L6-v2".to_string()),
+        };
+        let envelope = Envelope::from_request(100, &req).unwrap();
+        let decoded = envelope.to_request().unwrap();
+
+        match decoded {
+            Request::SubmitEmbeddingJob {
+                db_path,
+                two_tier,
+                fast_model,
+                ..
+            } => {
+                assert_eq!(db_path, "/path/to/xf.db");
+                assert!(two_tier);
+                assert_eq!(fast_model, Some("hash-fnv1a-384".to_string()));
+            }
+            _ => panic!("expected SubmitEmbeddingJob request"),
+        }
+    }
+
+    #[test]
+    fn test_embedding_job_status_roundtrip() {
+        let req = Request::EmbeddingJobStatus {
+            db_path: Some("/path/to/xf.db".to_string()),
+        };
+        let envelope = Envelope::from_request(101, &req).unwrap();
+        let decoded = envelope.to_request().unwrap();
+
+        match decoded {
+            Request::EmbeddingJobStatus { db_path } => {
+                assert_eq!(db_path, Some("/path/to/xf.db".to_string()));
+            }
+            _ => panic!("expected EmbeddingJobStatus request"),
+        }
+    }
+
+    #[test]
+    fn test_cancel_embedding_job_roundtrip() {
+        let req = Request::CancelEmbeddingJob {
+            db_path: "/path/to/xf.db".to_string(),
+            model_id: Some("fast".to_string()),
+        };
+        let envelope = Envelope::from_request(102, &req).unwrap();
+        let decoded = envelope.to_request().unwrap();
+
+        match decoded {
+            Request::CancelEmbeddingJob { db_path, model_id } => {
+                assert_eq!(db_path, "/path/to/xf.db");
+                assert_eq!(model_id, Some("fast".to_string()));
+            }
+            _ => panic!("expected CancelEmbeddingJob request"),
+        }
+    }
+
+    #[test]
+    fn test_job_submitted_response_roundtrip() {
+        let resp = Response::JobSubmitted {
+            job_id: 42,
+            estimated_docs: 68000,
+        };
+        let envelope = Envelope::from_response(103, &resp).unwrap();
+        let decoded = envelope.to_response().unwrap();
+
+        match decoded {
+            Response::JobSubmitted {
+                job_id,
+                estimated_docs,
+            } => {
+                assert_eq!(job_id, 42);
+                assert_eq!(estimated_docs, 68000);
+            }
+            _ => panic!("expected JobSubmitted response"),
+        }
+    }
+
+    #[test]
+    fn test_job_status_response_roundtrip() {
+        let resp = Response::JobStatus {
+            jobs: vec![EmbeddingJobInfo {
+                id: 1,
+                db_path: "/path/to/db".to_string(),
+                model_id: "fast".to_string(),
+                status: "in_progress".to_string(),
+                total_docs: 1000,
+                completed_docs: 500,
+                progress_pct: 50.0,
+                created_at: 1_700_000_000,
+                started_at: 1_700_000_100,
+                completed_at: 0,
+                error_message: None,
+            }],
+        };
+        let envelope = Envelope::from_response(104, &resp).unwrap();
+        let decoded = envelope.to_response().unwrap();
+
+        match decoded {
+            Response::JobStatus { jobs } => {
+                assert_eq!(jobs.len(), 1);
+                assert_eq!(jobs[0].id, 1);
+                assert_eq!(jobs[0].status, "in_progress");
+                assert_eq!(jobs[0].progress_pct, 50.0);
+            }
+            _ => panic!("expected JobStatus response"),
+        }
+    }
+
+    #[test]
+    fn test_job_cancelled_response_roundtrip() {
+        let resp = Response::JobCancelled { cancelled_count: 2 };
+        let envelope = Envelope::from_response(105, &resp).unwrap();
+        let decoded = envelope.to_response().unwrap();
+
+        match decoded {
+            Response::JobCancelled { cancelled_count } => {
+                assert_eq!(cancelled_count, 2);
+            }
+            _ => panic!("expected JobCancelled response"),
         }
     }
 }

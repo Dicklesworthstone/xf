@@ -644,6 +644,8 @@ fn cmd_import(cli: &Cli, args: &cli::ImportArgs, output: &Output) -> Result<()> 
             jobs: 0,
             semantic: false, // Don't use semantic embeddings by default for import
             two_tier: false,
+            no_embeddings: false,
+            sync_embeddings: false, // Allow background embedding for import
         };
 
         cmd_index(cli, &index_args, output)?;
@@ -732,6 +734,98 @@ fn print_import_welcome(_archive_path: &PathBuf, cli: &Cli, output: &Output) -> 
     Ok(())
 }
 
+/// Try to submit embedding job to daemon for background processing.
+async fn try_background_embedding(
+    db_path: &Path,
+    index_path: &Path,
+    two_tier: bool,
+    fast_model: Option<String>,
+    quality_model: Option<String>,
+) -> Result<xf::daemon::EmbeddingJobSubmitResult> {
+    use xf::daemon::DaemonClient;
+
+    let mut client = DaemonClient::new();
+
+    // Check if daemon is running (don't auto-spawn just for job submission)
+    if !client.is_daemon_running() {
+        anyhow::bail!("daemon not running");
+    }
+
+    client.submit_embedding_job(
+        &db_path.to_string_lossy(),
+        &index_path.to_string_lossy(),
+        two_tier,
+        fast_model,
+        quality_model,
+    ).await
+}
+
+/// Generate embeddings synchronously (blocking).
+fn generate_embeddings_sync(
+    quiet: bool,
+    use_semantic: bool,
+    two_tier: bool,
+    config: &Config,
+    storage: &Storage,
+    index_path: &Path,
+    output: &Output,
+) -> Result<()> {
+    let two_tier_config = &config.semantic.two_tier;
+    let embed_config = xf::EmbeddingConfig {
+        show_progress: !quiet,
+        use_semantic,
+        model: None,
+        dimensions: None,
+        two_tier,
+        fast_model: two_tier_config.fast_model.clone(),
+        quality_model: two_tier_config.quality_model.clone(),
+    };
+    xf::generate_embeddings_with_config(storage, &embed_config)?;
+
+    // Write vector index file for fast semantic search
+    let vector_stats = write_vector_index(index_path, storage)?;
+    if !quiet && vector_stats.record_count > 0 {
+        output.print(&format!(
+            "  [green]✓[/] Vector index written ({} records, {})",
+            format_number_usize(vector_stats.record_count),
+            format_bytes(vector_stats.file_size)
+        ));
+    }
+
+    // Write named vector index files for two-tier search
+    if two_tier {
+        let fast_stats = write_vector_index_named(
+            index_path,
+            storage,
+            VECTOR_INDEX_FAST_FILENAME,
+            Some("fast"),
+        )?;
+        if !quiet && fast_stats.record_count > 0 {
+            output.print(&format!(
+                "  [green]✓[/] Fast vector index written ({} records, {})",
+                format_number_usize(fast_stats.record_count),
+                format_bytes(fast_stats.file_size)
+            ));
+        }
+
+        let quality_stats = write_vector_index_named(
+            index_path,
+            storage,
+            VECTOR_INDEX_QUALITY_FILENAME,
+            Some("quality"),
+        )?;
+        if !quiet && quality_stats.record_count > 0 {
+            output.print(&format!(
+                "  [green]✓[/] Quality vector index written ({} records, {})",
+                format_number_usize(quality_stats.record_count),
+                format_bytes(quality_stats.file_size)
+            ));
+        }
+    }
+
+    Ok(())
+}
+
 #[allow(clippy::too_many_lines)]
 fn cmd_index(cli: &Cli, args: &cli::IndexArgs, output: &Output) -> Result<()> {
     // Use provided path or fall back to config/default
@@ -739,6 +833,7 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, output: &Output) -> Result<()> {
     let default_path = config
         .paths
         .archive
+        .clone()
         .unwrap_or_else(|| PathBuf::from(xf::DEFAULT_ARCHIVE_PATH));
     let archive_path = args.archive_path.as_ref().unwrap_or(&default_path);
 
@@ -999,57 +1094,54 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, output: &Output) -> Result<()> {
     writer.commit()?;
     search_engine.reload()?;
 
-    // Generate embeddings for semantic search
-    let two_tier_config = config.semantic.two_tier;
-    let embed_config = xf::EmbeddingConfig {
-        show_progress: !cli.quiet,
-        use_semantic: args.semantic,
-        model: None,
-        dimensions: None,
-        two_tier: args.two_tier,
-        fast_model: two_tier_config.fast_model,
-        quality_model: two_tier_config.quality_model,
-    };
-    xf::generate_embeddings_with_config(&storage, &embed_config)?;
-
-    // Write vector index file for fast semantic search
-    let vector_stats = write_vector_index(&index_path, &storage)?;
-    if !cli.quiet && vector_stats.record_count > 0 {
-        output.print(&format!(
-            "  [green]✓[/] Vector index written ({} records, {})",
-            format_number_usize(vector_stats.record_count),
-            format_bytes(vector_stats.file_size)
-        ));
-    }
-
-    // Write named vector index files for two-tier search
-    if args.two_tier {
-        let fast_stats = write_vector_index_named(
-            &index_path,
-            &storage,
-            VECTOR_INDEX_FAST_FILENAME,
-            Some("fast"),
-        )?;
-        if !cli.quiet && fast_stats.record_count > 0 {
-            output.print(&format!(
-                "  [green]✓[/] Fast vector index written ({} records, {})",
-                format_number_usize(fast_stats.record_count),
-                format_bytes(fast_stats.file_size)
-            ));
+    // Handle embeddings based on flags
+    if args.no_embeddings {
+        // Skip embedding generation entirely
+        if !cli.quiet {
+            output.print("  [yellow]⚠[/] Skipping embeddings (--no-embeddings)");
+            output.print("    Lexical search will work immediately.");
+            output.print("    Run `xf index` again without --no-embeddings to add semantic search.");
         }
+    } else if args.sync_embeddings {
+        // Force synchronous embedding
+        generate_embeddings_sync(cli.quiet, args.semantic, args.two_tier, &config, &storage, &index_path, output)?;
+    } else {
+        // Try background embedding via daemon, fall back to sync
+        let runtime = tokio::runtime::Runtime::new()?;
+        let background_succeeded = runtime.block_on(async {
+            try_background_embedding(
+                &db_path,
+                &index_path,
+                args.two_tier,
+                config.semantic.two_tier.fast_model.clone(),
+                config.semantic.two_tier.quality_model.clone(),
+            ).await
+        });
 
-        let quality_stats = write_vector_index_named(
-            &index_path,
-            &storage,
-            VECTOR_INDEX_QUALITY_FILENAME,
-            Some("quality"),
-        )?;
-        if !cli.quiet && quality_stats.record_count > 0 {
-            output.print(&format!(
-                "  [green]✓[/] Quality vector index written ({} records, {})",
-                format_number_usize(quality_stats.record_count),
-                format_bytes(quality_stats.file_size)
-            ));
+        match background_succeeded {
+            Ok(result) => {
+                if !cli.quiet {
+                    output.print(&format!(
+                        "  [cyan]⟳[/] Embeddings generating in background (job #{})",
+                        result.job_id
+                    ));
+                    output.print(&format!(
+                        "    {} documents queued",
+                        format_number_u64(result.estimated_docs as u64)
+                    ));
+                    output.print("    Run `xf status` to check progress");
+                    output.print("");
+                    output.print("    [dim]Lexical search works immediately.[/]");
+                    output.print("    [dim]Hybrid/semantic search improves as embeddings complete.[/]");
+                }
+            }
+            Err(e) => {
+                // Daemon not available, fall back to sync
+                if !cli.quiet {
+                    info!("Background embedding unavailable ({}), using sync", e);
+                }
+                generate_embeddings_sync(cli.quiet, args.semantic, args.two_tier, &config, &storage, &index_path, output)?;
+            }
         }
     }
 
@@ -4161,6 +4253,9 @@ fn cmd_daemon(args: &cli::DaemonArgs, output: &Output) -> Result<()> {
                                 ));
                             }
                         }
+
+                        // Show embedding job status if available
+                        show_embedding_job_status(&mut client, &runtime, output);
                     }
                 }
                 Err(e) => {
@@ -4177,6 +4272,57 @@ fn cmd_daemon(args: &cli::DaemonArgs, output: &Output) -> Result<()> {
     }
 
     Ok(())
+}
+
+/// Show embedding job status from the daemon.
+fn show_embedding_job_status(
+    client: &mut xf::daemon::DaemonClient,
+    runtime: &tokio::runtime::Runtime,
+    output: &Output,
+) {
+    use xf::daemon::EmbeddingJobInfo;
+
+    // Try to get job status from the default database
+    // Since we don't know which DB to query, we query for all jobs by passing None
+    // But the daemon needs a DB path, so we check the default database
+    let db_path = get_db_path(&Cli::parse_from::<[_; 1], &str>(["xf"]));
+
+    if let Ok(jobs) = runtime.block_on(client.embedding_job_status(Some(&db_path.to_string_lossy()))) as Result<Vec<EmbeddingJobInfo>, _> {
+        if !jobs.is_empty() {
+            output.print("");
+            output.print("[bold underline]Embedding Jobs[/]");
+            output.print("");
+
+            for job in &jobs {
+                let status_icon = match job.status.as_str() {
+                    "pending" => "[yellow]○[/]",
+                    "in_progress" => "[cyan]⟳[/]",
+                    "completed" => "[green]✓[/]",
+                    "failed" => "[red]✗[/]",
+                    _ => "?",
+                };
+
+                let progress = if job.total_docs > 0 {
+                    format!("{:.1}%", job.progress_pct)
+                } else {
+                    "0%".to_string()
+                };
+
+                output.print(&format!(
+                    "  {} [bold]{}[/] — {} ({}/{})",
+                    status_icon,
+                    job.model_id,
+                    progress,
+                    format_number_u64(job.completed_docs as u64),
+                    format_number_u64(job.total_docs as u64)
+                ));
+
+                if let Some(ref err) = job.error_message {
+                    output.print(&format!("    [red]Error:[/] {}", err));
+                }
+            }
+        }
+    }
 }
 
 // ============================================================================

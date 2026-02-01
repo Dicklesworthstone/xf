@@ -42,11 +42,17 @@ mod core;
 mod models;
 mod protocol;
 mod resource;
+mod worker;
 
-pub use client::{ClientConfig, DaemonClient, HealthInfo, InferenceMode, StatusInfo};
+pub use client::{
+    ClientConfig, DaemonClient, EmbeddingJobSubmitResult, HealthInfo, InferenceMode, StatusInfo,
+};
 pub use core::{DaemonConfig, ModelDaemon};
 pub use models::ModelManager;
-pub use protocol::{Envelope, LoadedModelInfo, PROTOCOL_VERSION, Request, Response, error_codes};
+pub use protocol::{
+    EmbeddingJobInfo, Envelope, LoadedModelInfo, PROTOCOL_VERSION, Request, Response, error_codes,
+};
 pub use resource::{
     IoPriority, MemoryMonitor, ResourceConfig, apply_resource_settings, get_process_rss_mb,
 };
+pub use worker::{EmbeddingJobConfig, EmbeddingWorker, EmbeddingWorkerHandle, WorkerMessage};

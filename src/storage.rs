@@ -15,7 +15,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use tracing::info;
 
-const SCHEMA_VERSION: i32 = 4;
+const SCHEMA_VERSION: i32 = 5;
 // SQLite default limit on host parameters is usually 999 or 32766.
 // We use a safe batch size to avoid "too many SQL variables" errors.
 const SQLITE_BATCH_SIZE: usize = 900;
@@ -51,6 +51,51 @@ pub struct FtsRebuildStats {
     pub likes: usize,
     pub dms: usize,
     pub grok: usize,
+}
+
+/// Status of an embedding job.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EmbeddingJobStatus {
+    Pending,
+    InProgress,
+    Completed,
+    Failed,
+}
+
+impl EmbeddingJobStatus {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Pending => "pending",
+            Self::InProgress => "in_progress",
+            Self::Completed => "completed",
+            Self::Failed => "failed",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Self {
+        match s {
+            "pending" => Self::Pending,
+            "in_progress" => Self::InProgress,
+            "completed" => Self::Completed,
+            "failed" => Self::Failed,
+            _ => Self::Pending,
+        }
+    }
+}
+
+/// Information about an embedding job.
+#[derive(Debug, Clone)]
+pub struct EmbeddingJob {
+    pub id: i64,
+    pub db_path: String,
+    pub model_id: String,
+    pub status: EmbeddingJobStatus,
+    pub total_docs: i64,
+    pub completed_docs: i64,
+    pub created_at: DateTime<Utc>,
+    pub started_at: Option<DateTime<Utc>>,
+    pub completed_at: Option<DateTime<Utc>>,
+    pub error_message: Option<String>,
 }
 
 /// Aggregate counts and date bounds for archive tables.
@@ -349,6 +394,22 @@ impl Storage {
             CREATE INDEX IF NOT EXISTS idx_embeddings_type ON embeddings(doc_type);
             CREATE INDEX IF NOT EXISTS idx_embeddings_hash ON embeddings(content_hash);
             CREATE INDEX IF NOT EXISTS idx_embeddings_model ON embeddings(model_id);
+
+            -- Background embedding job tracking
+            CREATE TABLE IF NOT EXISTS embedding_jobs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                db_path TEXT NOT NULL,
+                model_id TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'pending',
+                total_docs INTEGER NOT NULL,
+                completed_docs INTEGER DEFAULT 0,
+                created_at TEXT NOT NULL,
+                started_at TEXT,
+                completed_at TEXT,
+                error_message TEXT,
+                UNIQUE(db_path, model_id)
+            );
+            CREATE INDEX IF NOT EXISTS idx_embedding_jobs_status ON embedding_jobs(status);
             ",
         )?;
 
@@ -2621,6 +2682,283 @@ impl Storage {
         self.conn.execute("DELETE FROM embeddings", [])?;
         Ok(())
     }
+
+    // =========================================================================
+    // Embedding Job Management
+    // =========================================================================
+
+    /// Create or update an embedding job.
+    ///
+    /// Uses UPSERT to handle the case where a job already exists for the same
+    /// (db_path, model_id) pair - in that case, the existing job is reset.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database operation fails.
+    pub fn upsert_embedding_job(
+        &self,
+        db_path: &str,
+        model_id: &str,
+        total_docs: i64,
+    ) -> Result<i64> {
+        let now = Utc::now().to_rfc3339();
+        self.conn.execute(
+            r"
+            INSERT INTO embedding_jobs (db_path, model_id, status, total_docs, completed_docs, created_at)
+            VALUES (?1, ?2, 'pending', ?3, 0, ?4)
+            ON CONFLICT(db_path, model_id) DO UPDATE SET
+                status = 'pending',
+                total_docs = ?3,
+                completed_docs = 0,
+                created_at = ?4,
+                started_at = NULL,
+                completed_at = NULL,
+                error_message = NULL
+            ",
+            params![db_path, model_id, total_docs, now],
+        )?;
+
+        let job_id: i64 = self.conn.query_row(
+            "SELECT id FROM embedding_jobs WHERE db_path = ? AND model_id = ?",
+            params![db_path, model_id],
+            |row| row.get(0),
+        )?;
+
+        Ok(job_id)
+    }
+
+    /// Mark a job as in-progress.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database operation fails.
+    pub fn start_embedding_job(&self, job_id: i64) -> Result<()> {
+        let now = Utc::now().to_rfc3339();
+        self.conn.execute(
+            "UPDATE embedding_jobs SET status = 'in_progress', started_at = ? WHERE id = ?",
+            params![now, job_id],
+        )?;
+        Ok(())
+    }
+
+    /// Update job progress (increment completed count).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database operation fails.
+    pub fn update_job_progress(&self, job_id: i64, completed_docs: i64) -> Result<()> {
+        self.conn.execute(
+            "UPDATE embedding_jobs SET completed_docs = ? WHERE id = ?",
+            params![completed_docs, job_id],
+        )?;
+        Ok(())
+    }
+
+    /// Mark a job as completed successfully.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database operation fails.
+    pub fn complete_embedding_job(&self, job_id: i64) -> Result<()> {
+        let now = Utc::now().to_rfc3339();
+        self.conn.execute(
+            r"
+            UPDATE embedding_jobs
+            SET status = 'completed', completed_at = ?, completed_docs = total_docs
+            WHERE id = ?
+            ",
+            params![now, job_id],
+        )?;
+        Ok(())
+    }
+
+    /// Mark a job as failed with an error message.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database operation fails.
+    pub fn fail_embedding_job(&self, job_id: i64, error_message: &str) -> Result<()> {
+        let now = Utc::now().to_rfc3339();
+        self.conn.execute(
+            "UPDATE embedding_jobs SET status = 'failed', completed_at = ?, error_message = ? WHERE id = ?",
+            params![now, error_message, job_id],
+        )?;
+        Ok(())
+    }
+
+    /// Get all pending or in-progress jobs (for resumption on daemon restart).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database query fails.
+    pub fn get_pending_jobs(&self) -> Result<Vec<EmbeddingJob>> {
+        let mut stmt = self.conn.prepare(
+            r"
+            SELECT id, db_path, model_id, status, total_docs, completed_docs,
+                   created_at, started_at, completed_at, error_message
+            FROM embedding_jobs
+            WHERE status IN ('pending', 'in_progress')
+            ORDER BY created_at ASC
+            ",
+        )?;
+
+        let jobs = stmt.query_map([], |row| {
+            Ok(EmbeddingJob {
+                id: row.get(0)?,
+                db_path: row.get(1)?,
+                model_id: row.get(2)?,
+                status: EmbeddingJobStatus::from_str(&row.get::<_, String>(3)?),
+                total_docs: row.get(4)?,
+                completed_docs: row.get(5)?,
+                created_at: parse_rfc3339_or_epoch(row.get(6)?),
+                started_at: parse_rfc3339_opt(row.get(7)?),
+                completed_at: parse_rfc3339_opt(row.get(8)?),
+                error_message: row.get(9)?,
+            })
+        })?;
+
+        let result: Vec<_> = jobs.filter_map(std::result::Result::ok).collect();
+        Ok(result)
+    }
+
+    /// Get job status for a specific database path.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database query fails.
+    pub fn get_job_status(&self, db_path: &str) -> Result<Vec<EmbeddingJob>> {
+        let mut stmt = self.conn.prepare(
+            r"
+            SELECT id, db_path, model_id, status, total_docs, completed_docs,
+                   created_at, started_at, completed_at, error_message
+            FROM embedding_jobs
+            WHERE db_path = ?
+            ORDER BY model_id ASC
+            ",
+        )?;
+
+        let jobs = stmt.query_map(params![db_path], |row| {
+            Ok(EmbeddingJob {
+                id: row.get(0)?,
+                db_path: row.get(1)?,
+                model_id: row.get(2)?,
+                status: EmbeddingJobStatus::from_str(&row.get::<_, String>(3)?),
+                total_docs: row.get(4)?,
+                completed_docs: row.get(5)?,
+                created_at: parse_rfc3339_or_epoch(row.get(6)?),
+                started_at: parse_rfc3339_opt(row.get(7)?),
+                completed_at: parse_rfc3339_opt(row.get(8)?),
+                error_message: row.get(9)?,
+            })
+        })?;
+
+        let result: Vec<_> = jobs.filter_map(std::result::Result::ok).collect();
+        Ok(result)
+    }
+
+    /// Get a specific job by ID.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database query fails.
+    pub fn get_embedding_job(&self, job_id: i64) -> Result<Option<EmbeddingJob>> {
+        let result = self.conn.query_row(
+            r"
+            SELECT id, db_path, model_id, status, total_docs, completed_docs,
+                   created_at, started_at, completed_at, error_message
+            FROM embedding_jobs
+            WHERE id = ?
+            ",
+            params![job_id],
+            |row| {
+                Ok(EmbeddingJob {
+                    id: row.get(0)?,
+                    db_path: row.get(1)?,
+                    model_id: row.get(2)?,
+                    status: EmbeddingJobStatus::from_str(&row.get::<_, String>(3)?),
+                    total_docs: row.get(4)?,
+                    completed_docs: row.get(5)?,
+                    created_at: parse_rfc3339_or_epoch(row.get(6)?),
+                    started_at: parse_rfc3339_opt(row.get(7)?),
+                    completed_at: parse_rfc3339_opt(row.get(8)?),
+                    error_message: row.get(9)?,
+                })
+            },
+        );
+
+        match result {
+            Ok(job) => Ok(Some(job)),
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    /// Cancel jobs for a given database path and optional model.
+    ///
+    /// Returns the number of jobs cancelled.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database operation fails.
+    pub fn cancel_embedding_jobs(&self, db_path: &str, model_id: Option<&str>) -> Result<usize> {
+        let now = Utc::now().to_rfc3339();
+
+        let count = match model_id {
+            Some(model) => self.conn.execute(
+                r"
+                UPDATE embedding_jobs
+                SET status = 'failed', completed_at = ?, error_message = 'Cancelled'
+                WHERE db_path = ? AND model_id = ? AND status IN ('pending', 'in_progress')
+                ",
+                params![now, db_path, model],
+            )?,
+            None => self.conn.execute(
+                r"
+                UPDATE embedding_jobs
+                SET status = 'failed', completed_at = ?, error_message = 'Cancelled'
+                WHERE db_path = ? AND status IN ('pending', 'in_progress')
+                ",
+                params![now, db_path],
+            )?,
+        };
+
+        Ok(count)
+    }
+
+    /// Get all jobs (for status display).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database query fails.
+    pub fn get_all_jobs(&self) -> Result<Vec<EmbeddingJob>> {
+        let mut stmt = self.conn.prepare(
+            r"
+            SELECT id, db_path, model_id, status, total_docs, completed_docs,
+                   created_at, started_at, completed_at, error_message
+            FROM embedding_jobs
+            ORDER BY created_at DESC
+            LIMIT 100
+            ",
+        )?;
+
+        let jobs = stmt.query_map([], |row| {
+            Ok(EmbeddingJob {
+                id: row.get(0)?,
+                db_path: row.get(1)?,
+                model_id: row.get(2)?,
+                status: EmbeddingJobStatus::from_str(&row.get::<_, String>(3)?),
+                total_docs: row.get(4)?,
+                completed_docs: row.get(5)?,
+                created_at: parse_rfc3339_or_epoch(row.get(6)?),
+                started_at: parse_rfc3339_opt(row.get(7)?),
+                completed_at: parse_rfc3339_opt(row.get(8)?),
+                error_message: row.get(9)?,
+            })
+        })?;
+
+        let result: Vec<_> = jobs.filter_map(std::result::Result::ok).collect();
+        Ok(result)
+    }
 }
 
 fn format_table_stats(stats: &[TableStat]) -> String {
@@ -4086,12 +4424,12 @@ mod tests {
     }
 
     #[test]
-    fn test_schema_migration_v4() {
-        // Open in-memory creates schema at current version (v4) with model_id column.
-        // Verify the column exists and works.
+    fn test_schema_migration_v5() {
+        // Open in-memory creates schema at current version (v5) with embedding_jobs table.
+        // Verify the tables exist and work.
         let storage = Storage::open_memory().unwrap();
         let version = storage.get_schema_version();
-        assert_eq!(version, 4);
+        assert_eq!(version, 5);
 
         // Store with model_id should work
         storage
@@ -4188,5 +4526,138 @@ mod tests {
             .load_embeddings_by_hashes_for_model(&[hash_a], "quality")
             .unwrap();
         assert!(cross.is_empty());
+    }
+
+    #[test]
+    fn test_embedding_job_lifecycle() {
+        let storage = Storage::open_memory().unwrap();
+
+        // Create a job
+        let job_id = storage
+            .upsert_embedding_job("/path/to/db", "fast", 1000)
+            .unwrap();
+        assert!(job_id > 0);
+
+        // Check job was created with pending status
+        let job = storage.get_embedding_job(job_id).unwrap().unwrap();
+        assert_eq!(job.status, EmbeddingJobStatus::Pending);
+        assert_eq!(job.total_docs, 1000);
+        assert_eq!(job.completed_docs, 0);
+
+        // Start the job
+        storage.start_embedding_job(job_id).unwrap();
+        let job = storage.get_embedding_job(job_id).unwrap().unwrap();
+        assert_eq!(job.status, EmbeddingJobStatus::InProgress);
+        assert!(job.started_at.is_some());
+
+        // Update progress
+        storage.update_job_progress(job_id, 500).unwrap();
+        let job = storage.get_embedding_job(job_id).unwrap().unwrap();
+        assert_eq!(job.completed_docs, 500);
+
+        // Complete the job
+        storage.complete_embedding_job(job_id).unwrap();
+        let job = storage.get_embedding_job(job_id).unwrap().unwrap();
+        assert_eq!(job.status, EmbeddingJobStatus::Completed);
+        assert!(job.completed_at.is_some());
+        assert_eq!(job.completed_docs, job.total_docs);
+    }
+
+    #[test]
+    fn test_embedding_job_upsert_resets() {
+        let storage = Storage::open_memory().unwrap();
+
+        // Create a job
+        let job_id1 = storage
+            .upsert_embedding_job("/path/to/db", "fast", 1000)
+            .unwrap();
+        storage.start_embedding_job(job_id1).unwrap();
+        storage.update_job_progress(job_id1, 500).unwrap();
+
+        // Upsert same db_path + model_id resets the job
+        let job_id2 = storage
+            .upsert_embedding_job("/path/to/db", "fast", 2000)
+            .unwrap();
+        assert_eq!(job_id1, job_id2); // Same ID
+
+        let job = storage.get_embedding_job(job_id2).unwrap().unwrap();
+        assert_eq!(job.status, EmbeddingJobStatus::Pending);
+        assert_eq!(job.total_docs, 2000);
+        assert_eq!(job.completed_docs, 0);
+        assert!(job.started_at.is_none());
+    }
+
+    #[test]
+    fn test_embedding_job_fail() {
+        let storage = Storage::open_memory().unwrap();
+
+        let job_id = storage
+            .upsert_embedding_job("/path/to/db", "quality", 500)
+            .unwrap();
+        storage.start_embedding_job(job_id).unwrap();
+        storage.fail_embedding_job(job_id, "Disk full").unwrap();
+
+        let job = storage.get_embedding_job(job_id).unwrap().unwrap();
+        assert_eq!(job.status, EmbeddingJobStatus::Failed);
+        assert_eq!(job.error_message, Some("Disk full".to_string()));
+    }
+
+    #[test]
+    fn test_get_pending_jobs() {
+        let storage = Storage::open_memory().unwrap();
+
+        // Create multiple jobs
+        storage
+            .upsert_embedding_job("/db1", "fast", 100)
+            .unwrap();
+        let job2_id = storage
+            .upsert_embedding_job("/db1", "quality", 200)
+            .unwrap();
+        storage.start_embedding_job(job2_id).unwrap();
+        let job3_id = storage
+            .upsert_embedding_job("/db2", "fast", 300)
+            .unwrap();
+        storage.start_embedding_job(job3_id).unwrap();
+        storage.complete_embedding_job(job3_id).unwrap();
+
+        // Get pending jobs (pending + in_progress)
+        let pending = storage.get_pending_jobs().unwrap();
+        assert_eq!(pending.len(), 2); // job1 (pending) and job2 (in_progress)
+    }
+
+    #[test]
+    fn test_cancel_embedding_jobs() {
+        let storage = Storage::open_memory().unwrap();
+
+        storage.upsert_embedding_job("/db1", "fast", 100).unwrap();
+        storage.upsert_embedding_job("/db1", "quality", 200).unwrap();
+        storage.upsert_embedding_job("/db2", "fast", 300).unwrap();
+
+        // Cancel all jobs for /db1
+        let cancelled = storage.cancel_embedding_jobs("/db1", None).unwrap();
+        assert_eq!(cancelled, 2);
+
+        // Cancel specific model for /db2
+        let cancelled = storage
+            .cancel_embedding_jobs("/db2", Some("fast"))
+            .unwrap();
+        assert_eq!(cancelled, 1);
+
+        // All should be failed now
+        let pending = storage.get_pending_jobs().unwrap();
+        assert_eq!(pending.len(), 0);
+    }
+
+    #[test]
+    fn test_get_job_status_for_db() {
+        let storage = Storage::open_memory().unwrap();
+
+        storage.upsert_embedding_job("/db1", "fast", 100).unwrap();
+        storage.upsert_embedding_job("/db1", "quality", 200).unwrap();
+        storage.upsert_embedding_job("/db2", "fast", 300).unwrap();
+
+        let jobs = storage.get_job_status("/db1").unwrap();
+        assert_eq!(jobs.len(), 2);
+        assert!(jobs.iter().all(|j| j.db_path == "/db1"));
     }
 }

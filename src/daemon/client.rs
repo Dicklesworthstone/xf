@@ -415,6 +415,91 @@ impl DaemonClient {
             other => anyhow::bail!("unexpected response: {other:?}"),
         }
     }
+
+    /// Submit a background embedding job.
+    ///
+    /// # Errors
+    /// Returns an error if the request fails.
+    pub async fn submit_embedding_job(
+        &mut self,
+        db_path: &str,
+        index_path: &str,
+        two_tier: bool,
+        fast_model: Option<String>,
+        quality_model: Option<String>,
+    ) -> anyhow::Result<EmbeddingJobSubmitResult> {
+        let request = Request::SubmitEmbeddingJob {
+            db_path: db_path.to_string(),
+            index_path: index_path.to_string(),
+            model_id: if two_tier { "two_tier".to_string() } else { "default".to_string() },
+            two_tier,
+            fast_model,
+            quality_model,
+        };
+
+        match self.send(request).await? {
+            Response::JobSubmitted { job_id, estimated_docs } => {
+                Ok(EmbeddingJobSubmitResult { job_id, estimated_docs })
+            }
+            Response::Error { code, message } => {
+                anyhow::bail!("job submit error {code}: {message}")
+            }
+            other => anyhow::bail!("unexpected response: {other:?}"),
+        }
+    }
+
+    /// Get embedding job status.
+    ///
+    /// # Errors
+    /// Returns an error if the request fails.
+    pub async fn embedding_job_status(
+        &mut self,
+        db_path: Option<&str>,
+    ) -> anyhow::Result<Vec<super::protocol::EmbeddingJobInfo>> {
+        let request = Request::EmbeddingJobStatus {
+            db_path: db_path.map(str::to_string),
+        };
+
+        match self.send(request).await? {
+            Response::JobStatus { jobs } => Ok(jobs),
+            Response::Error { code, message } => {
+                anyhow::bail!("job status error {code}: {message}")
+            }
+            other => anyhow::bail!("unexpected response: {other:?}"),
+        }
+    }
+
+    /// Cancel embedding jobs.
+    ///
+    /// # Errors
+    /// Returns an error if the request fails.
+    pub async fn cancel_embedding_job(
+        &mut self,
+        db_path: &str,
+        model_id: Option<&str>,
+    ) -> anyhow::Result<usize> {
+        let request = Request::CancelEmbeddingJob {
+            db_path: db_path.to_string(),
+            model_id: model_id.map(str::to_string),
+        };
+
+        match self.send(request).await? {
+            Response::JobCancelled { cancelled_count } => Ok(cancelled_count),
+            Response::Error { code, message } => {
+                anyhow::bail!("job cancel error {code}: {message}")
+            }
+            other => anyhow::bail!("unexpected response: {other:?}"),
+        }
+    }
+}
+
+/// Result of submitting an embedding job.
+#[derive(Debug, Clone)]
+pub struct EmbeddingJobSubmitResult {
+    /// Job ID assigned by the daemon.
+    pub job_id: i64,
+    /// Estimated number of documents to embed.
+    pub estimated_docs: i64,
 }
 
 impl Default for DaemonClient {
