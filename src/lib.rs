@@ -754,7 +754,7 @@ fn generate_embeddings_for_model(
     let pb = if config.show_progress {
         let pb = ProgressBar::new(docs.len() as u64);
         let style = ProgressStyle::default_bar()
-            .template("    {spinner:.green} [{bar:40.cyan/blue}] {pos}/{len} ({eta})")
+            .template("    {spinner:.green} [{bar:40.cyan/blue}] {pos}/{len} ({per_sec:.cyan} docs/sec) [{elapsed_precise}] ETA: {eta}")
             .unwrap_or_else(|_| ProgressStyle::default_bar())
             .progress_chars("█▓░");
         pb.set_style(style);
@@ -875,14 +875,20 @@ fn generate_embeddings_for_model(
         pb.finish_and_clear();
     }
 
+    let embed_elapsed_secs = embed_start.elapsed().as_secs_f64();
     let embed_elapsed = format_duration(embed_start.elapsed());
     let generated_count = stored_count.saturating_sub(reused_count);
+    let docs_per_sec = if embed_elapsed_secs > 0.0 {
+        (stored_count as f64 / embed_elapsed_secs) as u64
+    } else {
+        0
+    };
     if config.show_progress {
         println!(
-            "    {} {} embeddings stored (model_id={}) {}",
+            "    {} {} embeddings stored ({} docs/sec) {}",
             "✓".green(),
             format_number_usize(stored_count).bold(),
-            model_id,
+            format_number_u64(docs_per_sec).cyan(),
             format!("({embed_elapsed})").dimmed()
         );
         if reused_count > 0 {

@@ -138,12 +138,13 @@ impl Storage {
                 self.conn.execute("DROP TABLE IF EXISTS embeddings", [])?;
             }
 
-            self.create_schema()?;
-
-            // v4: Add model_id column to embeddings table
+            // v4: Add model_id column to embeddings table BEFORE create_schema(),
+            // so the column exists when we try to create indexes on it.
             if (3..4).contains(&current_version) {
                 self.migrate_v4_add_model_id()?;
             }
+
+            self.create_schema()?;
 
             self.set_schema_version(SCHEMA_VERSION)?;
         }
