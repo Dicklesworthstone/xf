@@ -425,8 +425,11 @@ impl EmbeddingWorker {
                     if !existing_hashes.contains(&hash) {
                         seen_new_hashes.insert(hash);
                     }
+                    // Only count as completed if embedding was successfully obtained
+                    completed_docs += 1;
                 }
-                completed_docs += 1;
+                // Note: documents with failed embeddings are intentionally not counted
+                // as completed - they will be retried on next job run
             }
 
             // Store batch
