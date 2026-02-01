@@ -907,7 +907,7 @@ fn generate_embeddings_for_model(
         }
         if skipped_count > 0 {
             println!(
-                "    {} {} skipped (empty or unchanged)",
+                "    {} {} skipped (empty, unchanged, or failed)",
                 "·".dimmed(),
                 format_number_usize(skipped_count).dimmed()
             );
