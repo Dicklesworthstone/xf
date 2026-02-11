@@ -14,7 +14,7 @@ import time
 import urllib.parse
 import urllib.request
 import urllib.error
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 CUTOFF_DEFAULT = "2025-11-01"
 PIPELINE_TAG = "feature-extraction"
