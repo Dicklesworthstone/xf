@@ -4,6 +4,12 @@
 
 ---
 
+## RULE 0 - THE FUNDAMENTAL OVERRIDE PREROGATIVE
+
+If I tell you to do something, even if it goes against what follows below, YOU MUST LISTEN TO ME. I AM IN CHARGE, NOT YOU.
+
+---
+
 ## RULE NUMBER 1: NO FILE DELETION
 
 **YOU ARE NEVER ALLOWED TO DELETE A FILE WITHOUT EXPRESS PERMISSION.** Even a new file that you yourself created, such as a test code file. You have a horrible track record of deleting critically important files or otherwise throwing away tons of expensive work. As a result, you have permanently lost any and all rights to determine that a file or folder should be deleted.
@@ -22,26 +28,63 @@
 
 ---
 
+## Git Branch: ONLY Use `main`, NEVER `master`
+
+**The default branch is `main`. The `master` branch exists only for legacy URL compatibility.**
+
+- **All work happens on `main`** — commits, PRs, feature branches all merge to `main`
+- **Never reference `master` in code or docs** — if you see `master` anywhere, it's a bug that needs fixing
+- **The `master` branch must stay synchronized with `main`** — after pushing to `main`, also push to `master`:
+  ```bash
+  git push origin main:master
+  ```
+
+**If you see `master` referenced anywhere:**
+1. Update it to `main`
+2. Ensure `master` is synchronized: `git push origin main:master`
+
+---
+
 ## Toolchain: Rust & Cargo
 
 We only use **Cargo** in this project, NEVER any other package manager.
 
 - **Edition:** Rust 2024 (nightly required — see `rust-toolchain.toml`)
 - **Dependency versions:** Explicit versions for stability
-- **Configuration:** Cargo.toml only
+- **Configuration:** Cargo.toml only (single-crate project, no workspace)
 - **Unsafe code:** Forbidden (`#![forbid(unsafe_code)]` via crate lints)
+
+### Async Runtime: Tokio
+
+This project uses **Tokio** for async operations.
+
+- `tokio` with features: `rt-multi-thread`, `macros`, `fs`, `io-util`, `time`, `signal`
+- Background daemon uses Tokio channels and tasks for client/server communication
 
 ### Key Dependencies
 
 | Crate | Purpose |
 |-------|---------|
-| `tantivy` | Full-text search engine and query parser |
-| `rusqlite` | SQLite storage for metadata and stats |
+| `tantivy` | Full-text BM25 search engine and query parser |
+| `rusqlite` | SQLite storage for metadata, stats, and FTS5 fallback |
 | `serde` + `serde_json` | Archive parsing and output serialization |
+| `rmp-serde` | MessagePack serialization for daemon protocol |
+| `toon_rust` | Serialization utilities |
 | `clap` + `clap_complete` | CLI parsing and shell completions |
 | `rayon` | Parallel parsing of archive files |
-| `chrono` | Timestamp parsing and formatting |
-| `tracing` | Structured logging |
+| `chrono` + `chrono-english` | Timestamp parsing, formatting, and natural-language date input |
+| `tracing` + `tracing-subscriber` | Structured logging with env-filter |
+| `fastembed` | ONNX-based text embeddings (MiniLM-L6-v2 quality tier) |
+| `safetensors` + `tokenizers` | Model2Vec static embeddings (potion fast tier) |
+| `ort` | ONNX Runtime for static embedding models and cross-encoder reranking |
+| `half` | IEEE 754 f16 float support for quantized vector storage |
+| `wide` | Portable SIMD (`f32x8`) for fast dot products |
+| `ring` | SHA256 content hashing |
+| `rich_rust` | Rich terminal output (optional feature) |
+| `colored` + `indicatif` + `console` | Terminal output and progress bars |
+| `rustyline` | REPL line editing |
+| `unicode-normalization` | NFC text canonicalization |
+| `thiserror` | Ergonomic error type derivation |
 
 ### Release Profile
 
@@ -81,22 +124,13 @@ New files are reserved for **genuinely new functionality** that makes zero sense
 
 ---
 
-## Project Semantics (xf)
+## Backwards Compatibility
 
-This tool indexes and searches X (Twitter) data archives locally. Keep these invariants intact:
+We do not care about backwards compatibility—we're in early development with no users. We want to do things the **RIGHT** way with **NO TECH DEBT**.
 
-- **Privacy-first:** No network access from core runtime paths; keep data local.
-- **Archive format:** Inputs are JavaScript-wrapped JSON (`window.YTD.*`). Parsing must tolerate whitespace/format variations.
-- **Search:** Tantivy is the primary engine; SQLite FTS5 is a fallback/secondary store.
-- **Metadata correctness:** Preserve IDs, timestamps, and counts exactly; avoid lossy conversions.
-- **CLI truthfulness:** If a CLI flag exists, either implement it or remove it. Do not leave options that silently do nothing.
-
----
-
-## Output Style
-
-- **Text output** is user-facing and may include color. Avoid verbose debug spew unless `--verbose` is set.
-- **JSON output** must be stable and machine-parseable. Do not change JSON shapes without explicit intent and tests.
+- Never create "compatibility shims"
+- Never create wrapper functions for deprecated APIs
+- Just fix the code directly
 
 ---
 
@@ -121,153 +155,212 @@ If you see errors, **carefully understand and resolve each issue**. Read suffici
 
 ## Testing
 
+### Testing Policy
+
+Tests must cover:
+- Happy path
+- Edge cases (empty input, max values, boundary conditions)
+- Error conditions
+
+Integration and E2E tests live in the `tests/` directory. Benchmarks live in `benches/`.
+
 ### Unit Tests
 
 ```bash
+# Run all tests
 cargo test
+
+# Run with output
 cargo test -- --nocapture
-```
 
-### Focused Tests
-
-```bash
+# Run tests for a specific module
 cargo test parser
 cargo test search
 cargo test storage
 ```
 
+### Test Categories
+
+| Location | Focus Areas |
+|----------|-------------|
+| `src/` (inline `#[cfg(test)]`) | Parser, search, storage, embedder, config, model, canonicalization |
+| `tests/cli_e2e.rs` | CLI end-to-end: flag combinations, output formats, error handling |
+| `tests/integration_test.rs` | Cross-module integration: parse → index → search → output |
+| `tests/daemon_e2e.rs` | Daemon client/server protocol, lifecycle, concurrent queries |
+| `tests/daemon_stress.rs` | Daemon under load: concurrent connections, large result sets |
+| `tests/daemon_tests.rs` | Daemon unit-level: message framing, protocol parsing |
+| `tests/semantic_pipeline_e2e.rs` | Full semantic search pipeline: embed → index → search → rerank |
+| `tests/static_embedders.rs` | Model2Vec / static embedding quality and determinism |
+| `tests/transformer_embedders.rs` | FastEmbed / ONNX transformer embedding correctness |
+| `tests/reranker_tests.rs` | Cross-encoder reranking: scoring, ordering, edge cases |
+| `tests/semantic_quality_test.rs` | Embedding quality benchmarks: recall, MRR, cluster separation |
+| `tests/compare_embedder_quality.rs` | Head-to-head embedder comparison metrics |
+| `tests/output_format_env.rs` | JSON/text output format parity and stability |
+| `benches/search_perf.rs` | Search throughput, indexing latency, dot product performance |
+
 ---
 
 ## Third-Party Library Usage
 
-If you aren't 100% sure how to use a third-party library, **SEARCH ONLINE** to find the latest documentation and best practices before coding. Prefer primary docs.
+If you aren't 100% sure how to use a third-party library, **SEARCH ONLINE** to find the latest documentation and current best practices.
 
 ---
 
-## ast-grep vs ripgrep
+## xf — This Project
 
-**Use `ast-grep` when structure matters.** It parses code and matches AST nodes, ignoring comments/strings, and can **safely rewrite** code.
+**This is the project you're working on.** xf is an ultra-fast CLI for indexing and searching X (formerly Twitter) data archives locally. It combines full-text search (Tantivy BM25), semantic vector search, and cross-encoder reranking into a single privacy-first binary.
 
-**Use `ripgrep` when text is enough.** Fastest way to grep literals/regex.
+### What It Does
 
-### Rule of Thumb
+Indexes X/Twitter data export archives (the official "Download your data" ZIP) and provides instant, powerful search over tweets, DMs, likes, bookmarks, and account metadata. Supports lexical search, semantic/vector search, hybrid fusion, and an interactive REPL.
 
-- Need correctness or **applying changes** → `ast-grep`
-- Need raw speed or **hunting text** → `rg`
-- Often combine: `rg` to shortlist files, then `ast-grep` to match/modify
+### Project Semantics & Invariants
 
----
+- **Privacy-first:** No network access from core runtime paths; keep data local.
+- **Archive format:** Inputs are JavaScript-wrapped JSON (`window.YTD.*`). Parsing must tolerate whitespace/format variations.
+- **Search:** Tantivy is the primary engine; SQLite FTS5 is a fallback/secondary store.
+- **Metadata correctness:** Preserve IDs, timestamps, and counts exactly; avoid lossy conversions.
+- **CLI truthfulness:** If a CLI flag exists, either implement it or remove it. Do not leave options that silently do nothing.
 
-## Session Completion
+### Architecture
 
-Before ending a work session:
-
-1. Summarize changes clearly
-2. Note any remaining risks or follow-ups
-3. Provide the exact commands to run for tests/linters (if not run)
-
-## Landing the Plane (Session Completion)
-
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
-
-**MANDATORY WORKFLOW:**
-
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
-   ```bash
-   git pull --rebase
-   br sync --flush-only
-   git add .beads/
-   git commit -m "sync beads"
-   git push
-   git status  # MUST show "up to date with origin"
-   ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
-
-**CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
-
----
-
-## Issue Tracking with br (beads_rust)
-
-All issue tracking goes through **br** (beads_rust). No other TODO systems.
-
-**Important:** `br` is non-invasive—it NEVER executes git commands. After `br sync --flush-only`, you must manually run `git add .beads/ && git commit`.
-
-Key invariants:
-
-- `.beads/` is authoritative state and **must always be committed** with code changes.
-- Do not edit `.beads/*.jsonl` directly; only via `br`.
-
-### Basics
-
-Check ready work:
-
-```bash
-br ready --json
+```
+X Archive (ZIP/folder)
+  └─ window.YTD.* JS-wrapped JSON files
+       │
+       ▼
+   Parser (rayon parallel) → Tweet/DM/Like/Bookmark models
+       │
+       ├─ SQLite storage (metadata, stats, FTS5 fallback)
+       ├─ Tantivy index (BM25 full-text)
+       └─ Vector index (f16 quantized, SIMD dot product)
+           │
+           ▼
+   Search: Lexical ──┬── RRF Fusion ── Optional Rerank ── Results
+   Search: Semantic ─┘
+       │
+       ├─ CLI (one-shot commands, JSON/text output)
+       ├─ REPL (interactive search session)
+       └─ Daemon (background server, MessagePack protocol)
 ```
 
-Create issues:
+### Source Structure
 
-```bash
-br create "Issue title" -t bug|feature|task -p 0-4 --json
-br create "Issue title" -p 1 --deps discovered-from:br-123 --json
+```
+xf/
+├── Cargo.toml                 # Single-crate project
+├── src/
+│   ├── main.rs                # CLI entry point, command dispatch
+│   ├── lib.rs                 # Public API surface
+│   ├── cli.rs                 # Clap command definitions
+│   ├── parser.rs              # X archive JS-JSON parser (window.YTD.*)
+│   ├── model.rs               # Tweet, DM, Like, Bookmark data models
+│   ├── storage.rs             # SQLite storage layer + FTS5
+│   ├── search.rs              # Tantivy BM25 search engine
+│   ├── hybrid.rs              # Hybrid search: RRF fusion of lexical + semantic
+│   ├── vector.rs              # Vector index: f16 quantized, SIMD dot product, top-k
+│   ├── embedder.rs            # Embedder trait and registry
+│   ├── hash_embedder.rs       # FNV-1a hash embedder (zero deps, always available)
+│   ├── model2vec_embedder.rs  # potion-128M static embedder (fast tier)
+│   ├── fastembed_embedder.rs  # MiniLM-L6-v2 ONNX embedder (quality tier)
+│   ├── static_mrl_embedder.rs # Static MRL embedding support
+│   ├── model_registry.rs      # Model download and management
+│   ├── reranker.rs            # Reranker trait
+│   ├── flashrank_reranker.rs  # FlashRank cross-encoder reranker
+│   ├── mxbai_reranker.rs      # mxbai cross-encoder reranker
+│   ├── rerank_step.rs         # Rerank pipeline integration
+│   ├── canonicalize.rs        # Text preprocessing: NFC, markdown strip, truncation
+│   ├── date_parser.rs         # Natural-language date parsing
+│   ├── messages.rs            # DM message handling
+│   ├── config.rs              # Configuration management
+│   ├── output.rs              # Output formatting (JSON/text/table)
+│   ├── search_results.rs      # Search result types and rendering
+│   ├── list_tables.rs         # SQLite table listing utilities
+│   ├── stats_analytics.rs     # Archive statistics and analytics
+│   ├── stats_dashboard.rs     # Stats dashboard rendering
+│   ├── repl.rs                # Interactive REPL
+│   ├── robot_docs.rs          # Machine-readable documentation output
+│   ├── doctor.rs              # System health checks and diagnostics
+│   ├── completions.rs         # Shell completion generation
+│   ├── theme.rs               # Terminal theme and color management
+│   ├── tweet_card.rs          # Rich tweet card rendering
+│   ├── progress.rs            # Progress bar utilities
+│   ├── logging.rs             # Tracing/logging setup
+│   ├── perf.rs                # Performance measurement utilities
+│   ├── error.rs               # Error types (thiserror)
+│   ├── daemon/                # Background daemon (server + client, MessagePack)
+│   └── benchmark/             # Inline benchmark utilities
+├── tests/                     # Integration and E2E tests
+├── benches/                   # Performance benchmarks (Criterion)
+└── scripts/                   # Build and deployment scripts
 ```
 
-Update:
+### Key Source Files
 
-```bash
-br update br-42 --status in_progress --json
-br update br-42 --priority 1 --json
+| File | Purpose |
+|------|---------|
+| `src/parser.rs` | Parses X archive JS-wrapped JSON (`window.YTD.tweet`, `window.YTD.like`, etc.) with rayon parallelism |
+| `src/storage.rs` | SQLite storage: schema management, metadata persistence, FTS5 secondary index |
+| `src/search.rs` | Tantivy BM25 search: schema creation, document indexing, query parsing, result ranking |
+| `src/vector.rs` | Vector index: FSVI/XFVI binary format, f16 quantization, SIMD dot product, top-k heap search |
+| `src/hybrid.rs` | Hybrid search: RRF fusion (K=60), two-tier progressive search, score blending |
+| `src/embedder.rs` | `Embedder` trait definition and embedder auto-detection/registry |
+| `src/model2vec_embedder.rs` | potion-128M static embedder (fast tier, sub-millisecond) |
+| `src/fastembed_embedder.rs` | MiniLM-L6-v2 ONNX embedder (quality tier, ~128ms) |
+| `src/repl.rs` | Interactive REPL with history, completions, and rich output |
+| `src/main.rs` | CLI entry point: command dispatch, archive loading, search orchestration |
+
+### Feature Flags
+
+```toml
+[features]
+default = []
+rich = ["dep:rich_rust"]           # Rich terminal output via rich_rust
+full = ["rich"]                    # Everything
+legacy-colors = []                 # Legacy colored output (uses colored crate)
+parallel-search = []               # Parallel search execution
+alloc-count = []                   # Allocation counting for profiling
 ```
 
-Complete:
+### Output Style
 
-```bash
-br close br-42 --reason "Completed" --json
+- **Text output** is user-facing and may include color. Avoid verbose debug spew unless `--verbose` is set.
+- **JSON output** must be stable and machine-parseable. Do not change JSON shapes without explicit intent and tests.
+
+### X Archive Data Format
+
+The X/Twitter data export contains JavaScript-wrapped JSON files:
+
+```javascript
+window.YTD.tweet.part0 = [
+  { "tweet": { "id": "123456", "full_text": "Hello world", "created_at": "..." } }
+]
 ```
 
-Types:
+Key data types parsed:
+- **Tweets** (`window.YTD.tweet`) — full text, IDs, timestamps, engagement counts
+- **Likes** (`window.YTD.like`) — liked tweet references
+- **Bookmarks** — saved tweets
+- **DMs** (`window.YTD.direct_message`) — direct message conversations
+- **Account metadata** — profile info, followers, following
 
-- `bug`, `feature`, `task`, `epic`, `chore`
+Parsing must handle:
+- Varying whitespace and formatting across archive versions
+- Optional/missing fields in older archives
+- Unicode content and emoji in tweet text
+- Large archives (100K+ tweets) efficiently via rayon parallelism
 
-Priorities:
+### Key Design Decisions
 
-- `0` critical (security, data loss, broken builds)
-- `1` high
-- `2` medium (default)
-- `3` low
-- `4` backlog
-
-Agent workflow:
-
-1. `br ready` to find unblocked work.
-2. Claim: `br update <id> --status in_progress`.
-3. Implement + test.
-4. If you discover new work, create a new bead with `discovered-from:<parent-id>`.
-5. Close when done.
-6. Run `br sync --flush-only && git add .beads/` before committing.
-7. Commit `.beads/` in the same commit as code changes.
-
-Sync behavior:
-
-- `br sync --flush-only` exports DB to `.beads/issues.jsonl` (NO git operations).
-- `br sync --import-only` imports from JSONL when it's newer (e.g. after `git pull`).
-- Auto-import runs before read commands; auto-flush runs after write commands.
-
-Never:
-
-- Use markdown TODO lists.
-- Use other trackers.
-- Duplicate tracking.
+- **Single binary** — everything compiles to one `xf` executable, no runtime dependencies
+- **f16 quantization** for vector storage — 50% memory savings, <1% quality loss for cosine similarity
+- **`wide` and `half` are unconditional deps** — SIMD and f16 are always available
+- **RRF fusion is rank-based** — does NOT depend on score normalization
+- **NaN-safe `total_cmp()` ordering** in top-k search to prevent undefined sort behavior
+- **Daemon mode** — background server with MessagePack protocol for fast repeated queries without re-indexing
+- **SQLite for metadata + FTS5 fallback** — Tantivy is primary search, SQLite FTS5 available when Tantivy is not indexed
+- **Privacy-first** — no network calls during search; model downloads are explicit opt-in
+- **rayon for data parallelism** — archive parsing and vector search use work-stealing thread pool
 
 ---
 
@@ -349,11 +442,11 @@ Monitor state:
 
 P0 workflow:
 
-1. Detect alert → create P0 bead.
-2. Claim bead → `br update <id> --status in_progress`.
-3. Fix → deploy to Vercel.
-4. Verify → `... --all-pages`.
-5. Close bead → `br close <id>`.
+1. Detect alert -> create P0 bead.
+2. Claim bead -> `br update <id> --status in_progress`.
+3. Fix -> deploy to Vercel.
+4. Verify -> `... --all-pages`.
+5. Close bead -> `br close <id>`.
 6. Sync and commit: `br sync --flush-only && git add .beads/ && git commit`.
 
 Key files:
@@ -413,96 +506,7 @@ curl -X PATCH \
 
 ---
 
-### ast-grep vs ripgrep
-
-**ast-grep**: use when structure matters.
-
-- Good for refactors/codemods:
-  - Renaming APIs, changing import forms, rewriting call sites.
-- Good for policy checks:
-  - Enforcing patterns (`scan` + rules).
-- Works with LSP mode; supports `--json` output.
-
-**ripgrep (`rg`)**: use when plain text search is enough.
-
-- Great for:
-  - Finding strings, TODOs, log lines, config values.
-  - Quick recon and pre-filtering.
-
-Rules of thumb:
-
-- Need correctness and structural awareness or plan to **modify** code → start with `ast-grep`.
-- Just hunting a string or regex → start with `rg`.
-- Often combine:
-  - `rg` to limit files.
-  - `ast-grep` for precise matches/rewrites.
-
-Examples:
-
-```bash
-ast-grep run -l TypeScript -p 'import $X from "$P"'
-ast-grep run -l JavaScript -p 'var $A = $B' -r 'let $A = $B' -U
-
-rg -n 'console\.log\(' -t js
-rg -l -t ts 'useQuery\(' | xargs ast-grep run -l TypeScript -p 'useQuery($A)' -r 'useSuspenseQuery($A)' -U
-```
-
-Mental model:
-
-- Match unit: `ast-grep` → AST node; `rg` → line.
-- False positives: lower with `ast-grep`.
-- Rewrites: first-class in `ast-grep`; ad-hoc with `rg` + `sed`/`awk` (riskier).
-
----
-
-## UBS (Ultimate Bug Scanner)
-
-Run UBS on changed files before every commit.
-
-Install:
-
-```bash
-curl -sSL https://raw.githubusercontent.com/Dicklesworthstone/ultimate_bug_scanner/main/install.sh | bash
-```
-
-Typical usage:
-
-```bash
-ubs file.ts file2.ts # Per-file (fast) – preferred
-ubs $(git diff --name-only --cached)
-ubs --only=js,ts src/
-ubs --ci --fail-on-warning .
-ubs sessions --entries 1
-ubs . # Whole project (slow; use sparingly)
-```
-
-Output:
-
-```
-⚠️ Category (N errors)
- file.ts:42:5 – Issue description
- 💡 Suggested fix
-Exit code: 1
-```
-
-Workflow:
-
-1. Read category + suggestion.
-2. Jump to `file:line:col`.
-3. Confirm real issue (not false positive).
-4. Fix root cause.
-5. Re-run `ubs <file>` until exit code 0.
-6. Then commit.
-
-Focus:
-
-- Always fix critical issues (null/undefined, security, race conditions, resource leaks).
-- Treat "important" findings as production bugs, not nits.
-- Scope scans to changed files for speed.
-
----
-
-### Google Cloud CLI (gcloud)
+## Google Cloud CLI (gcloud)
 
 `gcloud` is installed at `./google-cloud-sdk/bin/gcloud`.
 
@@ -546,7 +550,7 @@ bun scripts/ga4-setup.ts
 
 ---
 
-### Cloudflare R2 (Vendor Evidence Storage)
+## Cloudflare R2 (Vendor Evidence Storage)
 
 We store vendor pricing screenshots in R2:
 
@@ -568,7 +572,7 @@ Env keys (all in Vault path `secret/midas-edge`):
 
 ---
 
-### QStash (Job Queue)
+## QStash (Job Queue)
 
 We use Upstash QStash for background work (image generation, email, etc.).
 
@@ -583,65 +587,170 @@ Use QStash for async jobs; ensure request signing and verification is wired up c
 
 ---
 
-### Using bv as an AI Sidecar
+## Learnings & Troubleshooting (Dec 5, 2025)
 
-`bv` is a terminal UI + analysis layer for `.beads/beads.jsonl`. It precomputes graph metrics so you don't have to.
+### Next.js 16 Middleware Deprecation
 
-Useful robot commands:
+**CRITICAL**: Next.js 16 deprecates `middleware.ts` in favor of `proxy.ts`.
 
-- `bv --robot-help` – overview
-- `bv --robot-insights` – graph metrics (PageRank, betweenness, HITS, critical path, cycles)
-- `bv --robot-plan` – parallelizable execution plan with unblocks info
-- `bv --robot-priority` – priority suggestions with reasoning
-- `bv --robot-recipes` – list recipes; apply via `bv --recipe <name>`
-- `bv --robot-diff --diff-since <commit|date>` – JSON diff of issue changes
+- The middleware file is now `src/proxy.ts` (NOT `src/middleware.ts`)
+- The exported function is `proxy()` (NOT `middleware()`)
+- DO NOT restore or recreate `src/middleware.ts` - it will cause deprecation warnings
+- If you see both files, delete `middleware.ts` and keep only `proxy.ts`
 
-Use `bv` instead of rolling your own dependency graph logic.
+- **Tooling Issues**:
+  - `mcp-agent-mail` CLI is currently missing from the environment path. Cannot register or check mail.
+  - `drizzle-kit generate` may fail with `TypeError: sql2.toQuery is not a function` when `pgPolicy` is used with `sql` template literals in the schema file.
+- **Workarounds**:
+  - If `drizzle-kit generate` fails on `pgPolicy`, remove the policy definitions from `schema.ts` and implement RLS via raw SQL migrations or manual migration files.
+  - Always provide `--name` to `drizzle-kit generate` to avoid interactive prompts.
 
 ---
 
-### Morph Warp Grep — AI-Powered Code Search
+## UBS — Ultimate Bug Scanner
 
-Use `mcp__morph-mcp__warp_grep` for "how does X work?" discovery across the codebase.
+**Golden Rule:** `ubs <changed-files>` before every commit. Exit 0 = safe. Exit >0 = fix & re-run.
 
-When to use:
+### Commands
 
-- You don't know where something lives.
-- You want data flow across multiple files (API → service → schema → types).
-- You want all touchpoints of a cross-cutting concern (e.g., moderation, billing).
+```bash
+ubs file.rs file2.rs                    # Specific files (< 1s) — USE THIS
+ubs $(git diff --name-only --cached)    # Staged files — before commit
+ubs --only=rust,toml src/               # Language filter (3-5x faster)
+ubs --ci --fail-on-warning .            # CI mode — before PR
+ubs .                                   # Whole project (ignores target/, Cargo.lock)
+```
 
-Example:
+### Output Format
+
+```
+Warning Category (N errors)
+    file.rs:42:5 - Issue description
+    Suggested fix
+Exit code: 1
+```
+
+Parse: `file:line:col` -> location | suggestion -> how to fix | Exit 0/1 -> pass/fail
+
+### Fix Workflow
+
+1. Read finding -> category + fix suggestion
+2. Navigate `file:line:col` -> view context
+3. Verify real issue (not false positive)
+4. Fix root cause (not symptom)
+5. Re-run `ubs <file>` -> exit 0
+6. Commit
+
+### Bug Severity
+
+- **Critical (always fix):** Memory safety, use-after-free, data races, SQL injection
+- **Important (production):** Unwrap panics, resource leaks, overflow checks
+- **Contextual (judgment):** TODO/FIXME, println! debugging
+
+---
+
+## RCH — Remote Compilation Helper
+
+RCH offloads `cargo build`, `cargo test`, `cargo clippy`, and other compilation commands to a fleet of 8 remote Contabo VPS workers instead of building locally. This prevents compilation storms from overwhelming csd when many agents run simultaneously.
+
+**RCH is installed at `~/.local/bin/rch` and is hooked into Claude Code's PreToolUse automatically.** Most of the time you don't need to do anything if you are Claude Code — builds are intercepted and offloaded transparently.
+
+To manually offload a build:
+```bash
+rch exec -- cargo build --release
+rch exec -- cargo test
+rch exec -- cargo clippy
+```
+
+Quick commands:
+```bash
+rch doctor                    # Health check
+rch workers probe --all       # Test connectivity to all 8 workers
+rch status                    # Overview of current state
+rch queue                     # See active/waiting builds
+```
+
+If rch or its workers are unavailable, it fails open — builds run locally as normal.
+
+**Note for Codex/GPT-5.2:** Codex does not have the automatic PreToolUse hook, but you can (and should) still manually offload compute-intensive compilation commands using `rch exec -- <command>`. This avoids local resource contention when multiple agents are building simultaneously.
+
+---
+
+## ast-grep vs ripgrep
+
+**Use `ast-grep` when structure matters.** It parses code and matches AST nodes, ignoring comments/strings, and can **safely rewrite** code.
+
+- Refactors/codemods: rename APIs, change import forms
+- Policy checks: enforce patterns across a repo
+- Editor/automation: LSP mode, `--json` output
+
+**Use `ripgrep` when text is enough.** Fastest way to grep literals/regex.
+
+- Recon: find strings, TODOs, log lines, config values
+- Pre-filter: narrow candidate files before ast-grep
+
+### Rule of Thumb
+
+- Need correctness or **applying changes** -> `ast-grep`
+- Need raw speed or **hunting text** -> `rg`
+- Often combine: `rg` to shortlist files, then `ast-grep` to match/modify
+
+### Rust Examples
+
+```bash
+# Find structured code (ignores comments)
+ast-grep run -l Rust -p 'fn $NAME($$$ARGS) -> $RET { $$$BODY }'
+
+# Find all unwrap() calls
+ast-grep run -l Rust -p '$EXPR.unwrap()'
+
+# Quick textual hunt
+rg -n 'println!' -t rust
+
+# Combine speed + precision
+rg -l -t rust 'unwrap\(' | xargs ast-grep run -l Rust -p '$X.unwrap()' --json
+```
+
+---
+
+## Morph Warp Grep — AI-Powered Code Search
+
+**Use `mcp__morph-mcp__warp_grep` for exploratory "how does X work?" questions.** An AI agent expands your query, greps the codebase, reads relevant files, and returns precise line ranges with full context.
+
+**Use `ripgrep` for targeted searches.** When you know exactly what you're looking for.
+
+**Use `ast-grep` for structural patterns.** When you need AST precision for matching/rewriting.
+
+### When to Use What
+
+| Scenario | Tool | Why |
+|----------|------|-----|
+| "How does the hybrid search work?" | `warp_grep` | Exploratory; don't know where to start |
+| "Where is the archive parser implemented?" | `warp_grep` | Need to understand architecture |
+| "Find all uses of `Embedder::embed`" | `ripgrep` | Targeted literal search |
+| "Find files with `println!`" | `ripgrep` | Simple pattern |
+| "Replace all `unwrap()` with `expect()`" | `ast-grep` | Structural refactor |
+
+### warp_grep Usage
 
 ```
 mcp__morph-mcp__warp_grep(
-  repoPath: "/data/projects/communitai",
-  query: "How is the L3 Guardian appeals system implemented?"
+  repoPath: "/dp/xf",
+  query: "How does the hybrid search fusion work?"
 )
 ```
 
-Warp Grep:
+Returns structured results with file paths, line ranges, and extracted code snippets.
 
-- Expands a natural-language query to multiple search patterns.
-- Runs targeted greps, reads code, follows imports, then returns concise snippets with line numbers.
-- Reduces token usage by returning only relevant slices, not entire files.
+### Anti-Patterns
 
-When **not** to use Warp Grep:
-
-- You already know the function/identifier name; use `rg`.
-- You know the exact file; just open it.
-- You only need a yes/no existence check.
-
-Comparison:
-
-| Scenario | Tool |
-| ---------------------------------- | ---------- |
-| "How is auth session validated?" | warp_grep |
-| "Where is `handleSubmit` defined?" | `rg` |
-| "Replace `var` with `let`" | `ast-grep` |
+- **Don't** use `warp_grep` to find a specific function name -> use `ripgrep`
+- **Don't** use `ripgrep` to understand "how does X work" -> wastes time with manual reads
+- **Don't** use `ripgrep` for codemods -> risks collateral edits
 
 ---
 
-### cass — Cross-Agent Search
+## cass — Cross-Agent Search
 
 `cass` indexes prior agent conversations (Claude Code, Codex, Cursor, Gemini, ChatGPT, etc.) so we can reuse solved problems.
 
@@ -670,52 +779,141 @@ stdout is data-only, stderr is diagnostics; exit code 0 means success.
 
 Treat cass as a way to avoid re-solving problems other agents already handled.
 
-## Learnings & Troubleshooting (Dec 5, 2025)
+---
 
-### Next.js 16 Middleware Deprecation
+## Beads (br) — Dependency-Aware Issue Tracking
 
-**CRITICAL**: Next.js 16 deprecates `middleware.ts` in favor of `proxy.ts`.
+Beads provides a lightweight, dependency-aware issue database and CLI (`br` - beads_rust) for selecting "ready work," setting priorities, and tracking status.
 
-- The middleware file is now `src/proxy.ts` (NOT `src/middleware.ts`)
-- The exported function is `proxy()` (NOT `middleware()`)
-- DO NOT restore or recreate `src/middleware.ts` - it will cause deprecation warnings
-- If you see both files, delete `middleware.ts` and keep only `proxy.ts`
+**Important:** `br` is non-invasive—it NEVER runs git commands automatically. You must manually commit changes after `br sync --flush-only`.
 
-- **Tooling Issues**:
-  - `mcp-agent-mail` CLI is currently missing from the environment path. Cannot register or check mail.
-  - `drizzle-kit generate` may fail with `TypeError: sql2.toQuery is not a function` when `pgPolicy` is used with `sql` template literals in the schema file.
-- **Workarounds**:
-  - If `drizzle-kit generate` fails on `pgPolicy`, remove the policy definitions from `schema.ts` and implement RLS via raw SQL migrations or manual migration files.
-  - Always provide `--name` to `drizzle-kit generate` to avoid interactive prompts.
+### Conventions
 
-## Landing the Plane (Session Completion)
+- **Single source of truth:** Beads for task status/priority/dependencies
+- **Shared identifiers:** Use Beads issue ID (e.g., `br-123`) as thread IDs and prefix subjects with `[br-123]`
+- `.beads/` is authoritative state and **must always be committed** with code changes
+- Do not edit `.beads/*.jsonl` directly; only via `br`
 
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+### Typical Agent Flow
 
-**MANDATORY WORKFLOW:**
-
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
+1. **Pick ready work (Beads):**
    ```bash
-   git pull --rebase
-   br sync --flush-only    # Export beads to JSONL (no git ops)
-   git add .beads/         # Stage beads changes
-   git add <other files>   # Stage code changes
-   git commit -m "..."     # Commit everything
-   git push
-   git status  # MUST show "up to date with origin"
+   br ready --json  # Choose highest priority, no blockers
    ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
 
-**CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
+2. **Work and update:**
+   ```bash
+   br update <id> --status in_progress
+   ```
+
+3. **Complete and release:**
+   ```bash
+   br close <id> --reason "Completed"
+   br sync --flush-only  # Export to JSONL (no git operations)
+   ```
+
+### Key Concepts
+
+- **Dependencies**: Issues can block other issues. `br ready` shows only unblocked work.
+- **Priority**: P0=critical, P1=high, P2=medium, P3=low, P4=backlog (use numbers, not words)
+- **Types**: task, bug, feature, epic, chore, question, docs
+- **Blocking**: `br dep add <issue> <depends-on>` to add dependencies
+
+### Mapping Cheat Sheet
+
+| Concept | Value |
+|---------|-------|
+| Mail `thread_id` | `br-###` |
+| Mail subject | `[br-###] ...` |
+| File reservation `reason` | `br-###` |
+| Commit messages | Include `br-###` for traceability |
+
+---
+
+## bv — Graph-Aware Triage Engine
+
+bv is a graph-aware triage engine for Beads projects (`.beads/beads.jsonl`). It computes PageRank, betweenness, critical path, cycles, HITS, eigenvector, and k-core metrics deterministically.
+
+**CRITICAL: Use ONLY `--robot-*` flags. Bare `bv` launches an interactive TUI that blocks your session.**
+
+### The Workflow: Start With Triage
+
+**`bv --robot-triage` is your single entry point.** It returns:
+- `quick_ref`: at-a-glance counts + top 3 picks
+- `recommendations`: ranked actionable items with scores, reasons, unblock info
+- `quick_wins`: low-effort high-impact items
+- `blockers_to_clear`: items that unblock the most downstream work
+- `project_health`: status/type/priority distributions, graph metrics
+- `commands`: copy-paste shell commands for next steps
+
+```bash
+bv --robot-triage        # THE MEGA-COMMAND: start here
+bv --robot-next          # Minimal: just the single top pick + claim command
+```
+
+### Command Reference
+
+**Planning:**
+| Command | Returns |
+|---------|---------|
+| `--robot-plan` | Parallel execution tracks with `unblocks` lists |
+| `--robot-priority` | Priority misalignment detection with confidence |
+
+**Graph Analysis:**
+| Command | Returns |
+|---------|---------|
+| `--robot-insights` | Full metrics: PageRank, betweenness, HITS, eigenvector, critical path, cycles, k-core, articulation points, slack |
+| `--robot-label-health` | Per-label health: `health_level`, `velocity_score`, `staleness`, `blocked_count` |
+| `--robot-label-flow` | Cross-label dependency: `flow_matrix`, `dependencies`, `bottleneck_labels` |
+| `--robot-label-attention [--attention-limit=N]` | Attention-ranked labels |
+
+**History & Change Tracking:**
+| Command | Returns |
+|---------|---------|
+| `--robot-history` | Bead-to-commit correlations |
+| `--robot-diff --diff-since <ref>` | Changes since ref: new/closed/modified issues, cycles |
+
+**Other:**
+| Command | Returns |
+|---------|---------|
+| `--robot-burndown <sprint>` | Sprint burndown, scope changes, at-risk items |
+| `--robot-forecast <id\|all>` | ETA predictions with dependency-aware scheduling |
+| `--robot-alerts` | Stale issues, blocking cascades, priority mismatches |
+| `--robot-suggest` | Hygiene: duplicates, missing deps, label suggestions |
+| `--robot-graph [--graph-format=json\|dot\|mermaid]` | Dependency graph export |
+| `--export-graph <file.html>` | Interactive HTML visualization |
+
+### Scoping & Filtering
+
+```bash
+bv --robot-plan --label backend              # Scope to label's subgraph
+bv --robot-insights --as-of HEAD~30          # Historical point-in-time
+bv --recipe actionable --robot-plan          # Pre-filter: ready to work
+bv --recipe high-impact --robot-triage       # Pre-filter: top PageRank
+bv --robot-triage --robot-triage-by-track    # Group by parallel work streams
+bv --robot-triage --robot-triage-by-label    # Group by domain
+```
+
+### Understanding Robot Output
+
+**All robot JSON includes:**
+- `data_hash` — Fingerprint of source beads.jsonl
+- `status` — Per-metric state: `computed|approx|timeout|skipped` + elapsed ms
+- `as_of` / `as_of_commit` — Present when using `--as-of`
+
+**Two-phase analysis:**
+- **Phase 1 (instant):** degree, topo sort, density
+- **Phase 2 (async, 500ms timeout):** PageRank, betweenness, HITS, eigenvector, cycles
+
+### jq Quick Reference
+
+```bash
+bv --robot-triage | jq '.quick_ref'                        # At-a-glance summary
+bv --robot-triage | jq '.recommendations[0]'               # Top recommendation
+bv --robot-plan | jq '.plan.summary.highest_impact'        # Best unblock target
+bv --robot-insights | jq '.status'                         # Check metric readiness
+bv --robot-insights | jq '.Cycles'                         # Circular deps (must fix!)
+```
 
 <!-- bv-agent-instructions-v1 -->
 
@@ -758,3 +956,64 @@ br sync --flush-only  # Export to JSONL (NO git operations)
 - **Priority**: P0=critical, P1=high, P2=medium, P3=low, P4=backlog (use numbers, not words)
 - **Types**: task, bug, feature, epic, question, docs
 - **Blocking**: `br dep add <issue> <depends-on>` to add dependencies
+
+### Session Protocol
+
+**Before ending any session, run this checklist:**
+
+```bash
+git status              # Check what changed
+git add <files>         # Stage code changes
+br sync --flush-only    # Export beads to JSONL
+git add .beads/         # Stage beads changes
+git commit -m "..."     # Commit everything together
+git push                # Push to remote
+```
+
+### Best Practices
+
+- Check `br ready` at session start to find available work
+- Update status as you work (in_progress -> closed)
+- Create new issues with `br create` when you discover tasks
+- Use descriptive titles and set appropriate priority/type
+- Always `br sync --flush-only && git add .beads/` before ending session
+
+<!-- end-bv-agent-instructions -->
+
+## Landing the Plane (Session Completion)
+
+**When ending a work session**, you MUST complete ALL steps below.
+
+**MANDATORY WORKFLOW:**
+
+1. **File issues for remaining work** - Create issues for anything that needs follow-up
+2. **Run quality gates** (if code changed) - Tests, linters, builds
+3. **Update issue status** - Close finished work, update in-progress items
+4. **Sync beads** - `br sync --flush-only` to export to JSONL
+5. **Hand off** - Provide context for next session
+
+---
+
+Note for Codex/GPT-5.2:
+
+You constantly bother me and stop working with concerned questions that look similar to this:
+
+```
+Unexpected changes (need guidance)
+
+- Working tree still shows edits I did not make in Cargo.toml, Cargo.lock, src/cli/commands/upgrade.rs, src/storage/sqlite.rs, tests/conformance.rs, tests/storage_deps.rs. Please advise whether to keep/commit/revert these before any further work. I did not touch them.
+
+Next steps (pick one)
+
+1. Decide how to handle the unrelated modified files above so we can resume cleanly.
+2. Triage beads_rust-orko (clippy/cargo warnings) and beads_rust-ydqr (rustfmt failures).
+3. If you want a full suite run later, fix conformance/clippy blockers and re-run cargo test --all.
+```
+
+NEVER EVER DO THAT AGAIN. The answer is literally ALWAYS the same: those are changes created by the potentially dozen of other agents working on the project at the same time. This is not only a common occurence, it happens multiple times PER MINUTE. The way to deal with it is simple: you NEVER, under ANY CIRCUMSTANCE, stash, revert, overwrite, or otherwise disturb in ANY way the work of other agents. Just treat those changes identically to changes that you yourself made. Just fool yourself into thinking YOU made the changes and simply don't recall it for some reason.
+
+---
+
+## Note on Built-in TODO Functionality
+
+Also, if I ask you to explicitly use your built-in TODO functionality, don't complain about this and say you need to use beads. You can use built-in TODOs if I tell you specifically to do so. Always comply with such orders.
