@@ -3,9 +3,7 @@
 //! Rerankers take a query and candidate documents, returning relevance scores
 //! suitable for re-sorting a top-N candidate set.
 
-#[cfg(feature = "frankensearch-migration")]
 use asupersync::Cx;
-#[cfg(feature = "frankensearch-migration")]
 use frankensearch_core::{
     RerankDocument, RerankScore, Reranker as FrankensearchReranker, SearchError, SearchFuture,
 };
@@ -65,7 +63,6 @@ pub trait Reranker: Send + Sync {
     }
 }
 
-#[cfg(feature = "frankensearch-migration")]
 fn map_reranker_error(model: &str, err: RerankerError) -> SearchError {
     match err {
         RerankerError::Unavailable(_) => SearchError::RerankerUnavailable {
@@ -83,14 +80,12 @@ fn map_reranker_error(model: &str, err: RerankerError) -> SearchError {
     }
 }
 
-/// Feature-gated adapter from xf's synchronous reranker trait to frankensearch's async trait.
-#[cfg(feature = "frankensearch-migration")]
+/// Adapter from xf's synchronous reranker trait to frankensearch's async trait.
 pub struct FrankensearchRerankerAdapter {
     inner: Box<dyn Reranker>,
     adapter_id: String,
 }
 
-#[cfg(feature = "frankensearch-migration")]
 impl FrankensearchRerankerAdapter {
     #[must_use]
     pub fn new(inner: Box<dyn Reranker>) -> Self {
@@ -104,7 +99,6 @@ impl FrankensearchRerankerAdapter {
     }
 }
 
-#[cfg(feature = "frankensearch-migration")]
 impl FrankensearchReranker for FrankensearchRerankerAdapter {
     fn rerank<'a>(
         &'a self,

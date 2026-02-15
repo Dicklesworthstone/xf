@@ -7,7 +7,6 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "frankensearch-migration")]
 use crate::embedder::FrankensearchEmbedderAdapter;
 use crate::embedder::{Embedder, EmbedderError, EmbedderResult, ModelCategory};
 use crate::fastembed_embedder::FastEmbedModelEmbedder;
@@ -15,7 +14,6 @@ use crate::flashrank_reranker::FlashRankReranker;
 use crate::hash_embedder::{DEFAULT_DIMENSION as HASH_DEFAULT_DIM, HashEmbedder};
 use crate::model2vec_embedder::Model2VecEmbedder;
 use crate::mxbai_reranker::MxbaiReranker;
-#[cfg(feature = "frankensearch-migration")]
 use crate::reranker::FrankensearchRerankerAdapter;
 use crate::reranker::{Reranker, RerankerError, RerankerResult};
 use crate::static_mrl_embedder::StaticMrlEmbedder;
@@ -155,7 +153,6 @@ impl ModelRegistry {
     }
 
     /// Create a frankensearch-compatible embedder adapter by name.
-    #[cfg(feature = "frankensearch-migration")]
     pub fn frankensearch_embedder_by_name(
         &self,
         name: &str,
@@ -172,7 +169,6 @@ impl ModelRegistry {
     }
 
     /// Create a frankensearch-compatible reranker adapter by name.
-    #[cfg(feature = "frankensearch-migration")]
     pub fn frankensearch_reranker_by_name(
         &self,
         name: &str,

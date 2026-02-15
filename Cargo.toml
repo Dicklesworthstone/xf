@@ -60,12 +60,12 @@ rusqlite = { version = "0.32", features = ["bundled", "modern_sqlite"] }
 # Full-text search
 tantivy = "0.22"
 
-# frankensearch migration surfaces (bd-3un.35)
-frankensearch-core = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-core", optional = true }
-frankensearch-fusion = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-fusion", optional = true }
-frankensearch-index = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-index", optional = true }
-frankensearch-embed = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-embed", optional = true, features = ["hash", "model2vec", "fastembed"] }
-asupersync = { version = "0.2.0", optional = true }
+# frankensearch (post-cutover: now required, migration complete per bd-3un.35)
+frankensearch-core = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-core" }
+frankensearch-fusion = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-fusion" }
+frankensearch-index = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-index" }
+frankensearch-embed = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-embed", features = ["hash", "model2vec", "fastembed"] }
+asupersync = { path = "/data/projects/asupersync" }
 
 # High-performance text processing
 regex = "1.10"
@@ -138,14 +138,11 @@ legacy-colors = []
 parallel-search = []
 alloc-count = []
 
-# Opt-in migration bridge to frankensearch fusion primitives.
-frankensearch-migration = ["dep:frankensearch-core", "dep:frankensearch-fusion", "dep:frankensearch-index", "dep:frankensearch-embed", "dep:asupersync"]
-
 # frankensearch currently wires asupersync through a workspace path outside the
 # frankensearch git checkout, which can resolve inconsistently on remote workers.
 # Force all asupersync requests coming from that source to the canonical repo.
 [patch."https://github.com/Dicklesworthstone/frankensearch.git"]
-asupersync = { path = "/dp/asupersync" }
+asupersync = { path = "/data/projects/asupersync" }
 
 [[bench]]
 name = "search_perf"

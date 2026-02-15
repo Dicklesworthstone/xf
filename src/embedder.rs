@@ -3,12 +3,10 @@
 //! Provides a common interface for converting text into dense vectors
 //! for semantic similarity search.
 
-#[cfg(feature = "frankensearch-migration")]
 use asupersync::Cx;
-#[cfg(feature = "frankensearch-migration")]
 use frankensearch_core::{
-    Embedder as FrankensearchEmbedder, ModelCategory as FrankensearchModelCategory, SearchError,
-    SearchFuture, SearchResult as FrankensearchSearchResult,
+    Embedder as FrankensearchEmbedder, ModelCategory as FrankensearchModelCategory,
+    SearchError, SearchFuture, SearchResult as FrankensearchSearchResult,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -248,7 +246,6 @@ pub fn dot_product_simd(a: &[f32], b: &[f32]) -> f32 {
     scalar_sum
 }
 
-#[cfg(feature = "frankensearch-migration")]
 fn map_embedder_error(model: &str, err: EmbedderError) -> SearchError {
     match err {
         EmbedderError::Unavailable(reason) => SearchError::EmbedderUnavailable {
@@ -267,7 +264,6 @@ fn map_embedder_error(model: &str, err: EmbedderError) -> SearchError {
     }
 }
 
-#[cfg(feature = "frankensearch-migration")]
 const fn map_model_category(category: ModelCategory) -> FrankensearchModelCategory {
     match category {
         ModelCategory::StaticEmbedder => FrankensearchModelCategory::StaticEmbedder,
@@ -275,14 +271,12 @@ const fn map_model_category(category: ModelCategory) -> FrankensearchModelCatego
     }
 }
 
-/// Feature-gated adapter from xf's synchronous embedder trait to frankensearch's async trait.
-#[cfg(feature = "frankensearch-migration")]
+/// Adapter from xf's synchronous embedder trait to frankensearch's async trait.
 pub struct FrankensearchEmbedderAdapter {
     inner: Box<dyn Embedder>,
     adapter_id: String,
 }
 
-#[cfg(feature = "frankensearch-migration")]
 impl FrankensearchEmbedderAdapter {
     #[must_use]
     pub fn new(inner: Box<dyn Embedder>) -> Self {
@@ -296,7 +290,6 @@ impl FrankensearchEmbedderAdapter {
     }
 }
 
-#[cfg(feature = "frankensearch-migration")]
 impl FrankensearchEmbedder for FrankensearchEmbedderAdapter {
     fn embed<'a>(&'a self, _cx: &'a Cx, text: &'a str) -> SearchFuture<'a, Vec<f32>> {
         Box::pin(async move {

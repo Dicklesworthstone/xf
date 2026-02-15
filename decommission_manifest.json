@@ -1,0 +1,110 @@
+{
+  "bead": "bd-3un.35.4",
+  "title": "Post-cutover cleanup: remove legacy search stack from xf",
+  "agent": "CrimsonShore",
+  "date": "2026-02-15",
+  "validation": {
+    "cargo_check": "pass",
+    "cargo_clippy": "pass",
+    "ubs_critical": 0
+  },
+  "removed_surfaces": [
+    {
+      "file": "src/hash_embedder.rs",
+      "items": ["FNV_OFFSET_BASIS", "FNV_PRIME", "fnv1a_hash()", "embed_tokens_legacy()", "test_fnv1a_hash"],
+      "rationale": "Legacy FNV hashing replaced by frankensearch HashEmbedder delegate"
+    },
+    {
+      "file": "src/fastembed_embedder.rs",
+      "items": ["FastEmbedBackend::Legacy(Mutex<TextEmbedding>)", "MODEL_ID constant", "legacy load_from_dir path", "legacy load_or_download path", "legacy embed/embed_batch match arms"],
+      "rationale": "FastEmbed now uses frankensearch delegate exclusively; legacy TextEmbedding paths removed"
+    },
+    {
+      "file": "src/hybrid.rs",
+      "items": ["DocKey struct", "legacy rrf_fuse() (~70 lines)", "legacy candidate_count()", "std::cmp::Ordering import"],
+      "rationale": "RRF fusion now delegates to frankensearch_fusion; legacy manual implementation removed"
+    },
+    {
+      "file": "src/vector.rs",
+      "items": ["legacy dot_product_f16_simd (manual SIMD with wide::f32x8)"],
+      "rationale": "SIMD dot product now delegates to frankensearch_index::dot_product_f16_f32"
+    },
+    {
+      "file": "src/model2vec_embedder.rs",
+      "items": ["legacy embed_internal path", "conditional l2_normalize import"],
+      "rationale": "Model2Vec embedding now delegates to frankensearch_embed"
+    },
+    {
+      "file": "scripts/verify_isomorphism.sh",
+      "items": ["run_migration_parity()", "--migration-parity flags", "--migration-parity-only flag", "MIGRATION_PARITY_ONLY guards"],
+      "rationale": "Migration parity testing lane no longer applicable post-cutover"
+    },
+    {
+      "file": "Cargo.toml",
+      "items": ["frankensearch-migration feature definition", "optional=true on frankensearch deps"],
+      "rationale": "Feature flag and conditional compilation removed; frankensearch is now mandatory"
+    }
+  ],
+  "retained_surfaces": [
+    {
+      "file": "src/embedder.rs",
+      "items": ["FrankensearchEmbedderAdapter", "map_embedder_error()", "map_model_category()"],
+      "rationale": "Sync-to-async bridge still needed for frankensearch's async Embedder trait"
+    },
+    {
+      "file": "src/reranker.rs",
+      "items": ["FrankensearchRerankerAdapter"],
+      "rationale": "Sync-to-async bridge still needed for frankensearch's async Reranker trait"
+    },
+    {
+      "file": "src/model2vec_embedder.rs",
+      "items": ["tokenizer/embeddings fields (dead_code allowed)"],
+      "rationale": "Loaded at construction but embed delegates to frankensearch; removing would require deeper refactor"
+    },
+    {
+      "file": "src/search.rs",
+      "items": ["Tantivy full-text search"],
+      "rationale": "Not part of frankensearch migration scope; separate search capability"
+    },
+    {
+      "file": "src/static_mrl_embedder.rs",
+      "items": ["StaticMrlEmbedder"],
+      "rationale": "No frankensearch equivalent exists; standalone embedder"
+    },
+    {
+      "file": "src/flashrank_reranker.rs",
+      "items": ["FlashRankReranker"],
+      "rationale": "No frankensearch equivalent exists; standalone reranker"
+    },
+    {
+      "file": "src/mxbai_reranker.rs",
+      "items": ["MxbaiReranker"],
+      "rationale": "No frankensearch equivalent exists; standalone reranker"
+    }
+  ],
+  "files_changed": [
+    "Cargo.toml",
+    "src/embedder.rs",
+    "src/reranker.rs",
+    "src/hash_embedder.rs",
+    "src/fastembed_embedder.rs",
+    "src/model2vec_embedder.rs",
+    "src/hybrid.rs",
+    "src/vector.rs",
+    "src/config.rs",
+    "src/model_registry.rs",
+    "scripts/verify_isomorphism.sh"
+  ],
+  "files_added": [
+    "scripts/e2e/post_cutover_cleanup_xf.sh",
+    "decommission_manifest.json",
+    "decommission_validation_report.md",
+    "decommission_replay_command.txt"
+  ],
+  "stats": {
+    "lines_removed": 573,
+    "lines_added": 84,
+    "cfg_gates_removed": 62,
+    "files_modified": 11
+  }
+}

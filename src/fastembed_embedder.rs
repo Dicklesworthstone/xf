@@ -26,16 +26,10 @@ use std::sync::Mutex;
 use fastembed::{EmbeddingModel, InitOptions, TextEmbedding};
 
 use crate::embedder::{Embedder, EmbedderError, EmbedderResult, l2_normalize};
-#[cfg(feature = "frankensearch-migration")]
-use asupersync::{Cx, runtime::Runtime, runtime::RuntimeBuilder};
-#[cfg(feature = "frankensearch-migration")]
+use asupersync::Cx;
+use asupersync::runtime::{Runtime, RuntimeBuilder};
 use frankensearch_core::Embedder as FrankensearchEmbedder;
-#[cfg(feature = "frankensearch-migration")]
 use frankensearch_embed::FastEmbedEmbedder as FsFastEmbedder;
-
-/// Model identifier for fastembed.
-#[cfg(not(feature = "frankensearch-migration"))]
-const MODEL_ID: EmbeddingModel = EmbeddingModel::AllMiniLML6V2;
 
 /// Directory name where model files are stored.
 const MODEL_DIR_NAME: &str = "all-MiniLM-L6-v2";
@@ -65,16 +59,12 @@ pub struct FastEmbedder {
 }
 
 enum FastEmbedBackend {
-    #[allow(dead_code)]
-    Legacy(Mutex<TextEmbedding>),
-    #[cfg(feature = "frankensearch-migration")]
     Frankensearch {
         runtime: Runtime,
         delegate: FsFastEmbedder,
     },
 }
 
-#[cfg(feature = "frankensearch-migration")]
 fn map_fs_error(context: &str, err: impl std::fmt::Display) -> EmbedderError {
     EmbedderError::EmbeddingFailed(format!("frankensearch fastembed {context} failed: {err}"))
 }
@@ -146,52 +136,18 @@ impl FastEmbedder {
     /// - Required files are missing
     /// - Model initialization fails
     pub fn load_from_dir(model_dir: &Path) -> EmbedderResult<Self> {
-        #[cfg(feature = "frankensearch-migration")]
-        {
-            let delegate = FsFastEmbedder::load_with_name(model_dir, MODEL_DIR_NAME)
-                .map_err(|e| EmbedderError::Unavailable(e.to_string()))?;
-            let runtime = RuntimeBuilder::current_thread()
-                .build()
-                .map_err(|e| EmbedderError::Internal(format!("runtime init failed: {e}")))?;
-            let dimension = FrankensearchEmbedder::dimension(&delegate);
+        let delegate = FsFastEmbedder::load_with_name(model_dir, MODEL_DIR_NAME)
+            .map_err(|e| EmbedderError::Unavailable(e.to_string()))?;
+        let runtime = RuntimeBuilder::current_thread()
+            .build()
+            .map_err(|e| EmbedderError::Internal(format!("runtime init failed: {e}")))?;
+        let dimension = FrankensearchEmbedder::dimension(&delegate);
 
-            Ok(Self {
-                backend: FastEmbedBackend::Frankensearch { runtime, delegate },
-                id: EMBEDDER_ID.to_string(),
-                dimension,
-            })
-        }
-
-        #[cfg(not(feature = "frankensearch-migration"))]
-        {
-            let minilm_dir = model_dir.join(MODEL_DIR_NAME);
-
-            // Validate required files exist
-            for file in REQUIRED_FILES {
-                let file_path = minilm_dir.join(file);
-                if !file_path.exists() {
-                    return Err(EmbedderError::Unavailable(format!(
-                        "missing required model file: {}",
-                        file_path.display()
-                    )));
-                }
-            }
-
-            // Initialize with local-only loading (never download)
-            let init_options = InitOptions::new(MODEL_ID)
-                .with_cache_dir(model_dir.to_path_buf())
-                .with_show_download_progress(false);
-
-            let model = TextEmbedding::try_new(init_options).map_err(|e| {
-                EmbedderError::Internal(format!("failed to load MiniLM model: {e}"))
-            })?;
-
-            Ok(Self {
-                backend: FastEmbedBackend::Legacy(Mutex::new(model)),
-                id: EMBEDDER_ID.to_string(),
-                dimension: EMBEDDING_DIMENSION,
-            })
-        }
+        Ok(Self {
+            backend: FastEmbedBackend::Frankensearch { runtime, delegate },
+            id: EMBEDDER_ID.to_string(),
+            dimension,
+        })
     }
 
     /// Try to load the embedder from standard locations.
@@ -234,7 +190,6 @@ impl FastEmbedder {
     ///
     /// Returns an error if the model cannot be loaded or downloaded.
     pub fn load_or_download(show_progress: bool) -> EmbedderResult<Self> {
-        #[cfg(feature = "frankensearch-migration")]
         let _ = show_progress;
 
         // First try to load from existing locations
@@ -242,41 +197,10 @@ impl FastEmbedder {
             return Ok(embedder);
         }
 
-        #[cfg(feature = "frankensearch-migration")]
-        {
-            Err(EmbedderError::Unavailable(
-                "MiniLM model not found. Run 'xf index --semantic' to provision local assets."
-                    .to_string(),
-            ))
-        }
-
-        #[cfg(not(feature = "frankensearch-migration"))]
-        {
-            // Model not found, download it
-            let cache_dir = dirs::cache_dir().map_or_else(
-                || std::path::PathBuf::from(".cache/fastembed"),
-                |p| p.join("fastembed"),
-            );
-
-            // Create cache directory if needed
-            std::fs::create_dir_all(&cache_dir)
-                .map_err(|e| EmbedderError::Internal(format!("failed to create cache dir: {e}")))?;
-
-            // Initialize with download enabled
-            let init_options = InitOptions::new(MODEL_ID)
-                .with_cache_dir(cache_dir)
-                .with_show_download_progress(show_progress);
-
-            let model = TextEmbedding::try_new(init_options).map_err(|e| {
-                EmbedderError::Internal(format!("failed to download/load MiniLM model: {e}"))
-            })?;
-
-            Ok(Self {
-                backend: FastEmbedBackend::Legacy(Mutex::new(model)),
-                id: EMBEDDER_ID.to_string(),
-                dimension: EMBEDDING_DIMENSION,
-            })
-        }
+        Err(EmbedderError::Unavailable(
+            "MiniLM model not found. Run 'xf index --semantic' to provision local assets."
+                .to_string(),
+        ))
     }
 
     /// Check if the semantic model is available.
@@ -316,34 +240,11 @@ impl Embedder for FastEmbedder {
             return Err(EmbedderError::InvalidInput("empty text".to_string()));
         }
 
-        match &self.backend {
-            FastEmbedBackend::Legacy(model) => {
-                let embeddings = {
-                    let model = model.lock().map_err(|e| {
-                        EmbedderError::Internal(format!("model lock poisoned: {e}"))
-                    })?;
-                    model.embed(vec![text], None).map_err(|e| {
-                        EmbedderError::EmbeddingFailed(format!("embedding failed: {e}"))
-                    })?
-                };
-
-                let mut embedding = embeddings
-                    .into_iter()
-                    .next()
-                    .ok_or_else(|| EmbedderError::Internal("no embedding returned".to_string()))?;
-
-                // Ensure L2 normalization (fastembed should already normalize, but be safe)
-                l2_normalize(&mut embedding);
-                Ok(embedding)
-            }
-            #[cfg(feature = "frankensearch-migration")]
-            FastEmbedBackend::Frankensearch { runtime, delegate } => {
-                let cx = Cx::for_testing();
-                runtime
-                    .block_on(delegate.embed(&cx, text))
-                    .map_err(|e| map_fs_error("embed", e))
-            }
-        }
+        let FastEmbedBackend::Frankensearch { runtime, delegate } = &self.backend;
+        let cx = Cx::for_testing();
+        runtime
+            .block_on(delegate.embed(&cx, text))
+            .map_err(|e| map_fs_error("embed", e))
     }
 
     fn embed_batch(&self, texts: &[&str]) -> EmbedderResult<Vec<Vec<f32>>> {
@@ -365,30 +266,11 @@ impl Embedder for FastEmbedder {
             ));
         }
 
-        let embeddings = match &self.backend {
-            FastEmbedBackend::Legacy(model) => {
-                let mut embeddings = {
-                    let model = model.lock().map_err(|e| {
-                        EmbedderError::Internal(format!("model lock poisoned: {e}"))
-                    })?;
-                    model.embed(non_empty_texts, None).map_err(|e| {
-                        EmbedderError::EmbeddingFailed(format!("batch embedding failed: {e}"))
-                    })?
-                };
-
-                for embedding in &mut embeddings {
-                    l2_normalize(embedding);
-                }
-                embeddings
-            }
-            #[cfg(feature = "frankensearch-migration")]
-            FastEmbedBackend::Frankensearch { runtime, delegate } => {
-                let cx = Cx::for_testing();
-                runtime
-                    .block_on(delegate.embed_batch(&cx, &non_empty_texts))
-                    .map_err(|e| map_fs_error("embed_batch", e))?
-            }
-        };
+        let FastEmbedBackend::Frankensearch { runtime, delegate } = &self.backend;
+        let cx = Cx::for_testing();
+        let embeddings = runtime
+            .block_on(delegate.embed_batch(&cx, &non_empty_texts))
+            .map_err(|e| map_fs_error("embed_batch", e))?;
 
         // Reconstruct full result with empty slots for empty inputs
         let mut result = vec![Vec::new(); texts.len()];

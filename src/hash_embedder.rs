@@ -6,12 +6,9 @@
 //!
 //! # Algorithm
 //!
-//! 1. Tokenize text on non-alphanumeric boundaries
-//! 2. Hash each token using FNV-1a (64-bit)
-//! 3. Use hash to determine:
-//!    - Index: `hash % dimension`
-//!    - Sign: MSB of hash (bit 63) determines +1 or -1
-//! 4. L2-normalize the resulting vector
+//! Delegates to `frankensearch_embed::HashEmbedder` which implements FNV-modular
+//! hashing: each token is hashed, the hash determines a dimension index and sign,
+//! and the resulting vector is L2-normalized.
 //!
 //! # Properties
 //!
@@ -23,16 +20,7 @@
 //! Use this as a fallback or for hybrid search with keyword-aware matching.
 
 use crate::embedder::{Embedder, EmbedderError, EmbedderResult, l2_normalize};
-#[cfg(feature = "frankensearch-migration")]
 use frankensearch_embed::{HashAlgorithm as FsHashAlgorithm, HashEmbedder as FsHashEmbedder};
-
-/// FNV-1a 64-bit offset basis.
-#[cfg(not(feature = "frankensearch-migration"))]
-const FNV_OFFSET_BASIS: u64 = 0xcbf2_9ce4_8422_2325;
-
-/// FNV-1a 64-bit prime.
-#[cfg(not(feature = "frankensearch-migration"))]
-const FNV_PRIME: u64 = 0x0100_0000_01b3;
 
 /// Default embedding dimension (matches `MiniLM` for compatibility).
 pub const DEFAULT_DIMENSION: usize = 384;
@@ -45,7 +33,6 @@ const MIN_TOKEN_LEN: usize = 2;
 pub struct HashEmbedder {
     dimension: usize,
     id: String,
-    #[cfg(feature = "frankensearch-migration")]
     delegate: FsHashEmbedder,
 }
 
@@ -61,7 +48,6 @@ impl HashEmbedder {
         Self {
             dimension,
             id: format!("fnv1a-{dimension}"),
-            #[cfg(feature = "frankensearch-migration")]
             delegate: FsHashEmbedder::new(dimension, FsHashAlgorithm::FnvModular),
         }
     }
@@ -70,18 +56,6 @@ impl HashEmbedder {
     #[must_use]
     pub fn default_dimension() -> Self {
         Self::new(DEFAULT_DIMENSION)
-    }
-
-    /// Compute FNV-1a hash of a byte slice.
-    #[inline]
-    #[cfg(not(feature = "frankensearch-migration"))]
-    fn fnv1a_hash(bytes: &[u8]) -> u64 {
-        let mut hash = FNV_OFFSET_BASIS;
-        for byte in bytes {
-            hash ^= u64::from(*byte);
-            hash = hash.wrapping_mul(FNV_PRIME);
-        }
-        hash
     }
 
     /// Tokenize text into lowercase alphanumeric tokens.
@@ -95,28 +69,6 @@ impl HashEmbedder {
 
     fn uniform_fallback(&self) -> Vec<f32> {
         let mut embedding = vec![1.0f32; self.dimension];
-        l2_normalize(&mut embedding);
-        embedding
-    }
-
-    /// Embed a list of tokens into a vector.
-    #[cfg(not(feature = "frankensearch-migration"))]
-    fn embed_tokens_legacy(&self, tokens: &[String]) -> Vec<f32> {
-        let mut embedding = vec![0.0f32; self.dimension];
-
-        for token in tokens {
-            let hash = Self::fnv1a_hash(token.as_bytes());
-
-            // Hash determines:
-            // - Index: hash % dimension
-            // - Sign: MSB of hash (bit 63)
-            let dim = u64::try_from(self.dimension).unwrap_or(u64::MAX);
-            let idx = usize::try_from(hash % dim).unwrap_or(0);
-            let sign = if (hash >> 63) == 0 { 1.0 } else { -1.0 };
-
-            embedding[idx] += sign;
-        }
-
         l2_normalize(&mut embedding);
         embedding
     }
@@ -137,28 +89,20 @@ impl Embedder for HashEmbedder {
         let tokens = Self::tokenize(text);
 
         if tokens.is_empty() {
-            // Preserve low-signal fallback semantics in both legacy and migration modes.
+            // Preserve low-signal fallback semantics.
             return Ok(self.uniform_fallback());
         }
 
-        #[cfg(feature = "frankensearch-migration")]
-        {
-            let canonical = tokens.join(" ");
-            let embedding = self.delegate.embed_sync(&canonical);
-            if embedding.len() != self.dimension {
-                return Err(EmbedderError::EmbeddingFailed(format!(
-                    "delegate dimension mismatch: expected {}, got {}",
-                    self.dimension,
-                    embedding.len()
-                )));
-            }
-            Ok(embedding)
+        let canonical = tokens.join(" ");
+        let embedding = self.delegate.embed_sync(&canonical);
+        if embedding.len() != self.dimension {
+            return Err(EmbedderError::EmbeddingFailed(format!(
+                "delegate dimension mismatch: expected {}, got {}",
+                self.dimension,
+                embedding.len()
+            )));
         }
-
-        #[cfg(not(feature = "frankensearch-migration"))]
-        {
-            Ok(self.embed_tokens_legacy(&tokens))
-        }
+        Ok(embedding)
     }
 
     fn dimension(&self) -> usize {
@@ -197,17 +141,6 @@ mod tests {
     #[should_panic(expected = "dimension must be positive")]
     fn test_zero_dimension_panics() {
         let _ = HashEmbedder::new(0);
-    }
-
-    #[test]
-    #[cfg(not(feature = "frankensearch-migration"))]
-    fn test_fnv1a_hash() {
-        // Known FNV-1a test vectors
-        let hash = HashEmbedder::fnv1a_hash(b"");
-        assert_eq!(hash, FNV_OFFSET_BASIS);
-
-        let hash = HashEmbedder::fnv1a_hash(b"a");
-        assert_ne!(hash, FNV_OFFSET_BASIS);
     }
 
     #[test]

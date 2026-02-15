@@ -30,7 +30,6 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tracing::{debug, info, warn};
-#[cfg(feature = "frankensearch-migration")]
 use {
     frankensearch_core::config::TwoTierConfig as FrankensearchTwoTierConfig, std::time::Duration,
 };
@@ -240,7 +239,6 @@ impl TwoTierConfig {
     ///
     /// This adapter intentionally maps only the overlapping knobs and leaves
     /// all other frankensearch fields at their defaults.
-    #[cfg(feature = "frankensearch-migration")]
     #[must_use]
     pub fn to_frankensearch(&self) -> FrankensearchTwoTierConfig {
         let fast_only = Duration::from_millis(self.quality_timeout_ms).is_zero();
@@ -733,7 +731,6 @@ mod tests {
         assert_eq!(ttc.quality_timeout_ms, 500);
     }
 
-    #[cfg(feature = "frankensearch-migration")]
     #[test]
     fn test_two_tier_config_to_frankensearch_mapping() {
         let ttc = TwoTierConfig {

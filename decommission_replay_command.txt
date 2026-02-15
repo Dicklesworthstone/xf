@@ -1,0 +1,17 @@
+# Deterministic replay commands for bd-3un.35.4 validation
+# Run from /data/projects/xf
+
+# 1. Verify no frankensearch-migration feature gates remain
+grep -r 'cfg.*frankensearch.migration' src/ Cargo.toml && echo "FAIL: gates remain" || echo "PASS: no gates"
+
+# 2. Verify no legacy markers remain
+for m in FNV_OFFSET_BASIS FNV_PRIME fnv1a_hash embed_tokens_legacy 'FastEmbedBackend::Legacy' DocKey dot_product_f16_simd; do
+  grep -rq "$m" src/ && echo "FAIL: $m still present" || echo "PASS: $m removed"
+done
+
+# 3. Compilation (requires rch)
+rch exec -- cargo check --all-targets
+rch exec -- cargo clippy --all-targets -- -D warnings
+
+# 4. E2e validation script
+./scripts/e2e/post_cutover_cleanup_xf.sh

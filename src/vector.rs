@@ -202,7 +202,6 @@ impl DocTypeFilter {
     }
 }
 
-#[cfg(feature = "frankensearch-migration")]
 fn dot_product_f16_simd(query: &[f32], embedding: &[u8]) -> Option<f32> {
     use half::f16;
 
@@ -213,51 +212,13 @@ fn dot_product_f16_simd(query: &[f32], embedding: &[u8]) -> Option<f32> {
         return Some(0.0);
     }
 
-    // Migration path: delegate dot product math to frankensearch-index SIMD.
+    // Delegate dot product math to frankensearch-index SIMD.
     let mut stored = Vec::with_capacity(query.len());
     for chunk in embedding.chunks_exact(2) {
         stored.push(f16::from_le_bytes([chunk[0], chunk[1]]));
     }
 
     frankensearch_index::dot_product_f16_f32(&stored, query).ok()
-}
-
-#[cfg(not(feature = "frankensearch-migration"))]
-fn dot_product_f16_simd(query: &[f32], embedding: &[u8]) -> Option<f32> {
-    use half::f16;
-    use wide::f32x8;
-
-    if embedding.len() != query.len().saturating_mul(2) {
-        return None;
-    }
-    if query.is_empty() {
-        return Some(0.0);
-    }
-
-    let mut sum = f32x8::ZERO;
-    let mut idx = 0usize;
-    while idx + 8 <= query.len() {
-        let mut emb = [0.0f32; 8];
-        for (lane, value) in emb.iter_mut().enumerate() {
-            let byte_idx = (idx + lane) * 2;
-            let arr = [embedding[byte_idx], embedding[byte_idx + 1]];
-            *value = f16::from_le_bytes(arr).to_f32();
-        }
-
-        let mut q_arr = [0.0f32; 8];
-        q_arr.copy_from_slice(&query[idx..idx + 8]);
-        sum += f32x8::from(emb) * f32x8::from(q_arr);
-        idx += 8;
-    }
-
-    let mut scalar_sum = sum.reduce_add();
-    for (pos, value) in query.iter().enumerate().skip(idx) {
-        let byte_idx = pos * 2;
-        let arr = [embedding[byte_idx], embedding[byte_idx + 1]];
-        scalar_sum += f16::from_le_bytes(arr).to_f32() * value;
-    }
-
-    Some(scalar_sum)
 }
 
 /// Default filename for the vector index file.
@@ -1331,7 +1292,6 @@ mod tests {
         validate_vector_index_layout(&bytes).unwrap();
     }
 
-    #[cfg(feature = "frankensearch-migration")]
     #[test]
     fn migration_dot_product_path_matches_manual_dot() {
         let query = [0.25_f32, -0.5, 0.75, 1.0];
