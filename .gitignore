@@ -77,3 +77,9 @@ test_screenshot.png
 
 # ML/embedding caches
 .fastembed_cache/
+
+# Ephemeral files (agent-generated, build artifacts, test detritus)
+ci-artifacts/
+storage.sqlite3*
+test_meminfo
+perf.data
