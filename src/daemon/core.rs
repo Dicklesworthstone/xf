@@ -423,6 +423,7 @@ async fn handle_connection(
 
 /// Handle a decoded request.
 #[allow(clippy::significant_drop_tightening)] // Lock must be held while accessing model references
+#[allow(clippy::too_many_lines)]
 async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Response {
     match request {
         Request::Health => {
@@ -571,7 +572,7 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
                 Err(e) => {
                     return Response::error(
                         error_codes::DB_NOT_FOUND,
-                        format!("Failed to open database: {}", e),
+                        format!("Failed to open database: {e}"),
                     );
                 }
             };
@@ -582,7 +583,7 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
                 Err(e) => {
                     return Response::error(
                         error_codes::INTERNAL,
-                        format!("Failed to count documents: {}", e),
+                        format!("Failed to count documents: {e}"),
                     );
                 }
             };
@@ -590,7 +591,7 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
             // Cancel any existing jobs for this database
             let db_path_str = db_path.to_string_lossy().to_string();
             if let Err(e) = storage.cancel_embedding_jobs(&db_path_str, None) {
-                tracing::warn!("Failed to cancel existing jobs: {}", e);
+                tracing::warn!("Failed to cancel existing jobs: {e}");
             }
 
             // Create job entries
@@ -605,7 +606,7 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
                     Err(e) => {
                         return Response::error(
                             error_codes::JOB_ERROR,
-                            format!("Failed to create job: {}", e),
+                            format!("Failed to create job: {e}"),
                         );
                     }
                 }
@@ -615,7 +616,7 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
                     Err(e) => {
                         return Response::error(
                             error_codes::JOB_ERROR,
-                            format!("Failed to create job: {}", e),
+                            format!("Failed to create job: {e}"),
                         );
                     }
                 }
@@ -633,7 +634,7 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
                 if let Err(e) = handle.submit(config).await {
                     return Response::error(
                         error_codes::JOB_ERROR,
-                        format!("Failed to submit job: {}", e),
+                        format!("Failed to submit job: {e}"),
                     );
                 }
             } else {
@@ -657,7 +658,7 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
                         Err(e) => {
                             return Response::error(
                                 error_codes::DB_NOT_FOUND,
-                                format!("Failed to open database: {}", e),
+                                format!("Failed to open database: {e}"),
                             );
                         }
                     };
@@ -666,7 +667,7 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
                         Err(e) => {
                             return Response::error(
                                 error_codes::INTERNAL,
-                                format!("Failed to get job status: {}", e),
+                                format!("Failed to get job status: {e}"),
                             );
                         }
                     }
@@ -681,6 +682,7 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
             let job_infos: Vec<EmbeddingJobInfo> = jobs
                 .into_iter()
                 .map(|j| {
+                    #[allow(clippy::cast_precision_loss)]
                     let progress_pct = if j.total_docs > 0 {
                         (j.completed_docs as f32 / j.total_docs as f32) * 100.0
                     } else {
@@ -717,7 +719,7 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
                 Err(e) => {
                     return Response::error(
                         error_codes::DB_NOT_FOUND,
-                        format!("Failed to open database: {}", e),
+                        format!("Failed to open database: {e}"),
                     );
                 }
             };
@@ -727,7 +729,7 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
                 Err(e) => {
                     return Response::error(
                         error_codes::JOB_ERROR,
-                        format!("Failed to cancel jobs: {}", e),
+                        format!("Failed to cancel jobs: {e}"),
                     );
                 }
             };
@@ -735,7 +737,7 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
             // Signal worker to cancel
             if let Some(ref handle) = s.worker_handle {
                 if let Err(e) = handle.cancel(db_path_buf, model_id).await {
-                    tracing::warn!("Failed to signal worker cancellation: {}", e);
+                    tracing::warn!("Failed to signal worker cancellation: {e}");
                 }
             }
 
@@ -765,6 +767,7 @@ fn count_embeddable_docs(storage: &crate::storage::Storage) -> anyhow::Result<i6
         .filter(|m| !m.message.is_empty())
         .count();
 
+    #[allow(clippy::cast_possible_wrap)]
     Ok((tweets + likes + dms + grok) as i64)
 }
 

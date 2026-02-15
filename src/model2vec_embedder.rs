@@ -289,10 +289,10 @@ impl Model2VecEmbedder {
     fn embed_internal(&self, text: &str) -> EmbedderResult<Vec<f32>> {
         #[cfg(feature = "frankensearch-migration")]
         {
-            return self
+            self
                 .delegate
                 .embed_sync(text)
-                .map_err(|e| EmbedderError::EmbeddingFailed(e.to_string()));
+                .map_err(|e| EmbedderError::EmbeddingFailed(e.to_string()))
         }
 
         #[cfg(not(feature = "frankensearch-migration"))]

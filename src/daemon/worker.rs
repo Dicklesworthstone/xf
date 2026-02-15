@@ -131,6 +131,7 @@ impl EmbeddingWorker {
     }
 
     /// Resume pending jobs from the database.
+    #[allow(clippy::unused_async)]
     async fn resume_pending_jobs(&self) -> anyhow::Result<()> {
         // We need a database to check for pending jobs
         // For now, skip this - the daemon will track jobs per-database
@@ -139,6 +140,7 @@ impl EmbeddingWorker {
     }
 
     /// Cancel jobs for a database path.
+    #[allow(clippy::unused_async)]
     async fn cancel_jobs(&self, db_path: &Path, model_id: Option<&str>) -> anyhow::Result<()> {
         let storage = Storage::open(db_path)?;
         let db_path_str = db_path.to_string_lossy();
@@ -148,6 +150,7 @@ impl EmbeddingWorker {
     }
 
     /// Process a single embedding job.
+    #[allow(clippy::unused_async)]
     async fn process_job(&self, config: EmbeddingJobConfig) -> anyhow::Result<()> {
         let db_path_str = config.db_path.to_string_lossy().to_string();
         let start = Instant::now();
@@ -244,6 +247,7 @@ impl EmbeddingWorker {
     }
 
     /// Count total embeddable documents.
+    #[allow(clippy::unused_self)]
     fn count_documents(&self, storage: &Storage) -> anyhow::Result<i64> {
         let tweets = storage.get_all_tweets(None)?.len();
         let likes = storage
@@ -262,12 +266,14 @@ impl EmbeddingWorker {
             .filter(|m| !m.message.is_empty())
             .count();
 
+        #[allow(clippy::cast_possible_wrap)]
         Ok((tweets + likes + dms + grok) as i64)
     }
 
     /// Generate embeddings with progress tracking.
     ///
     /// Opens its own Storage connection to avoid Send/Sync issues.
+    #[allow(clippy::missing_const_for_fn, clippy::too_many_lines)]
     fn generate_embeddings_with_progress_sync(
         &self,
         db_path: &Path,
@@ -276,7 +282,6 @@ impl EmbeddingWorker {
         use_semantic: bool,
         job_id: i64,
     ) -> anyhow::Result<()> {
-        let storage = Storage::open(db_path)?;
         use crate::canonicalize::{canonicalize_for_embedding, content_hash};
         use crate::embedder::Embedder;
         use crate::hash_embedder::HashEmbedder;
@@ -288,16 +293,16 @@ impl EmbeddingWorker {
         const EMBED_CHUNK_SIZE: usize = 1000;
         const PROGRESS_UPDATE_INTERVAL: usize = 100;
 
+        let storage = Storage::open(db_path)?;
+
         // Create the embedder
         let registry = ModelRegistry::new();
+        let mut cfg = RegistryConfig::new(model_name);
+        cfg.show_progress = false;
         let embedder_box: Box<dyn Embedder> = if use_semantic {
-            let mut cfg = RegistryConfig::new(model_name);
-            cfg.show_progress = false;
             registry.embedder(&cfg)?
         } else {
             // Try to get the model from registry, fall back to hash embedder
-            let mut cfg = RegistryConfig::new(model_name);
-            cfg.show_progress = false;
             match registry.embedder(&cfg) {
                 Ok(e) => e,
                 Err(_) => Box::new(HashEmbedder::default()),
@@ -470,6 +475,7 @@ impl EmbeddingWorker {
             }
 
             // Update progress periodically
+            #[allow(clippy::cast_possible_wrap)]
             if completed_docs - last_progress_update >= PROGRESS_UPDATE_INTERVAL as i64 {
                 storage.update_job_progress(job_id, completed_docs)?;
                 last_progress_update = completed_docs;
@@ -483,6 +489,7 @@ impl EmbeddingWorker {
     }
 
     /// Write vector indices after embedding generation (sync version).
+    #[allow(clippy::unused_self)]
     fn write_vector_indices_sync(&self, config: &EmbeddingJobConfig) -> anyhow::Result<()> {
         use crate::vector::{
             VECTOR_INDEX_FAST_FILENAME, VECTOR_INDEX_QUALITY_FILENAME, write_vector_index,
@@ -538,7 +545,7 @@ mod tests {
     #[test]
     fn test_worker_handle_clone() {
         let (_worker, handle) = EmbeddingWorker::new();
-        let _handle2 = handle.clone();
+        let _handle2 = handle;
     }
 
     #[test]

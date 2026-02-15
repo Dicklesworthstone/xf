@@ -143,6 +143,7 @@ pub struct ImportArgs {
 }
 
 #[derive(Args, Debug)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct IndexArgs {
     /// Path to the X data archive directory (defaults to `/data/projects/my_twitter_data`)
     pub archive_path: Option<PathBuf>,

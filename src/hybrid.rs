@@ -239,13 +239,16 @@ pub fn rrf_fuse<'a>(
                     hit.doc_id
                 ),
             };
-            let in_both = hit.lexical_rank.is_some() && hit.semantic_rank.is_some();
             FusedHit {
                 doc_id,
                 doc_type,
-                score: score_from_ranks(hit.lexical_rank, hit.semantic_rank),
+                // Use frankensearch's accumulated RRF score (f64→f32) instead of
+                // recomputing from stored ranks, which loses contributions when
+                // the same composite key appears multiple times in a source list.
+                #[allow(clippy::cast_possible_truncation)]
+                score: hit.rrf_score as f32,
                 lexical_rank: hit.lexical_rank,
-                in_both,
+                in_both: hit.in_both_sources,
             }
         })
         .collect();
@@ -350,7 +353,7 @@ pub fn rrf_fuse<'a>(
 /// after RRF fusion filters results.
 #[must_use]
 #[cfg(feature = "frankensearch-migration")]
-pub fn candidate_count(limit: usize, offset: usize) -> usize {
+pub const fn candidate_count(limit: usize, offset: usize) -> usize {
     frankensearch_fusion::candidate_count(limit, offset, CANDIDATE_MULTIPLIER)
 }
 
@@ -1035,7 +1038,15 @@ mod tests {
                 assert_eq!(new.doc_type, old.doc_type);
                 assert_eq!(new.in_both, old.in_both);
                 assert_eq!(new.lexical_rank, old.lexical_rank);
-                assert_eq!(new.score.to_bits(), old.score.to_bits());
+                // Score comparison allows f64→f32 rounding difference (≤1 ULP)
+                // since frankensearch accumulates in f64 while legacy uses f32.
+                assert!(
+                    (new.score - old.score).abs() < 1e-7,
+                    "score mismatch: migration={} legacy={} delta={}",
+                    new.score,
+                    old.score,
+                    (new.score - old.score).abs()
+                );
             }
         }
     }

@@ -243,16 +243,14 @@ impl TwoTierConfig {
     #[cfg(feature = "frankensearch-migration")]
     #[must_use]
     pub fn to_frankensearch(&self) -> FrankensearchTwoTierConfig {
-        let mut config = FrankensearchTwoTierConfig::default();
-        config.quality_weight = f64::from(self.blend_factor.clamp(0.0, 1.0));
-        config.quality_timeout_ms = self.quality_timeout_ms;
+        let fast_only = Duration::from_millis(self.quality_timeout_ms).is_zero();
 
-        // If quality timeout is effectively disabled, force fast-only mode.
-        if Duration::from_millis(self.quality_timeout_ms).is_zero() {
-            config.fast_only = true;
+        FrankensearchTwoTierConfig {
+            quality_weight: f64::from(self.blend_factor.clamp(0.0, 1.0)),
+            quality_timeout_ms: self.quality_timeout_ms,
+            fast_only,
+            ..FrankensearchTwoTierConfig::default()
         }
-
-        config
     }
 }
 
@@ -745,7 +743,8 @@ mod tests {
             quality_timeout_ms: 1234,
         };
         let mapped = ttc.to_frankensearch();
-        assert!((mapped.quality_weight - 0.85).abs() < f64::EPSILON);
+        // f32→f64 widening: 0.85_f32 becomes ~0.8500000238 in f64
+        assert!((mapped.quality_weight - 0.85).abs() < 1e-6);
         assert_eq!(mapped.quality_timeout_ms, 1234);
         assert!(!mapped.fast_only);
 

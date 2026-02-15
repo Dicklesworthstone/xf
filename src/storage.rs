@@ -63,7 +63,8 @@ pub enum EmbeddingJobStatus {
 }
 
 impl EmbeddingJobStatus {
-    pub fn as_str(&self) -> &'static str {
+    #[must_use]
+    pub const fn as_str(&self) -> &'static str {
         match self {
             Self::Pending => "pending",
             Self::InProgress => "in_progress",
@@ -72,9 +73,10 @@ impl EmbeddingJobStatus {
         }
     }
 
+    #[must_use]
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> Self {
         match s {
-            "pending" => Self::Pending,
             "in_progress" => Self::InProgress,
             "completed" => Self::Completed,
             "failed" => Self::Failed,

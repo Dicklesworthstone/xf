@@ -155,11 +155,11 @@ impl FastEmbedder {
                 .map_err(|e| EmbedderError::Internal(format!("runtime init failed: {e}")))?;
             let dimension = FrankensearchEmbedder::dimension(&delegate);
 
-            return Ok(Self {
+            Ok(Self {
                 backend: FastEmbedBackend::Frankensearch { runtime, delegate },
                 id: EMBEDDER_ID.to_string(),
                 dimension,
-            });
+            })
         }
 
         #[cfg(not(feature = "frankensearch-migration"))]
@@ -244,10 +244,10 @@ impl FastEmbedder {
 
         #[cfg(feature = "frankensearch-migration")]
         {
-            return Err(EmbedderError::Unavailable(
+            Err(EmbedderError::Unavailable(
                 "MiniLM model not found. Run 'xf index --semantic' to provision local assets."
                     .to_string(),
-            ));
+            ))
         }
 
         #[cfg(not(feature = "frankensearch-migration"))]

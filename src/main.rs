@@ -1137,9 +1137,11 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, output: &Output) -> Result<()> {
                         "  [cyan]⟳[/] Embeddings generating in background (job #{})",
                         result.job_id
                     ));
+                    #[allow(clippy::cast_sign_loss)]
+                    let est_docs = result.estimated_docs as u64;
                     output.print(&format!(
                         "    {} documents queued",
-                        format_number_u64(result.estimated_docs as u64)
+                        format_number_u64(est_docs)
                     ));
                     output.print("    Run `xf status` to check progress");
                     output.print("");
@@ -4333,17 +4335,21 @@ fn show_embedding_job_status(
                     "0%".to_string()
                 };
 
+                #[allow(clippy::cast_sign_loss)]
+                let completed = job.completed_docs as u64;
+                #[allow(clippy::cast_sign_loss)]
+                let total = job.total_docs as u64;
                 output.print(&format!(
                     "  {} [bold]{}[/] — {} ({}/{})",
                     status_icon,
                     job.model_id,
                     progress,
-                    format_number_u64(job.completed_docs as u64),
-                    format_number_u64(job.total_docs as u64)
+                    format_number_u64(completed),
+                    format_number_u64(total)
                 ));
 
                 if let Some(ref err) = job.error_message {
-                    output.print(&format!("    [red]Error:[/] {}", err));
+                    output.print(&format!("    [red]Error:[/] {err}"));
                 }
             }
         }

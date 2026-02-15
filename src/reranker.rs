@@ -121,7 +121,7 @@ impl FrankensearchReranker for FrankensearchRerankerAdapter {
 
             let mut reranked: Vec<RerankScore> = documents
                 .iter()
-                .zip(scores.into_iter())
+                .zip(scores)
                 .enumerate()
                 .map(|(original_rank, (doc, score))| RerankScore {
                     doc_id: doc.doc_id.clone(),

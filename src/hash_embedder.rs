@@ -152,7 +152,7 @@ impl Embedder for HashEmbedder {
                     embedding.len()
                 )));
             }
-            return Ok(embedding);
+            Ok(embedding)
         }
 
         #[cfg(not(feature = "frankensearch-migration"))]

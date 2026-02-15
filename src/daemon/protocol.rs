@@ -621,7 +621,7 @@ mod tests {
                 assert_eq!(jobs.len(), 1);
                 assert_eq!(jobs[0].id, 1);
                 assert_eq!(jobs[0].status, "in_progress");
-                assert_eq!(jobs[0].progress_pct, 50.0);
+                assert!((jobs[0].progress_pct - 50.0).abs() < f32::EPSILON);
             }
             _ => panic!("expected JobStatus response"),
         }
