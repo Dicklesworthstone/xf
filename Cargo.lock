@@ -199,15 +199,48 @@ dependencies = [
 [[package]]
 name = "asupersync"
 version = "0.2.0"
-source = "git+https://github.com/Dicklesworthstone/asupersync.git?rev=22505d891736f59098607aaeb4a55149208f7b70#22505d891736f59098607aaeb4a55149208f7b70"
 dependencies = [
  "asupersync-macros",
  "base64 0.22.1",
  "bincode",
  "crossbeam-queue",
- "franken-decision",
- "franken-evidence",
- "franken-kernel",
+ "franken-decision 0.2.0",
+ "franken-evidence 0.2.0",
+ "franken-kernel 0.2.0",
+ "getrandom 0.4.1",
+ "hmac",
+ "libc",
+ "nix 0.31.1",
+ "parking_lot",
+ "pin-project",
+ "polling",
+ "rmp-serde",
+ "serde",
+ "serde_json",
+ "sha1",
+ "sha2",
+ "slab",
+ "smallvec",
+ "socket2",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tracing",
+ "tracing-subscriber",
+ "visibility",
+]
+
+[[package]]
+name = "asupersync"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f9d95a917dcf2042c90a91c7f24a2053bf228759950c212ea1bc58427cacd6c3"
+dependencies = [
+ "base64 0.22.1",
+ "bincode",
+ "crossbeam-queue",
+ "franken-decision 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "franken-evidence 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "franken-kernel 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "getrandom 0.4.1",
  "hmac",
  "libc",
@@ -233,7 +266,6 @@ dependencies = [
 [[package]]
 name = "asupersync-macros"
 version = "0.2.0"
-source = "git+https://github.com/Dicklesworthstone/asupersync.git?rev=22505d891736f59098607aaeb4a55149208f7b70#22505d891736f59098607aaeb4a55149208f7b70"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1445,17 +1477,36 @@ dependencies = [
 [[package]]
 name = "franken-decision"
 version = "0.2.0"
-source = "git+https://github.com/Dicklesworthstone/asupersync.git?rev=22505d891736f59098607aaeb4a55149208f7b70#22505d891736f59098607aaeb4a55149208f7b70"
 dependencies = [
- "franken-evidence",
- "franken-kernel",
+ "franken-evidence 0.2.0",
+ "franken-kernel 0.2.0",
+ "serde",
+]
+
+[[package]]
+name = "franken-decision"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e108d382a6dce0d26fbe0b745ca7b6f3138e3a18eb482faef75236a30b850d48"
+dependencies = [
+ "franken-evidence 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "franken-kernel 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde",
 ]
 
 [[package]]
 name = "franken-evidence"
 version = "0.2.0"
-source = "git+https://github.com/Dicklesworthstone/asupersync.git?rev=22505d891736f59098607aaeb4a55149208f7b70#22505d891736f59098607aaeb4a55149208f7b70"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "franken-evidence"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f488852cac41e26f1dc9e1c8c30e41d3f9411b8e01916588b0ddc07a517f0505"
 dependencies = [
  "serde",
  "serde_json",
@@ -1464,7 +1515,15 @@ dependencies = [
 [[package]]
 name = "franken-kernel"
 version = "0.2.0"
-source = "git+https://github.com/Dicklesworthstone/asupersync.git?rev=22505d891736f59098607aaeb4a55149208f7b70#22505d891736f59098607aaeb4a55149208f7b70"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "franken-kernel"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cfd6548ab43330038a66f2ba2a8afd0ce715dcd7100d7e8f7e8ca8d4933f15b7"
 dependencies = [
  "serde",
 ]
@@ -1474,7 +1533,7 @@ name = "frankensearch-core"
 version = "0.1.0"
 source = "git+https://github.com/Dicklesworthstone/frankensearch.git#04339dd360fd598009aecdac28d448be9c8ff2d3"
 dependencies = [
- "asupersync",
+ "asupersync 0.2.0",
  "serde",
  "serde_json",
  "sha2",
@@ -1489,7 +1548,7 @@ name = "frankensearch-embed"
 version = "0.1.0"
 source = "git+https://github.com/Dicklesworthstone/frankensearch.git#04339dd360fd598009aecdac28d448be9c8ff2d3"
 dependencies = [
- "asupersync",
+ "asupersync 0.2.0",
  "dirs 6.0.0",
  "fastembed",
  "frankensearch-core",
@@ -1506,7 +1565,7 @@ name = "frankensearch-fusion"
 version = "0.1.0"
 source = "git+https://github.com/Dicklesworthstone/frankensearch.git#04339dd360fd598009aecdac28d448be9c8ff2d3"
 dependencies = [
- "asupersync",
+ "asupersync 0.2.0",
  "frankensearch-core",
  "frankensearch-embed",
  "frankensearch-index",
@@ -6602,7 +6661,7 @@ dependencies = [
  "aho-corasick",
  "anyhow",
  "assert_cmd",
- "asupersync",
+ "asupersync 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono",
  "chrono-english",
  "clap",
