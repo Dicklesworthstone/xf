@@ -1,5 +1,7 @@
 # Build artifacts
 /target/
+target_*/
+target-codex*/
 a.out
 *.o
 *.so
