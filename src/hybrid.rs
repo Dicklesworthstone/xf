@@ -351,7 +351,7 @@ pub fn rrf_fuse<'a>(
 #[must_use]
 #[cfg(feature = "frankensearch-migration")]
 pub fn candidate_count(limit: usize, offset: usize) -> usize {
-    frankensearch_fusion::candidate_count(limit, offset)
+    frankensearch_fusion::candidate_count(limit, offset, CANDIDATE_MULTIPLIER)
 }
 
 #[must_use]

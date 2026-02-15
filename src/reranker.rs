@@ -4,8 +4,10 @@
 //! suitable for re-sorting a top-N candidate set.
 
 #[cfg(feature = "frankensearch-migration")]
+use asupersync::Cx;
+#[cfg(feature = "frankensearch-migration")]
 use frankensearch_core::{
-    Cx, RerankDocument, RerankScore, Reranker as FrankensearchReranker, SearchError, SearchFuture,
+    RerankDocument, RerankScore, Reranker as FrankensearchReranker, SearchError, SearchFuture,
 };
 use thiserror::Error;
 

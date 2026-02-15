@@ -4,9 +4,11 @@
 //! for semantic similarity search.
 
 #[cfg(feature = "frankensearch-migration")]
+use asupersync::Cx;
+#[cfg(feature = "frankensearch-migration")]
 use frankensearch_core::{
-    Cx, Embedder as FrankensearchEmbedder, ModelCategory as FrankensearchModelCategory,
-    SearchError, SearchFuture, SearchResult as FrankensearchSearchResult,
+    Embedder as FrankensearchEmbedder, ModelCategory as FrankensearchModelCategory, SearchError,
+    SearchFuture, SearchResult as FrankensearchSearchResult,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;

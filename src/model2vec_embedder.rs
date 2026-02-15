@@ -20,7 +20,11 @@ use std::path::{Path, PathBuf};
 use safetensors::SafeTensors;
 use tokenizers::Tokenizer;
 
-use crate::embedder::{Embedder, EmbedderError, EmbedderResult, ModelCategory, l2_normalize};
+#[cfg(not(feature = "frankensearch-migration"))]
+use crate::embedder::l2_normalize;
+use crate::embedder::{Embedder, EmbedderError, EmbedderResult, ModelCategory};
+#[cfg(feature = "frankensearch-migration")]
+use frankensearch_embed::Model2VecEmbedder as FsModel2VecEmbedder;
 
 /// Model name constant for potion-retrieval-32M.
 pub const MODEL_POTION_32M: &str = "potion-retrieval-32M";
@@ -40,8 +44,10 @@ const REQUIRED_FILES: &[&str] = &["tokenizer.json", "model.safetensors"];
 /// 4. L2 normalization
 pub struct Model2VecEmbedder {
     /// Subword tokenizer (BPE or WordPiece from teacher model).
+    #[cfg_attr(feature = "frankensearch-migration", allow(dead_code))]
     tokenizer: Tokenizer,
     /// Static embedding matrix [vocab_size × dims].
+    #[cfg_attr(feature = "frankensearch-migration", allow(dead_code))]
     embeddings: Vec<Vec<f32>>,
     /// Output dimensions.
     dimensions: usize,
@@ -49,6 +55,8 @@ pub struct Model2VecEmbedder {
     name: String,
     /// Vocabulary size.
     vocab_size: usize,
+    #[cfg(feature = "frankensearch-migration")]
+    delegate: FsModel2VecEmbedder,
 }
 
 impl Model2VecEmbedder {
@@ -108,12 +116,22 @@ impl Model2VecEmbedder {
             "Model2Vec embedder loaded"
         );
 
+        #[cfg(feature = "frankensearch-migration")]
+        let delegate = FsModel2VecEmbedder::load_with_name(model_dir, model_name).map_err(|e| {
+            EmbedderError::Unavailable(format!(
+                "frankensearch model2vec load failed for {}: {e}",
+                model_dir.display()
+            ))
+        })?;
+
         Ok(Self {
             tokenizer,
             embeddings,
             dimensions,
             name: model_name.to_string(),
             vocab_size,
+            #[cfg(feature = "frankensearch-migration")]
+            delegate,
         })
     }
 
@@ -269,57 +287,68 @@ impl Model2VecEmbedder {
 
     /// Embed a single text using static lookup + mean pooling.
     fn embed_internal(&self, text: &str) -> EmbedderResult<Vec<f32>> {
-        if text.is_empty() {
-            return Err(EmbedderError::InvalidInput("empty text".to_string()));
+        #[cfg(feature = "frankensearch-migration")]
+        {
+            return self
+                .delegate
+                .embed_sync(text)
+                .map_err(|e| EmbedderError::EmbeddingFailed(e.to_string()));
         }
 
-        // Tokenize
-        let encoding = self
-            .tokenizer
-            .encode(text, false)
-            .map_err(|e| EmbedderError::EmbeddingFailed(format!("tokenization failed: {e}")))?;
-
-        let token_ids = encoding.get_ids();
-
-        if token_ids.is_empty() {
-            return Err(EmbedderError::InvalidInput(
-                "text tokenizes to empty sequence".to_string(),
-            ));
-        }
-
-        // Mean pool over token embeddings
-        let mut sum = vec![0.0f32; self.dimensions];
-        let mut count = 0usize;
-
-        for &token_id in token_ids {
-            let idx = token_id as usize;
-            if idx < self.vocab_size {
-                let row = &self.embeddings[idx];
-                for (s, &r) in sum.iter_mut().zip(row.iter()) {
-                    *s += r;
-                }
-                count += 1;
+        #[cfg(not(feature = "frankensearch-migration"))]
+        {
+            if text.is_empty() {
+                return Err(EmbedderError::InvalidInput("empty text".to_string()));
             }
-            // OOV tokens are silently skipped (common in Model2Vec)
+
+            // Tokenize
+            let encoding = self
+                .tokenizer
+                .encode(text, false)
+                .map_err(|e| EmbedderError::EmbeddingFailed(format!("tokenization failed: {e}")))?;
+
+            let token_ids = encoding.get_ids();
+
+            if token_ids.is_empty() {
+                return Err(EmbedderError::InvalidInput(
+                    "text tokenizes to empty sequence".to_string(),
+                ));
+            }
+
+            // Mean pool over token embeddings
+            let mut sum = vec![0.0f32; self.dimensions];
+            let mut count = 0usize;
+
+            for &token_id in token_ids {
+                let idx = token_id as usize;
+                if idx < self.vocab_size {
+                    let row = &self.embeddings[idx];
+                    for (s, &r) in sum.iter_mut().zip(row.iter()) {
+                        *s += r;
+                    }
+                    count += 1;
+                }
+                // OOV tokens are silently skipped (common in Model2Vec)
+            }
+
+            if count == 0 {
+                return Err(EmbedderError::EmbeddingFailed(
+                    "all tokens were OOV".to_string(),
+                ));
+            }
+
+            // Compute mean
+            #[allow(clippy::cast_precision_loss)]
+            let inv = 1.0 / count as f32;
+            for s in &mut sum {
+                *s *= inv;
+            }
+
+            // L2 normalize
+            l2_normalize(&mut sum);
+
+            Ok(sum)
         }
-
-        if count == 0 {
-            return Err(EmbedderError::EmbeddingFailed(
-                "all tokens were OOV".to_string(),
-            ));
-        }
-
-        // Compute mean
-        #[allow(clippy::cast_precision_loss)]
-        let inv = 1.0 / count as f32;
-        for s in &mut sum {
-            *s *= inv;
-        }
-
-        // L2 normalize
-        l2_normalize(&mut sum);
-
-        Ok(sum)
     }
 }
 
