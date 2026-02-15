@@ -63,6 +63,9 @@ tantivy = "0.22"
 # frankensearch migration surfaces (bd-3un.35)
 frankensearch-core = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-core", optional = true }
 frankensearch-fusion = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-fusion", optional = true }
+frankensearch-index = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-index", optional = true }
+frankensearch-embed = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-embed", optional = true, features = ["hash", "model2vec", "fastembed"] }
+asupersync = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "asupersync", optional = true }
 
 # High-performance text processing
 regex = "1.10"
@@ -136,7 +139,7 @@ parallel-search = []
 alloc-count = []
 
 # Opt-in migration bridge to frankensearch fusion primitives.
-frankensearch-migration = ["dep:frankensearch-core", "dep:frankensearch-fusion"]
+frankensearch-migration = ["dep:frankensearch-core", "dep:frankensearch-fusion", "dep:frankensearch-index", "dep:frankensearch-embed", "dep:asupersync"]
 
 [[bench]]
 name = "search_perf"
