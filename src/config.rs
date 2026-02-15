@@ -30,6 +30,10 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tracing::{debug, info, warn};
+#[cfg(feature = "frankensearch-migration")]
+use {
+    frankensearch_core::config::TwoTierConfig as FrankensearchTwoTierConfig, std::time::Duration,
+};
 
 /// Main configuration structure for xf.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -228,6 +232,27 @@ impl Default for TwoTierConfig {
             blend_factor: 0.7,
             quality_timeout_ms: 500,
         }
+    }
+}
+
+impl TwoTierConfig {
+    /// Convert xf's two-tier config into frankensearch's canonical config.
+    ///
+    /// This adapter intentionally maps only the overlapping knobs and leaves
+    /// all other frankensearch fields at their defaults.
+    #[cfg(feature = "frankensearch-migration")]
+    #[must_use]
+    pub fn to_frankensearch(&self) -> FrankensearchTwoTierConfig {
+        let mut config = FrankensearchTwoTierConfig::default();
+        config.quality_weight = f64::from(self.blend_factor.clamp(0.0, 1.0));
+        config.quality_timeout_ms = self.quality_timeout_ms;
+
+        // If quality timeout is effectively disabled, force fast-only mode.
+        if Duration::from_millis(self.quality_timeout_ms).is_zero() {
+            config.fast_only = true;
+        }
+
+        config
     }
 }
 
@@ -708,6 +733,28 @@ mod tests {
         assert!(ttc.quality_model.is_none());
         assert!((ttc.blend_factor - 0.7).abs() < f32::EPSILON);
         assert_eq!(ttc.quality_timeout_ms, 500);
+    }
+
+    #[cfg(feature = "frankensearch-migration")]
+    #[test]
+    fn test_two_tier_config_to_frankensearch_mapping() {
+        let ttc = TwoTierConfig {
+            fast_model: Some("potion-multilingual-128M".to_string()),
+            quality_model: Some("all-MiniLM-L6-v2".to_string()),
+            blend_factor: 0.85,
+            quality_timeout_ms: 1234,
+        };
+        let mapped = ttc.to_frankensearch();
+        assert!((mapped.quality_weight - 0.85).abs() < f64::EPSILON);
+        assert_eq!(mapped.quality_timeout_ms, 1234);
+        assert!(!mapped.fast_only);
+
+        let disabled = TwoTierConfig {
+            quality_timeout_ms: 0,
+            ..ttc
+        };
+        let disabled_mapped = disabled.to_frankensearch();
+        assert!(disabled_mapped.fast_only);
     }
 
     #[test]

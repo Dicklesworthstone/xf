@@ -24,15 +24,21 @@
 use crate::model::{SearchResult, SearchResultType};
 use crate::vector::VectorSearchResult;
 use clap::ValueEnum;
+#[cfg(feature = "frankensearch-migration")]
+use frankensearch_core::{ScoreSource, ScoredResult, VectorHit};
+#[cfg(feature = "frankensearch-migration")]
+use frankensearch_fusion::{RrfConfig, rrf_fuse as fs_rrf_fuse};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
+#[cfg(not(feature = "frankensearch-migration"))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 struct DocKey<'a> {
     id: &'a str,
     doc_type: &'a str,
 }
 
+#[cfg(not(feature = "frankensearch-migration"))]
 impl<'a> DocKey<'a> {
     #[allow(clippy::missing_const_for_fn)]
     fn new(id: &'a str, doc_type: &'a str) -> Self {
@@ -42,6 +48,8 @@ impl<'a> DocKey<'a> {
 
 /// RRF constant K. Empirically, K=60 works well for most use cases.
 const RRF_K: f32 = 60.0;
+#[cfg(feature = "frankensearch-migration")]
+const DOC_KEY_SEPARATOR: char = '\u{1f}';
 
 /// Multiplier for candidate fetching. Fetch 3x more candidates from each
 /// source to ensure good coverage after fusion.
@@ -93,6 +101,7 @@ impl std::str::FromStr for SearchMode {
 }
 
 /// Hybrid score tracking for RRF fusion.
+#[allow(dead_code)]
 #[derive(Debug, Default, Clone)]
 struct HybridScore {
     /// RRF score (sum of 1/(K+rank+1) from each list).
@@ -127,6 +136,25 @@ const fn result_type_str(result_type: SearchResultType) -> &'static str {
     }
 }
 
+#[must_use]
+#[cfg(feature = "frankensearch-migration")]
+fn compose_doc_key(doc_id: &str, doc_type: &str) -> String {
+    let mut key = String::with_capacity(doc_type.len() + doc_id.len() + 1);
+    key.push_str(doc_type);
+    key.push(DOC_KEY_SEPARATOR);
+    key.push_str(doc_id);
+    key
+}
+
+#[allow(clippy::cast_precision_loss)]
+#[must_use]
+#[cfg(feature = "frankensearch-migration")]
+fn score_from_ranks(lexical_rank: Option<usize>, semantic_rank: Option<usize>) -> f32 {
+    let lexical = lexical_rank.map_or(0.0, |rank| 1.0 / (RRF_K + rank as f32 + 1.0));
+    let semantic = semantic_rank.map_or(0.0, |rank| 1.0 / (RRF_K + rank as f32 + 1.0));
+    lexical + semantic
+}
+
 /// Fuse lexical and semantic search results using RRF.
 ///
 /// # Arguments
@@ -141,6 +169,113 @@ const fn result_type_str(result_type: SearchResultType) -> &'static str {
 /// Fused results sorted by RRF score, with deterministic tie-breaking.
 #[must_use]
 #[allow(clippy::cast_precision_loss)]
+#[cfg(feature = "frankensearch-migration")]
+pub fn rrf_fuse<'a>(
+    lexical: &'a [SearchResult],
+    semantic: &'a [VectorSearchResult],
+    limit: usize,
+    offset: usize,
+) -> Vec<FusedHit<'a>> {
+    if limit == 0 {
+        return Vec::new();
+    }
+
+    let mut key_to_ref: HashMap<String, (&'a str, &'a str)> =
+        HashMap::with_capacity(lexical.len() + semantic.len());
+
+    let lexical_hits: Vec<ScoredResult> = lexical
+        .iter()
+        .map(|hit| {
+            let doc_type = result_type_str(hit.result_type);
+            let key = compose_doc_key(hit.id.as_str(), doc_type);
+            key_to_ref
+                .entry(key.clone())
+                .or_insert((hit.id.as_str(), doc_type));
+            ScoredResult {
+                doc_id: key,
+                score: hit.score,
+                source: ScoreSource::Lexical,
+                fast_score: None,
+                quality_score: None,
+                lexical_score: Some(hit.score),
+                rerank_score: None,
+                metadata: None,
+            }
+        })
+        .collect();
+
+    let semantic_hits: Vec<VectorHit> = semantic
+        .iter()
+        .enumerate()
+        .map(|(idx, hit)| {
+            let key = compose_doc_key(hit.doc_id.as_str(), hit.doc_type);
+            key_to_ref
+                .entry(key.clone())
+                .or_insert((hit.doc_id.as_str(), hit.doc_type));
+            VectorHit {
+                index: u32::try_from(idx).unwrap_or(u32::MAX),
+                score: hit.score,
+                doc_id: key,
+            }
+        })
+        .collect();
+
+    let max_limit = lexical_hits.len().saturating_add(semantic_hits.len());
+    let fused_owned = fs_rrf_fuse(
+        &lexical_hits,
+        &semantic_hits,
+        max_limit,
+        0,
+        &RrfConfig::default(),
+    );
+
+    let mut fused: Vec<FusedHit<'a>> = fused_owned
+        .into_iter()
+        .map(|hit| {
+            let (doc_id, doc_type) = match key_to_ref.get(hit.doc_id.as_str()) {
+                Some((doc_id, doc_type)) => (*doc_id, *doc_type),
+                None => unreachable!(
+                    "frankensearch RRF produced unknown composite key: {}",
+                    hit.doc_id
+                ),
+            };
+            let in_both = hit.lexical_rank.is_some() && hit.semantic_rank.is_some();
+            FusedHit {
+                doc_id,
+                doc_type,
+                score: score_from_ranks(hit.lexical_rank, hit.semantic_rank),
+                lexical_rank: hit.lexical_rank,
+                in_both,
+            }
+        })
+        .collect();
+
+    // Sort with deterministic tie-breaking
+    fused.sort_by(|a, b| {
+        // Level 1: RRF score (descending)
+        b.score
+            .total_cmp(&a.score)
+            // Level 2: Prefer hits appearing in both lists
+            .then_with(|| match (b.in_both, a.in_both) {
+                (true, false) => Ordering::Greater,
+                (false, true) => Ordering::Less,
+                _ => Ordering::Equal,
+            })
+            // Level 3: Document ID (ascending) for determinism
+            .then_with(|| a.doc_id.cmp(b.doc_id))
+            .then_with(|| a.doc_type.cmp(b.doc_type))
+    });
+
+    // Apply offset and limit
+    let start = offset.min(fused.len());
+    let end = start.saturating_add(limit).min(fused.len());
+
+    fused.into_iter().skip(start).take(end - start).collect()
+}
+
+#[must_use]
+#[allow(clippy::cast_precision_loss)]
+#[cfg(not(feature = "frankensearch-migration"))]
 pub fn rrf_fuse<'a>(
     lexical: &'a [SearchResult],
     semantic: &'a [VectorSearchResult],
@@ -214,6 +349,13 @@ pub fn rrf_fuse<'a>(
 /// Fetches 3x the limit from each source to ensure good coverage
 /// after RRF fusion filters results.
 #[must_use]
+#[cfg(feature = "frankensearch-migration")]
+pub fn candidate_count(limit: usize, offset: usize) -> usize {
+    frankensearch_fusion::candidate_count(limit, offset)
+}
+
+#[must_use]
+#[cfg(not(feature = "frankensearch-migration"))]
 pub const fn candidate_count(limit: usize, offset: usize) -> usize {
     limit
         .saturating_add(offset)

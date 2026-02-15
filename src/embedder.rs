@@ -3,6 +3,11 @@
 //! Provides a common interface for converting text into dense vectors
 //! for semantic similarity search.
 
+#[cfg(feature = "frankensearch-migration")]
+use frankensearch_core::{
+    Cx, Embedder as FrankensearchEmbedder, ModelCategory as FrankensearchModelCategory,
+    SearchError, SearchFuture, SearchResult as FrankensearchSearchResult,
+};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -239,6 +244,111 @@ pub fn dot_product_simd(a: &[f32], b: &[f32]) -> f32 {
         scalar_sum += a * b;
     }
     scalar_sum
+}
+
+#[cfg(feature = "frankensearch-migration")]
+fn map_embedder_error(model: &str, err: EmbedderError) -> SearchError {
+    match err {
+        EmbedderError::Unavailable(reason) => SearchError::EmbedderUnavailable {
+            model: model.to_string(),
+            reason,
+        },
+        EmbedderError::InvalidInput(value) => SearchError::InvalidConfig {
+            field: "embedder_input".to_string(),
+            value,
+            reason: "invalid embedder input".to_string(),
+        },
+        other => SearchError::EmbeddingFailed {
+            model: model.to_string(),
+            source: Box::new(other),
+        },
+    }
+}
+
+#[cfg(feature = "frankensearch-migration")]
+const fn map_model_category(category: ModelCategory) -> FrankensearchModelCategory {
+    match category {
+        ModelCategory::StaticEmbedder => FrankensearchModelCategory::StaticEmbedder,
+        ModelCategory::TransformerEmbedder => FrankensearchModelCategory::TransformerEmbedder,
+    }
+}
+
+/// Feature-gated adapter from xf's synchronous embedder trait to frankensearch's async trait.
+#[cfg(feature = "frankensearch-migration")]
+pub struct FrankensearchEmbedderAdapter {
+    inner: Box<dyn Embedder>,
+    adapter_id: String,
+}
+
+#[cfg(feature = "frankensearch-migration")]
+impl FrankensearchEmbedderAdapter {
+    #[must_use]
+    pub fn new(inner: Box<dyn Embedder>) -> Self {
+        let adapter_id = format!("xf-adapter::{}", inner.id());
+        Self { inner, adapter_id }
+    }
+
+    #[must_use]
+    pub fn into_inner(self) -> Box<dyn Embedder> {
+        self.inner
+    }
+}
+
+#[cfg(feature = "frankensearch-migration")]
+impl FrankensearchEmbedder for FrankensearchEmbedderAdapter {
+    fn embed<'a>(&'a self, _cx: &'a Cx, text: &'a str) -> SearchFuture<'a, Vec<f32>> {
+        Box::pin(async move {
+            self.inner
+                .embed(text)
+                .map_err(|err| map_embedder_error(self.inner.model_name(), err))
+        })
+    }
+
+    fn embed_batch<'a>(
+        &'a self,
+        _cx: &'a Cx,
+        texts: &'a [&'a str],
+    ) -> SearchFuture<'a, Vec<Vec<f32>>> {
+        Box::pin(async move {
+            self.inner
+                .embed_batch(texts)
+                .map_err(|err| map_embedder_error(self.inner.model_name(), err))
+        })
+    }
+
+    fn dimension(&self) -> usize {
+        self.inner.dimension()
+    }
+
+    fn id(&self) -> &str {
+        &self.adapter_id
+    }
+
+    fn model_name(&self) -> &str {
+        self.inner.model_name()
+    }
+
+    fn is_semantic(&self) -> bool {
+        self.inner.is_semantic()
+    }
+
+    fn category(&self) -> FrankensearchModelCategory {
+        map_model_category(self.inner.category())
+    }
+
+    fn supports_mrl(&self) -> bool {
+        self.inner.supports_mrl()
+    }
+
+    fn truncate_embedding(
+        &self,
+        embedding: &[f32],
+        target_dim: usize,
+    ) -> FrankensearchSearchResult<Vec<f32>> {
+        self.inner
+            .truncate_embedding(embedding, target_dim)
+            .map_err(|err| map_embedder_error(self.inner.model_name(), err))
+    }
 }
 
 #[cfg(test)]

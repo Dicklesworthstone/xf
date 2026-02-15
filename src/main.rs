@@ -751,13 +751,15 @@ async fn try_background_embedding(
         anyhow::bail!("daemon not running");
     }
 
-    client.submit_embedding_job(
-        &db_path.to_string_lossy(),
-        &index_path.to_string_lossy(),
-        two_tier,
-        fast_model,
-        quality_model,
-    ).await
+    client
+        .submit_embedding_job(
+            &db_path.to_string_lossy(),
+            &index_path.to_string_lossy(),
+            two_tier,
+            fast_model,
+            quality_model,
+        )
+        .await
 }
 
 /// Generate embeddings synchronously (blocking).
@@ -1100,11 +1102,20 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, output: &Output) -> Result<()> {
         if !cli.quiet {
             output.print("  [yellow]⚠[/] Skipping embeddings (--no-embeddings)");
             output.print("    Lexical search will work immediately.");
-            output.print("    Run `xf index` again without --no-embeddings to add semantic search.");
+            output
+                .print("    Run `xf index` again without --no-embeddings to add semantic search.");
         }
     } else if args.sync_embeddings {
         // Force synchronous embedding
-        generate_embeddings_sync(cli.quiet, args.semantic, args.two_tier, &config, &storage, &index_path, output)?;
+        generate_embeddings_sync(
+            cli.quiet,
+            args.semantic,
+            args.two_tier,
+            &config,
+            &storage,
+            &index_path,
+            output,
+        )?;
     } else {
         // Try background embedding via daemon, fall back to sync
         let runtime = tokio::runtime::Runtime::new()?;
@@ -1115,7 +1126,8 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, output: &Output) -> Result<()> {
                 args.two_tier,
                 config.semantic.two_tier.fast_model.clone(),
                 config.semantic.two_tier.quality_model.clone(),
-            ).await
+            )
+            .await
         });
 
         match background_succeeded {
@@ -1132,7 +1144,9 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, output: &Output) -> Result<()> {
                     output.print("    Run `xf status` to check progress");
                     output.print("");
                     output.print("    [dim]Lexical search works immediately.[/]");
-                    output.print("    [dim]Hybrid/semantic search improves as embeddings complete.[/]");
+                    output.print(
+                        "    [dim]Hybrid/semantic search improves as embeddings complete.[/]",
+                    );
                 }
             }
             Err(e) => {
@@ -1140,7 +1154,15 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, output: &Output) -> Result<()> {
                 if !cli.quiet {
                     info!("Background embedding unavailable ({}), using sync", e);
                 }
-                generate_embeddings_sync(cli.quiet, args.semantic, args.two_tier, &config, &storage, &index_path, output)?;
+                generate_embeddings_sync(
+                    cli.quiet,
+                    args.semantic,
+                    args.two_tier,
+                    &config,
+                    &storage,
+                    &index_path,
+                    output,
+                )?;
             }
         }
     }
@@ -4287,7 +4309,10 @@ fn show_embedding_job_status(
     // But the daemon needs a DB path, so we check the default database
     let db_path = get_db_path(&Cli::parse_from::<[_; 1], &str>(["xf"]));
 
-    if let Ok(jobs) = runtime.block_on(client.embedding_job_status(Some(&db_path.to_string_lossy()))) as Result<Vec<EmbeddingJobInfo>, _> {
+    if let Ok(jobs) = runtime
+        .block_on(client.embedding_job_status(Some(&db_path.to_string_lossy())))
+        as Result<Vec<EmbeddingJobInfo>, _>
+    {
         if !jobs.is_empty() {
             output.print("");
             output.print("[bold underline]Embedding Jobs[/]");

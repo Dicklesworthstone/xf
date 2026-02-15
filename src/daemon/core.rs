@@ -19,7 +19,9 @@ use tokio::net::{UnixListener, UnixStream};
 use tokio::sync::Mutex;
 
 use super::models::ModelManager;
-use super::protocol::{EmbeddingJobInfo, Envelope, PROTOCOL_VERSION, Request, Response, error_codes};
+use super::protocol::{
+    EmbeddingJobInfo, Envelope, PROTOCOL_VERSION, Request, Response, error_codes,
+};
 use super::resource::{ResourceConfig, apply_resource_settings, get_process_rss_mb};
 use super::worker::{EmbeddingJobConfig, EmbeddingWorker, EmbeddingWorkerHandle};
 
@@ -57,7 +59,11 @@ impl Default for DaemonConfig {
             .filter(|c| c.is_alphanumeric() || *c == '_' || *c == '-')
             .take(64) // Limit length to prevent overly long paths
             .collect::<String>();
-        let user_id = if user_id.is_empty() { "default".to_string() } else { user_id };
+        let user_id = if user_id.is_empty() {
+            "default".to_string()
+        } else {
+            user_id
+        };
 
         // Use socket path from ResourceConfig if set, otherwise default
         let socket_path = resources
@@ -590,7 +596,9 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
             // Create job entries
             let job_id = if two_tier {
                 // Create fast job entry
-                storage.upsert_embedding_job(&db_path_str, "fast", doc_count).ok();
+                storage
+                    .upsert_embedding_job(&db_path_str, "fast", doc_count)
+                    .ok();
                 // Create quality job entry (this is the one we return)
                 match storage.upsert_embedding_job(&db_path_str, "quality", doc_count) {
                     Ok(id) => id,
@@ -629,10 +637,7 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
                     );
                 }
             } else {
-                return Response::error(
-                    error_codes::INTERNAL,
-                    "Embedding worker not available",
-                );
+                return Response::error(error_codes::INTERNAL, "Embedding worker not available");
             }
 
             Response::JobSubmitted {
@@ -744,15 +749,18 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
 /// Count embeddable documents in storage.
 fn count_embeddable_docs(storage: &crate::storage::Storage) -> anyhow::Result<i64> {
     let tweets = storage.get_all_tweets(None)?.len();
-    let likes = storage.get_all_likes(None)?
+    let likes = storage
+        .get_all_likes(None)?
         .iter()
         .filter(|l| l.full_text.as_ref().is_some_and(|t| !t.is_empty()))
         .count();
-    let dms = storage.get_all_dms(None)?
+    let dms = storage
+        .get_all_dms(None)?
         .iter()
         .filter(|d| !d.text.is_empty())
         .count();
-    let grok = storage.get_all_grok_messages(None)?
+    let grok = storage
+        .get_all_grok_messages(None)?
         .iter()
         .filter(|m| !m.message.is_empty())
         .count();

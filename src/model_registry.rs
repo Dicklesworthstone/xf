@@ -7,12 +7,16 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "frankensearch-migration")]
+use crate::embedder::FrankensearchEmbedderAdapter;
 use crate::embedder::{Embedder, EmbedderError, EmbedderResult, ModelCategory};
 use crate::fastembed_embedder::FastEmbedModelEmbedder;
 use crate::flashrank_reranker::FlashRankReranker;
 use crate::hash_embedder::{DEFAULT_DIMENSION as HASH_DEFAULT_DIM, HashEmbedder};
 use crate::model2vec_embedder::Model2VecEmbedder;
 use crate::mxbai_reranker::MxbaiReranker;
+#[cfg(feature = "frankensearch-migration")]
+use crate::reranker::FrankensearchRerankerAdapter;
 use crate::reranker::{Reranker, RerankerError, RerankerResult};
 use crate::static_mrl_embedder::StaticMrlEmbedder;
 
@@ -150,11 +154,31 @@ impl ModelRegistry {
         self.embedder(&EmbedderConfig::new(name))
     }
 
+    /// Create a frankensearch-compatible embedder adapter by name.
+    #[cfg(feature = "frankensearch-migration")]
+    pub fn frankensearch_embedder_by_name(
+        &self,
+        name: &str,
+    ) -> EmbedderResult<FrankensearchEmbedderAdapter> {
+        self.embedder_by_name(name)
+            .map(FrankensearchEmbedderAdapter::new)
+    }
+
     /// Convenience method to create a reranker by name.
     ///
     /// Uses default configuration (no progress bar).
     pub fn reranker_by_name(&self, name: &str) -> RerankerResult<Option<Box<dyn Reranker>>> {
         self.reranker(&RerankerConfig::new(name))
+    }
+
+    /// Create a frankensearch-compatible reranker adapter by name.
+    #[cfg(feature = "frankensearch-migration")]
+    pub fn frankensearch_reranker_by_name(
+        &self,
+        name: &str,
+    ) -> RerankerResult<Option<FrankensearchRerankerAdapter>> {
+        self.reranker_by_name(name)
+            .map(|reranker| reranker.map(FrankensearchRerankerAdapter::new))
     }
 
     /// List all known models with their metadata.

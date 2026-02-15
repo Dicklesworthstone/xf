@@ -4,8 +4,8 @@
 //! with progress tracking and cancellation support.
 
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
 
 use tokio::sync::mpsc;
@@ -34,7 +34,10 @@ pub enum WorkerMessage {
     /// Submit a new embedding job.
     Submit(EmbeddingJobConfig),
     /// Cancel jobs for a database path.
-    Cancel { db_path: PathBuf, model_id: Option<String> },
+    Cancel {
+        db_path: PathBuf,
+        model_id: Option<String>,
+    },
     /// Shutdown the worker.
     Shutdown,
 }
@@ -47,13 +50,22 @@ pub struct EmbeddingWorkerHandle {
 
 impl EmbeddingWorkerHandle {
     /// Submit a new embedding job.
-    pub async fn submit(&self, config: EmbeddingJobConfig) -> Result<(), mpsc::error::SendError<WorkerMessage>> {
+    pub async fn submit(
+        &self,
+        config: EmbeddingJobConfig,
+    ) -> Result<(), mpsc::error::SendError<WorkerMessage>> {
         self.sender.send(WorkerMessage::Submit(config)).await
     }
 
     /// Cancel jobs for a database path.
-    pub async fn cancel(&self, db_path: PathBuf, model_id: Option<String>) -> Result<(), mpsc::error::SendError<WorkerMessage>> {
-        self.sender.send(WorkerMessage::Cancel { db_path, model_id }).await
+    pub async fn cancel(
+        &self,
+        db_path: PathBuf,
+        model_id: Option<String>,
+    ) -> Result<(), mpsc::error::SendError<WorkerMessage>> {
+        self.sender
+            .send(WorkerMessage::Cancel { db_path, model_id })
+            .await
     }
 
     /// Request worker shutdown.
@@ -76,7 +88,10 @@ impl EmbeddingWorker {
         let (sender, receiver) = mpsc::channel(32);
         let cancel_flag = Arc::new(AtomicBool::new(false));
 
-        let worker = Self { receiver, cancel_flag };
+        let worker = Self {
+            receiver,
+            cancel_flag,
+        };
         let handle = EmbeddingWorkerHandle { sender };
 
         (worker, handle)
@@ -153,12 +168,15 @@ impl EmbeddingWorker {
 
         // Determine which passes to run
         let passes: Vec<(&str, String, bool)> = if config.two_tier {
-            let fast = config.fast_model.clone().unwrap_or_else(|| "hash-fnv1a-384".to_string());
-            let quality = config.quality_model.clone().unwrap_or_else(|| "all-MiniLM-L6-v2".to_string());
-            vec![
-                ("fast", fast, false),
-                ("quality", quality, true),
-            ]
+            let fast = config
+                .fast_model
+                .clone()
+                .unwrap_or_else(|| "hash-fnv1a-384".to_string());
+            let quality = config
+                .quality_model
+                .clone()
+                .unwrap_or_else(|| "all-MiniLM-L6-v2".to_string());
+            vec![("fast", fast, false), ("quality", quality, true)]
         } else {
             // Single-pass with default hash embedder
             vec![("default", "hash-fnv1a-384".to_string(), false)]
@@ -177,7 +195,10 @@ impl EmbeddingWorker {
             let job_id = storage.upsert_embedding_job(&db_path_str, model_id, total_docs)?;
             storage.start_embedding_job(job_id)?;
 
-            info!("Processing {} pass (model: {}) for {}", model_id, model_name, db_path_str);
+            info!(
+                "Processing {} pass (model: {}) for {}",
+                model_id, model_name, db_path_str
+            );
 
             // Generate embeddings (sync operation)
             let db_path = config.db_path.clone();
@@ -225,15 +246,18 @@ impl EmbeddingWorker {
     /// Count total embeddable documents.
     fn count_documents(&self, storage: &Storage) -> anyhow::Result<i64> {
         let tweets = storage.get_all_tweets(None)?.len();
-        let likes = storage.get_all_likes(None)?
+        let likes = storage
+            .get_all_likes(None)?
             .iter()
             .filter(|l| l.full_text.as_ref().is_some_and(|t| !t.is_empty()))
             .count();
-        let dms = storage.get_all_dms(None)?
+        let dms = storage
+            .get_all_dms(None)?
             .iter()
             .filter(|d| !d.text.is_empty())
             .count();
-        let grok = storage.get_all_grok_messages(None)?
+        let grok = storage
+            .get_all_grok_messages(None)?
             .iter()
             .filter(|m| !m.message.is_empty())
             .count();
@@ -374,7 +398,8 @@ impl EmbeddingWorker {
             }
 
             if !needed_hashes.is_empty() {
-                let fetched = storage.load_embeddings_by_hashes_for_model(&needed_hashes, model_id)?;
+                let fetched =
+                    storage.load_embeddings_by_hashes_for_model(&needed_hashes, model_id)?;
                 for (hash, embedding) in fetched {
                     batch_cache.insert(hash, embedding);
                 }
@@ -396,15 +421,15 @@ impl EmbeddingWorker {
             if !new_hashes.is_empty() {
                 let computed_embeddings: Vec<([u8; 32], Vec<f32>)> = new_hashes
                     .par_iter()
-                    .filter_map(|(doc_id, canonical, hash)| {
-                        match embedder.embed(canonical) {
+                    .filter_map(
+                        |(doc_id, canonical, hash)| match embedder.embed(canonical) {
                             Ok(embedding) => Some((*hash, embedding)),
                             Err(e) => {
                                 warn!("Failed to embed doc {}: {}", doc_id, e);
                                 None
                             }
-                        }
-                    })
+                        },
+                    )
                     .collect();
 
                 for (hash, embedding) in computed_embeddings {
@@ -460,8 +485,8 @@ impl EmbeddingWorker {
     /// Write vector indices after embedding generation (sync version).
     fn write_vector_indices_sync(&self, config: &EmbeddingJobConfig) -> anyhow::Result<()> {
         use crate::vector::{
-            VECTOR_INDEX_FAST_FILENAME, VECTOR_INDEX_QUALITY_FILENAME,
-            write_vector_index, write_vector_index_named,
+            VECTOR_INDEX_FAST_FILENAME, VECTOR_INDEX_QUALITY_FILENAME, write_vector_index,
+            write_vector_index_named,
         };
 
         let index_path = &config.index_path;
@@ -473,11 +498,27 @@ impl EmbeddingWorker {
 
         if config.two_tier {
             // Also write named tier indices for two-tier search
-            write_vector_index_named(index_path, &storage, VECTOR_INDEX_FAST_FILENAME, Some("fast"))?;
-            info!("Wrote fast vector index to {}", index_path.join(VECTOR_INDEX_FAST_FILENAME).display());
+            write_vector_index_named(
+                index_path,
+                &storage,
+                VECTOR_INDEX_FAST_FILENAME,
+                Some("fast"),
+            )?;
+            info!(
+                "Wrote fast vector index to {}",
+                index_path.join(VECTOR_INDEX_FAST_FILENAME).display()
+            );
 
-            write_vector_index_named(index_path, &storage, VECTOR_INDEX_QUALITY_FILENAME, Some("quality"))?;
-            info!("Wrote quality vector index to {}", index_path.join(VECTOR_INDEX_QUALITY_FILENAME).display());
+            write_vector_index_named(
+                index_path,
+                &storage,
+                VECTOR_INDEX_QUALITY_FILENAME,
+                Some("quality"),
+            )?;
+            info!(
+                "Wrote quality vector index to {}",
+                index_path.join(VECTOR_INDEX_QUALITY_FILENAME).display()
+            );
         }
 
         Ok(())

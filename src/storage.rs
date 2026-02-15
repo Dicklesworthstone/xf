@@ -4607,16 +4607,12 @@ mod tests {
         let storage = Storage::open_memory().unwrap();
 
         // Create multiple jobs
-        storage
-            .upsert_embedding_job("/db1", "fast", 100)
-            .unwrap();
+        storage.upsert_embedding_job("/db1", "fast", 100).unwrap();
         let job2_id = storage
             .upsert_embedding_job("/db1", "quality", 200)
             .unwrap();
         storage.start_embedding_job(job2_id).unwrap();
-        let job3_id = storage
-            .upsert_embedding_job("/db2", "fast", 300)
-            .unwrap();
+        let job3_id = storage.upsert_embedding_job("/db2", "fast", 300).unwrap();
         storage.start_embedding_job(job3_id).unwrap();
         storage.complete_embedding_job(job3_id).unwrap();
 
@@ -4630,7 +4626,9 @@ mod tests {
         let storage = Storage::open_memory().unwrap();
 
         storage.upsert_embedding_job("/db1", "fast", 100).unwrap();
-        storage.upsert_embedding_job("/db1", "quality", 200).unwrap();
+        storage
+            .upsert_embedding_job("/db1", "quality", 200)
+            .unwrap();
         storage.upsert_embedding_job("/db2", "fast", 300).unwrap();
 
         // Cancel all jobs for /db1
@@ -4638,9 +4636,7 @@ mod tests {
         assert_eq!(cancelled, 2);
 
         // Cancel specific model for /db2
-        let cancelled = storage
-            .cancel_embedding_jobs("/db2", Some("fast"))
-            .unwrap();
+        let cancelled = storage.cancel_embedding_jobs("/db2", Some("fast")).unwrap();
         assert_eq!(cancelled, 1);
 
         // All should be failed now
@@ -4653,7 +4649,9 @@ mod tests {
         let storage = Storage::open_memory().unwrap();
 
         storage.upsert_embedding_job("/db1", "fast", 100).unwrap();
-        storage.upsert_embedding_job("/db1", "quality", 200).unwrap();
+        storage
+            .upsert_embedding_job("/db1", "quality", 200)
+            .unwrap();
         storage.upsert_embedding_job("/db2", "fast", 300).unwrap();
 
         let jobs = storage.get_job_status("/db1").unwrap();

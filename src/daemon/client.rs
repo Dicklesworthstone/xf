@@ -431,16 +431,24 @@ impl DaemonClient {
         let request = Request::SubmitEmbeddingJob {
             db_path: db_path.to_string(),
             index_path: index_path.to_string(),
-            model_id: if two_tier { "two_tier".to_string() } else { "default".to_string() },
+            model_id: if two_tier {
+                "two_tier".to_string()
+            } else {
+                "default".to_string()
+            },
             two_tier,
             fast_model,
             quality_model,
         };
 
         match self.send(request).await? {
-            Response::JobSubmitted { job_id, estimated_docs } => {
-                Ok(EmbeddingJobSubmitResult { job_id, estimated_docs })
-            }
+            Response::JobSubmitted {
+                job_id,
+                estimated_docs,
+            } => Ok(EmbeddingJobSubmitResult {
+                job_id,
+                estimated_docs,
+            }),
             Response::Error { code, message } => {
                 anyhow::bail!("job submit error {code}: {message}")
             }

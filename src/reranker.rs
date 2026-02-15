@@ -3,6 +3,10 @@
 //! Rerankers take a query and candidate documents, returning relevance scores
 //! suitable for re-sorting a top-N candidate set.
 
+#[cfg(feature = "frankensearch-migration")]
+use frankensearch_core::{
+    Cx, RerankDocument, RerankScore, Reranker as FrankensearchReranker, SearchError, SearchFuture,
+};
 use thiserror::Error;
 
 /// Errors that can occur during reranking operations.
@@ -56,6 +60,94 @@ pub trait Reranker: Send + Sync {
             model_name: self.model_name().to_string(),
             max_length: self.max_length(),
         }
+    }
+}
+
+#[cfg(feature = "frankensearch-migration")]
+fn map_reranker_error(model: &str, err: RerankerError) -> SearchError {
+    match err {
+        RerankerError::Unavailable(_) => SearchError::RerankerUnavailable {
+            model: model.to_string(),
+        },
+        RerankerError::InvalidInput(value) => SearchError::InvalidConfig {
+            field: "reranker_input".to_string(),
+            value,
+            reason: "invalid reranker input".to_string(),
+        },
+        other => SearchError::RerankFailed {
+            model: model.to_string(),
+            source: Box::new(other),
+        },
+    }
+}
+
+/// Feature-gated adapter from xf's synchronous reranker trait to frankensearch's async trait.
+#[cfg(feature = "frankensearch-migration")]
+pub struct FrankensearchRerankerAdapter {
+    inner: Box<dyn Reranker>,
+    adapter_id: String,
+}
+
+#[cfg(feature = "frankensearch-migration")]
+impl FrankensearchRerankerAdapter {
+    #[must_use]
+    pub fn new(inner: Box<dyn Reranker>) -> Self {
+        let adapter_id = format!("xf-adapter::{}", inner.model_name());
+        Self { inner, adapter_id }
+    }
+
+    #[must_use]
+    pub fn into_inner(self) -> Box<dyn Reranker> {
+        self.inner
+    }
+}
+
+#[cfg(feature = "frankensearch-migration")]
+impl FrankensearchReranker for FrankensearchRerankerAdapter {
+    fn rerank<'a>(
+        &'a self,
+        _cx: &'a Cx,
+        query: &'a str,
+        documents: &'a [RerankDocument],
+    ) -> SearchFuture<'a, Vec<RerankScore>> {
+        Box::pin(async move {
+            let texts: Vec<&str> = documents.iter().map(|doc| doc.text.as_str()).collect();
+            let scores = self
+                .inner
+                .rerank(query, &texts)
+                .map_err(|err| map_reranker_error(self.inner.model_name(), err))?;
+
+            let mut reranked: Vec<RerankScore> = documents
+                .iter()
+                .zip(scores.into_iter())
+                .enumerate()
+                .map(|(original_rank, (doc, score))| RerankScore {
+                    doc_id: doc.doc_id.clone(),
+                    score,
+                    original_rank,
+                })
+                .collect();
+
+            reranked.sort_by(|left, right| {
+                right
+                    .score
+                    .total_cmp(&left.score)
+                    .then_with(|| left.doc_id.cmp(&right.doc_id))
+            });
+            Ok(reranked)
+        })
+    }
+
+    fn id(&self) -> &str {
+        &self.adapter_id
+    }
+
+    fn model_name(&self) -> &str {
+        self.inner.model_name()
+    }
+
+    fn max_length(&self) -> usize {
+        self.inner.max_length()
     }
 }
 
