@@ -6,10 +6,12 @@
 # Exit code 0 = all outputs match, 1 = mismatch found
 #
 # Usage:
-#   ./scripts/verify_isomorphism.sh [--update]
+#   ./scripts/verify_isomorphism.sh [--update] [--migration-parity] [--migration-parity-only]
 #
 # Options:
-#   --update    Update golden files with current outputs (use after intentional changes)
+#   --update                 Update golden files with current outputs (use after intentional changes)
+#   --migration-parity       Run migration parity test lane and emit replay artifacts
+#   --migration-parity-only  Run only migration parity lane (skip golden output checks)
 #
 
 set -euo pipefail
@@ -33,39 +35,68 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 UPDATE_MODE=false
-if [[ "${1:-}" == "--update" ]]; then
-    UPDATE_MODE=true
+RUN_MIGRATION_PARITY=false
+MIGRATION_PARITY_ONLY=false
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --update)
+            UPDATE_MODE=true
+            ;;
+        --migration-parity)
+            RUN_MIGRATION_PARITY=true
+            ;;
+        --migration-parity-only)
+            RUN_MIGRATION_PARITY=true
+            MIGRATION_PARITY_ONLY=true
+            ;;
+        *)
+            echo -e "${RED}Unknown option: $1${NC}"
+            echo "Usage: ./scripts/verify_isomorphism.sh [--update] [--migration-parity] [--migration-parity-only]"
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+if [[ "$UPDATE_MODE" == "true" ]]; then
     echo -e "${YELLOW}Running in UPDATE mode - golden files will be updated${NC}"
 fi
 
-# Check if xf binary exists
-if ! command -v xf &> /dev/null; then
-    # Try to find it in target directory
-    if [[ -f "$PROJECT_ROOT/target/release/xf" ]]; then
-        XF="$PROJECT_ROOT/target/release/xf"
-    elif [[ -f "$PROJECT_ROOT/target/debug/xf" ]]; then
-        XF="$PROJECT_ROOT/target/debug/xf"
+# Check if xf binary exists (not required for migration-parity-only mode).
+if [[ "$MIGRATION_PARITY_ONLY" != "true" ]]; then
+    if ! command -v xf &> /dev/null; then
+        # Try to find it in target directory
+        if [[ -f "$PROJECT_ROOT/target/release/xf" ]]; then
+            XF="$PROJECT_ROOT/target/release/xf"
+        elif [[ -f "$PROJECT_ROOT/target/debug/xf" ]]; then
+            XF="$PROJECT_ROOT/target/debug/xf"
+        else
+            echo -e "${RED}Error: xf binary not found. Run 'cargo build --release' first.${NC}"
+            exit 1
+        fi
     else
-        echo -e "${RED}Error: xf binary not found. Run 'cargo build --release' first.${NC}"
-        exit 1
+        XF="xf"
     fi
-else
-    XF="xf"
 fi
 
-echo "Using xf binary: $XF"
+if [[ "$MIGRATION_PARITY_ONLY" != "true" ]]; then
+    echo "Using xf binary: $XF"
+fi
 
-# Create temp database and index for testing
-TEST_DB="$TEMP_DIR/test.db"
-TEST_INDEX="$TEMP_DIR/test_index"
+if [[ "$MIGRATION_PARITY_ONLY" != "true" ]]; then
+    # Create temp database and index for testing
+    TEST_DB="$TEMP_DIR/test.db"
+    TEST_INDEX="$TEMP_DIR/test_index"
 
-# Index the corpus
-echo "Indexing test corpus..."
-XF_DB="$TEST_DB" XF_INDEX="$TEST_INDEX" $XF index "$CORPUS_DIR" --quiet 2>/dev/null || {
-    echo -e "${RED}Failed to index corpus${NC}"
-    exit 1
-}
-echo "Index complete."
+    # Index the corpus
+    echo "Indexing test corpus..."
+    XF_DB="$TEST_DB" XF_INDEX="$TEST_INDEX" $XF index "$CORPUS_DIR" --quiet 2>/dev/null || {
+        echo -e "${RED}Failed to index corpus${NC}"
+        exit 1
+    }
+    echo "Index complete."
+fi
 
 # Track results
 PASSED=0
@@ -136,6 +167,57 @@ run_and_check() {
     check_golden "$name" "$output_file"
 }
 
+run_migration_parity() {
+    local artifact_root="$PROJECT_ROOT/test_logs/migration_parity"
+    local timestamp
+    local log_file
+    local meta_file
+    local replay_cmd
+
+    if ! command -v rch &> /dev/null; then
+        echo -e "${RED}Error: rch is required for migration parity lane.${NC}"
+        return 1
+    fi
+
+    mkdir -p "$artifact_root"
+    timestamp="$(date -u +"%Y%m%dT%H%M%SZ")"
+    log_file="$artifact_root/rrf_parity_${timestamp}.log"
+    meta_file="$artifact_root/rrf_parity_${timestamp}.meta.json"
+    replay_cmd="RUSTUP_TOOLCHAIN=nightly RCH_MOCK_CIRCUIT_OPEN=1 rch exec -- cargo test --features frankensearch-migration hybrid::tests::test_rrf_isomorphic_legacy_randomized -- --nocapture"
+
+    cat > "$meta_file" <<EOF
+{
+  "test": "hybrid::tests::test_rrf_isomorphic_legacy_randomized",
+  "seed": 42,
+  "case_count": 25,
+  "replay_command": "$replay_cmd",
+  "created_at_utc": "$timestamp",
+  "log_file": "$log_file"
+}
+EOF
+
+    echo ""
+    echo "=== Migration parity lane ==="
+    echo "Metadata: $meta_file"
+    echo "Log:      $log_file"
+
+    (
+        cd "$PROJECT_ROOT"
+        echo "\$ $replay_cmd" | tee "$log_file"
+        RUSTUP_TOOLCHAIN=nightly RCH_MOCK_CIRCUIT_OPEN="${RCH_MOCK_CIRCUIT_OPEN:-1}" \
+            rch exec -- cargo test --features frankensearch-migration \
+            hybrid::tests::test_rrf_isomorphic_legacy_randomized -- --nocapture \
+            | tee -a "$log_file"
+    )
+
+    echo -e "${GREEN}PASS: migration parity lane${NC}"
+}
+
+if [[ "$MIGRATION_PARITY_ONLY" == "true" ]]; then
+    run_migration_parity
+    exit 0
+fi
+
 echo ""
 echo "=== Verifying search outputs ==="
 
@@ -153,6 +235,9 @@ echo ""
 echo "=== Summary ==="
 if [[ "$UPDATE_MODE" == "true" ]]; then
     echo -e "Updated: $UPDATED golden files"
+    if [[ "$RUN_MIGRATION_PARITY" == "true" ]]; then
+        run_migration_parity
+    fi
 else
     echo -e "Passed: $PASSED"
     echo -e "Failed: $FAILED"
@@ -162,6 +247,9 @@ else
         echo "Run with --update to regenerate golden files if changes are intentional."
         exit 1
     else
+        if [[ "$RUN_MIGRATION_PARITY" == "true" ]]; then
+            run_migration_parity
+        fi
         echo -e "\n${GREEN}All outputs match golden files.${NC}"
         exit 0
     fi
