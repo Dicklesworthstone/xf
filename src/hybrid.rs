@@ -47,6 +47,7 @@ impl<'a> DocKey<'a> {
 }
 
 /// RRF constant K. Empirically, K=60 works well for most use cases.
+#[cfg(any(not(feature = "frankensearch-migration"), test))]
 const RRF_K: f32 = 60.0;
 #[cfg(feature = "frankensearch-migration")]
 const DOC_KEY_SEPARATOR: char = '\u{1f}';
@@ -146,15 +147,6 @@ fn compose_doc_key(doc_id: &str, doc_type: &str) -> String {
     key
 }
 
-#[allow(clippy::cast_precision_loss)]
-#[must_use]
-#[cfg(feature = "frankensearch-migration")]
-fn score_from_ranks(lexical_rank: Option<usize>, semantic_rank: Option<usize>) -> f32 {
-    let lexical = lexical_rank.map_or(0.0, |rank| 1.0 / (RRF_K + rank as f32 + 1.0));
-    let semantic = semantic_rank.map_or(0.0, |rank| 1.0 / (RRF_K + rank as f32 + 1.0));
-    lexical + semantic
-}
-
 /// Fuse lexical and semantic search results using RRF.
 ///
 /// # Arguments
@@ -248,7 +240,7 @@ pub fn rrf_fuse<'a>(
                 #[allow(clippy::cast_possible_truncation)]
                 score: hit.rrf_score as f32,
                 lexical_rank: hit.lexical_rank,
-                in_both: hit.in_both_sources,
+                in_both: hit.lexical_rank.is_some() && hit.semantic_rank.is_some(),
             }
         })
         .collect();
