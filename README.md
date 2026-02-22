@@ -7,7 +7,7 @@
 <div align="center">
 
 [![CI](https://github.com/Dicklesworthstone/xf/actions/workflows/ci.yml/badge.svg)](https://github.com/Dicklesworthstone/xf/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT%2BOpenAI%2FAnthropic%20Rider-blue.svg)](./LICENSE)
 
 </div>
 
@@ -1523,7 +1523,7 @@ xf index ~/x-archive --semantic --force # rebuild with ML embeddings
 
 ## License
 
-MIT - see [LICENSE](LICENSE) for details.
+MIT License (with OpenAI/Anthropic Rider) — see [LICENSE](LICENSE) for details.
 
 ---
 
