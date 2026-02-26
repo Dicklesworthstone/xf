@@ -750,34 +750,52 @@ Returns structured results with file paths, line ranges, and extracted code snip
 
 ---
 
-## cass — Cross-Agent Search
+## MCP Agent Mail — Multi-Agent Coordination
 
-`cass` indexes prior agent conversations (Claude Code, Codex, Cursor, Gemini, ChatGPT, etc.) so we can reuse solved problems.
+A mail-like layer that lets coding agents coordinate asynchronously via MCP tools and resources. Provides identities, inbox/outbox, searchable threads, and advisory file reservations with human-auditable artifacts in Git.
 
-Rules:
+### Why It's Useful
 
-- Never run bare `cass` (TUI). Always use `--robot` or `--json`.
+- **Prevents conflicts:** Explicit file reservations (leases) for files/globs
+- **Token-efficient:** Messages stored in per-project archive, not in context
+- **Quick reads:** `resource://inbox/...`, `resource://thread/...`
 
-Examples:
+### Same Repository Workflow
 
-```bash
-cass health
-cass search "authentication error" --robot --limit 5
-cass view /path/to/session.jsonl -n 42 --json
-cass expand /path/to/session.jsonl -n 42 -C 3 --json
-cass capabilities --json
-cass robot-docs guide
-```
+1. **Register identity:**
+   ```
+   ensure_project(project_key=<abs-path>)
+   register_agent(project_key, program, model)
+   ```
 
-Tips:
+2. **Reserve files before editing:**
+   ```
+   file_reservation_paths(project_key, agent_name, ["src/**"], ttl_seconds=3600, exclusive=true)
+   ```
 
-- Use `--fields minimal` for lean output.
-- Filter by agent with `--agent`.
-- Use `--days N` to limit to recent history.
+3. **Communicate with threads:**
+   ```
+   send_message(..., thread_id="FEAT-123")
+   fetch_inbox(project_key, agent_name)
+   acknowledge_message(project_key, agent_name, message_id)
+   ```
 
-stdout is data-only, stderr is diagnostics; exit code 0 means success.
+4. **Quick reads:**
+   ```
+   resource://inbox/{Agent}?project=<abs-path>&limit=20
+   resource://thread/{id}?project=<abs-path>&include_bodies=true
+   ```
 
-Treat cass as a way to avoid re-solving problems other agents already handled.
+### Macros vs Granular Tools
+
+- **Prefer macros for speed:** `macro_start_session`, `macro_prepare_thread`, `macro_file_reservation_cycle`, `macro_contact_handshake`
+- **Use granular tools for control:** `register_agent`, `file_reservation_paths`, `send_message`, `fetch_inbox`, `acknowledge_message`
+
+### Common Pitfalls
+
+- `"from_agent not registered"`: Always `register_agent` in the correct `project_key` first
+- `"FILE_RESERVATION_CONFLICT"`: Adjust patterns, wait for expiry, or use non-exclusive reservation
+- **Auth errors:** If JWT+JWKS enabled, include bearer token with matching `kid`
 
 ---
 
@@ -991,6 +1009,35 @@ git push                # Push to remote
 3. **Update issue status** - Close finished work, update in-progress items
 4. **Sync beads** - `br sync --flush-only` to export to JSONL
 5. **Hand off** - Provide context for next session
+
+---
+
+## cass — Cross-Agent Session Search
+
+`cass` indexes prior agent conversations (Claude Code, Codex, Cursor, Gemini, ChatGPT, etc.) so we can reuse solved problems.
+
+**Rules:** Never run bare `cass` (TUI). Always use `--robot` or `--json`.
+
+### Examples
+
+```bash
+cass health
+cass search "async runtime" --robot --limit 5
+cass view /path/to/session.jsonl -n 42 --json
+cass expand /path/to/session.jsonl -n 42 -C 3 --json
+cass capabilities --json
+cass robot-docs guide
+```
+
+### Tips
+
+- Use `--fields minimal` for lean output
+- Filter by agent with `--agent`
+- Use `--days N` to limit to recent history
+
+stdout is data-only, stderr is diagnostics; exit code 0 means success.
+
+Treat cass as a way to avoid re-solving problems other agents already handled.
 
 ---
 
