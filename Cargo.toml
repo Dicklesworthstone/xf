@@ -65,7 +65,7 @@ frankensearch-core = { git = "https://github.com/Dicklesworthstone/frankensearch
 frankensearch-fusion = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-fusion" }
 frankensearch-index = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-index" }
 frankensearch-embed = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-embed", features = ["hash", "model2vec", "fastembed"] }
-asupersync = { path = "/data/projects/asupersync" }
+asupersync = { git = "https://github.com/Dicklesworthstone/asupersync" }
 
 # High-performance text processing
 regex = "1.10"
@@ -138,11 +138,9 @@ legacy-colors = []
 parallel-search = []
 alloc-count = []
 
-# frankensearch currently wires asupersync through a workspace path outside the
-# frankensearch git checkout, which can resolve inconsistently on remote workers.
-# Force all asupersync requests coming from that source to the canonical repo.
+# Pin asupersync for frankensearch sub-crates to the canonical git repo.
 [patch."https://github.com/Dicklesworthstone/frankensearch.git"]
-asupersync = { path = "/data/projects/asupersync" }
+asupersync = { git = "https://github.com/Dicklesworthstone/asupersync" }
 
 [[bench]]
 name = "search_perf"
