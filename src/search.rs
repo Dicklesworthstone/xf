@@ -4,7 +4,9 @@
 
 use crate::doctor::{CheckCategory, CheckStatus, HealthCheck};
 use crate::format_bytes;
-use crate::model::{DmConversation, GrokMessage, Like, SearchResult, SearchResultType, Tweet};
+use crate::model::{
+    Bookmark, DmConversation, GrokMessage, Like, SearchResult, SearchResultType, Tweet,
+};
 use crate::storage::Storage;
 use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
@@ -138,6 +140,7 @@ fn doc_to_search_result(
         "like" => SearchResultType::Like,
         "dm" => SearchResultType::DirectMessage,
         "grok" => SearchResultType::GrokMessage,
+        "bookmark" => SearchResultType::Bookmark,
         _ => SearchResultType::Tweet,
     };
 
@@ -162,6 +165,7 @@ pub enum DocType {
     Like,
     DirectMessage,
     GrokMessage,
+    Bookmark,
 }
 
 /// Document lookup key for batch retrieval.
@@ -195,6 +199,7 @@ impl DocType {
             Self::Like => "like",
             Self::DirectMessage => "dm",
             Self::GrokMessage => "grok",
+            Self::Bookmark => "bookmark",
         }
     }
 
@@ -205,6 +210,7 @@ impl DocType {
             "like" => Some(Self::Like),
             "dm" => Some(Self::DirectMessage),
             "grok" => Some(Self::GrokMessage),
+            "bookmark" => Some(Self::Bookmark),
             _ => None,
         }
     }
@@ -511,6 +517,48 @@ impl SearchEngine {
         Ok(count)
     }
 
+    /// Index bookmarks (only those with full text from cross-referencing tweets.js).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if any document cannot be added to the index.
+    pub fn index_bookmarks(
+        &self,
+        writer: &mut IndexWriter,
+        bookmarks: &[Bookmark],
+    ) -> Result<usize> {
+        let (id_field, text_field, prefix_field, type_field, created_at_field, metadata_field) =
+            self.get_fields();
+
+        let mut count = 0;
+        for bookmark in bookmarks {
+            if let Some(text) = &bookmark.full_text {
+                if text.is_empty() {
+                    continue;
+                }
+
+                let prefixes = generate_prefixes(text);
+
+                let metadata = serde_json::json!({
+                    "tweet_id": bookmark.tweet_id,
+                });
+
+                writer.add_document(doc!(
+                    id_field => format!("bm_{}", bookmark.tweet_id),
+                    text_field => text.clone(),
+                    prefix_field => prefixes,
+                    type_field => DocType::Bookmark.as_str(),
+                    created_at_field => 0i64, // Bookmarks don't have timestamps
+                    metadata_field => metadata.to_string(),
+                ))?;
+                count += 1;
+            }
+        }
+
+        info!("Indexed {} bookmarks", count);
+        Ok(count)
+    }
+
     /// Search the index.
     ///
     /// # Errors
@@ -623,6 +671,7 @@ impl SearchEngine {
                 "like" => SearchResultType::Like,
                 "dm" => SearchResultType::DirectMessage,
                 "grok" => SearchResultType::GrokMessage,
+                "bookmark" => SearchResultType::Bookmark,
                 _ => SearchResultType::Tweet,
             };
 
@@ -808,6 +857,7 @@ impl SearchEngine {
                 "like" => SearchResultType::Like,
                 "dm" => SearchResultType::DirectMessage,
                 "grok" => SearchResultType::GrokMessage,
+                "bookmark" => SearchResultType::Bookmark,
                 _ => SearchResultType::Tweet,
             };
 

@@ -4,8 +4,8 @@
 
 use crate::doctor::{CheckCategory, CheckStatus, HealthCheck, TableStat};
 use crate::model::{
-    ArchiveInfo, ArchiveStats, Block, DirectMessage, DmConversation, DmConversationSummary,
-    Follower, Following, GrokMessage, Like, Mute, Tweet,
+    ArchiveInfo, ArchiveStats, Block, Bookmark, DirectMessage, DmConversation,
+    DmConversationSummary, Follower, Following, GrokMessage, Like, Mute, Tweet,
 };
 use crate::{format_bytes_i64, format_number};
 use anyhow::{Context, Result};
@@ -15,7 +15,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use tracing::info;
 
-const SCHEMA_VERSION: i32 = 5;
+const SCHEMA_VERSION: i32 = 6;
 // SQLite default limit on host parameters is usually 999 or 32766.
 // We use a safe batch size to avoid "too many SQL variables" errors.
 const SQLITE_BATCH_SIZE: usize = 900;
@@ -51,6 +51,7 @@ pub struct FtsRebuildStats {
     pub likes: usize,
     pub dms: usize,
     pub grok: usize,
+    pub bookmarks: usize,
 }
 
 /// Status of an embedding job.
@@ -112,6 +113,7 @@ pub struct AllCounts {
     pub blocks_count: i64,
     pub mutes_count: i64,
     pub grok_messages_count: i64,
+    pub bookmarks_count: i64,
     pub first_tweet_date: Option<DateTime<Utc>>,
     pub last_tweet_date: Option<DateTime<Utc>>,
 }
@@ -350,6 +352,12 @@ impl Storage {
                 user_link TEXT
             );
 
+            -- Bookmarks
+            CREATE TABLE IF NOT EXISTS bookmarks (
+                tweet_id TEXT PRIMARY KEY,
+                full_text TEXT
+            );
+
             -- Grok messages
             CREATE TABLE IF NOT EXISTS grok_messages (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -381,6 +389,11 @@ impl Storage {
             CREATE VIRTUAL TABLE IF NOT EXISTS fts_grok USING fts5(
                 grok_id,
                 message
+            );
+
+            CREATE VIRTUAL TABLE IF NOT EXISTS fts_bookmarks USING fts5(
+                tweet_id,
+                full_text
             );
 
             -- Embeddings for semantic search
@@ -819,6 +832,51 @@ impl Storage {
         Ok(count)
     }
 
+    /// Store bookmarks in a transaction.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if any bookmark insert fails.
+    pub fn store_bookmarks(&mut self, bookmarks: &[Bookmark]) -> Result<usize> {
+        let tx = self.conn.transaction()?;
+        let mut count = 0;
+
+        {
+            // FTS5 batch delete for all bookmarks to avoid stale rows.
+            let bm_ids: Vec<_> = bookmarks.iter().map(|b| b.tweet_id.as_str()).collect();
+            if !bm_ids.is_empty() {
+                for chunk in bm_ids.chunks(SQLITE_BATCH_SIZE) {
+                    let placeholders: String =
+                        chunk.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+                    let delete_sql =
+                        format!("DELETE FROM fts_bookmarks WHERE tweet_id IN ({placeholders})");
+                    let mut delete_stmt = tx.prepare_cached(&delete_sql)?;
+                    delete_stmt.execute(rusqlite::params_from_iter(chunk.iter()))?;
+                }
+            }
+
+            let mut stmt = tx.prepare(
+                "INSERT OR REPLACE INTO bookmarks (tweet_id, full_text) VALUES (?, ?)",
+            )?;
+            let mut fts_stmt =
+                tx.prepare("INSERT INTO fts_bookmarks (tweet_id, full_text) VALUES (?, ?)")?;
+
+            for bookmark in bookmarks {
+                stmt.execute(params![bookmark.tweet_id, bookmark.full_text])?;
+                if let Some(text) = &bookmark.full_text {
+                    if !text.is_empty() {
+                        fts_stmt.execute(params![&bookmark.tweet_id, text])?;
+                    }
+                }
+                count += 1;
+            }
+        }
+
+        tx.commit()?;
+        info!("Stored {} bookmarks", count);
+        Ok(count)
+    }
+
     /// Get archive statistics.
     ///
     /// # Errors
@@ -838,6 +896,7 @@ impl Storage {
             blocks_count: counts.blocks_count,
             mutes_count: counts.mutes_count,
             grok_messages_count: counts.grok_messages_count,
+            bookmarks_count: counts.bookmarks_count,
             first_tweet_date: counts.first_tweet_date,
             last_tweet_date: counts.last_tweet_date,
             index_built_at,
@@ -880,13 +939,14 @@ impl Storage {
                 (SELECT COUNT(*) FROM blocks) AS blocks_count,
                 (SELECT COUNT(*) FROM mutes) AS mutes_count,
                 (SELECT COUNT(*) FROM grok_messages) AS grok_messages_count,
+                (SELECT COUNT(*) FROM bookmarks) AS bookmarks_count,
                 (SELECT MIN(created_at) FROM tweets) AS first_tweet_date,
                 (SELECT MAX(created_at) FROM tweets) AS last_tweet_date
         ";
 
         Ok(self.conn.query_row(query, [], |row| {
-            let first_tweet_date: Option<String> = row.get(9)?;
-            let last_tweet_date: Option<String> = row.get(10)?;
+            let first_tweet_date: Option<String> = row.get(10)?;
+            let last_tweet_date: Option<String> = row.get(11)?;
             Ok(AllCounts {
                 tweets_count: row.get(0)?,
                 likes_count: row.get(1)?,
@@ -897,6 +957,7 @@ impl Storage {
                 blocks_count: row.get(6)?,
                 mutes_count: row.get(7)?,
                 grok_messages_count: row.get(8)?,
+                bookmarks_count: row.get(9)?,
                 first_tweet_date: parse_rfc3339_opt(first_tweet_date),
                 last_tweet_date: parse_rfc3339_opt(last_tweet_date),
             })
@@ -916,7 +977,8 @@ impl Storage {
                 (SELECT COUNT(*) FROM tweets) +
                 (SELECT COUNT(*) FROM likes WHERE full_text IS NOT NULL AND full_text != '') +
                 (SELECT COUNT(*) FROM direct_messages) +
-                (SELECT COUNT(*) FROM grok_messages)
+                (SELECT COUNT(*) FROM grok_messages) +
+                (SELECT COUNT(*) FROM bookmarks WHERE full_text IS NOT NULL AND full_text != '')
         ";
 
         Ok(self.conn.query_row(query, [], |row| row.get(0))?)
@@ -990,6 +1052,13 @@ impl Storage {
             [],
         )?;
 
+        tx.execute("DELETE FROM fts_bookmarks", [])?;
+        let bookmarks = tx.execute(
+            "INSERT INTO fts_bookmarks (tweet_id, full_text)
+             SELECT tweet_id, full_text FROM bookmarks WHERE full_text IS NOT NULL AND full_text != ''",
+            [],
+        )?;
+
         tx.commit()?;
 
         Ok(FtsRebuildStats {
@@ -997,6 +1066,7 @@ impl Storage {
             likes,
             dms,
             grok,
+            bookmarks,
         })
     }
 
@@ -1062,6 +1132,7 @@ impl Storage {
             "direct_messages",
             "dm_conversations",
             "grok_messages",
+            "bookmarks",
             "followers",
             "following",
             "blocks",
@@ -1070,6 +1141,7 @@ impl Storage {
             "fts_likes",
             "fts_dms",
             "fts_grok",
+            "fts_bookmarks",
         ];
 
         let has_dbstat = self.dbstat_available();
@@ -1153,7 +1225,7 @@ impl Storage {
     }
 
     fn check_fts_integrity(&self) -> Vec<HealthCheck> {
-        let tables = ["fts_tweets", "fts_likes", "fts_dms", "fts_grok"];
+        let tables = ["fts_tweets", "fts_likes", "fts_dms", "fts_grok", "fts_bookmarks"];
         let mut checks = Vec::with_capacity(tables.len());
 
         for table in tables {
@@ -1197,6 +1269,11 @@ impl Storage {
                 "SELECT COUNT(*) FROM fts_dms fts LEFT JOIN direct_messages dm ON fts.dm_id = dm.id WHERE dm.id IS NULL",
                 "Run 'xf index --force' to rebuild FTS tables.",
             ),
+            self.check_count(
+                "FTS orphaned rows (bookmarks)",
+                "SELECT COUNT(*) FROM fts_bookmarks fts LEFT JOIN bookmarks b ON fts.tweet_id = b.tweet_id WHERE b.tweet_id IS NULL",
+                "Run 'xf index --force' to rebuild FTS tables.",
+            ),
         ]
     }
 
@@ -1215,6 +1292,11 @@ impl Storage {
             self.check_count(
                 "FTS missing rows (dms)",
                 "SELECT COUNT(*) FROM direct_messages dm LEFT JOIN fts_dms fts ON fts.dm_id = dm.id WHERE fts.dm_id IS NULL",
+                "Run 'xf index --force' to rebuild FTS tables.",
+            ),
+            self.check_count(
+                "FTS missing rows (bookmarks)",
+                "SELECT COUNT(*) FROM bookmarks b LEFT JOIN fts_bookmarks fts ON fts.tweet_id = b.tweet_id WHERE b.full_text IS NOT NULL AND b.full_text != '' AND fts.tweet_id IS NULL",
                 "Run 'xf index --force' to rebuild FTS tables.",
             ),
         ]

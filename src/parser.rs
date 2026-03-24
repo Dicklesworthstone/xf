@@ -4,8 +4,8 @@
 //! Files are formatted as: `window.YTD.<datatype>.part0 = [...]`
 
 use crate::model::{
-    Account, ArchiveInfo, Block, DirectMessage, DmConversation, Follower, Following, GrokMessage,
-    Like, Mute, Profile, Tweet, TweetMedia, TweetUrl, UserMention,
+    Account, ArchiveInfo, Block, Bookmark, DirectMessage, DmConversation, Follower, Following,
+    GrokMessage, Like, Mute, Profile, Tweet, TweetMedia, TweetUrl, UserMention,
 };
 use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
@@ -616,6 +616,54 @@ impl ArchiveParser {
 
         info!("Parsed {} Grok messages", messages.len());
         Ok(messages)
+    }
+
+    /// Parse bookmarks from bookmarks.js.
+    ///
+    /// Bookmarks only contain tweet IDs, so we cross-reference with the provided
+    /// tweet lookup to get full text when the bookmarked tweet is in the user's archive.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the bookmarks file cannot be read or parsed.
+    pub fn parse_bookmarks(
+        &self,
+        tweet_texts: &HashMap<String, String>,
+    ) -> Result<Vec<Bookmark>> {
+        info!("Parsing bookmarks...");
+        let data = self.read_data_file("bookmarks.js")?;
+
+        let items = Self::as_array_or_empty(&data);
+        if items.is_empty() {
+            info!("No bookmarks found.");
+            return Ok(Vec::new());
+        }
+
+        let mut bookmarks = Vec::new();
+        let mut seen_ids: HashSet<String> = HashSet::new();
+
+        for item in items {
+            let bm = &item["bookmark"];
+            let Some(tweet_id) = bm["tweetId"].as_str().map(String::from) else {
+                continue;
+            };
+            if !seen_ids.insert(tweet_id.clone()) {
+                continue;
+            }
+            let full_text = tweet_texts.get(&tweet_id).cloned();
+            bookmarks.push(Bookmark {
+                tweet_id,
+                full_text,
+            });
+        }
+
+        let with_text = bookmarks.iter().filter(|b| b.full_text.is_some()).count();
+        info!(
+            "Parsed {} bookmarks ({} with full text from tweets.js)",
+            bookmarks.len(),
+            with_text
+        );
+        Ok(bookmarks)
     }
 
     /// List all available data files in the archive.

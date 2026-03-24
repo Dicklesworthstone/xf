@@ -59,6 +59,14 @@ pub struct Like {
     pub expanded_url: Option<String>,
 }
 
+/// A bookmarked tweet
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Bookmark {
+    pub tweet_id: String,
+    /// Full text from cross-referencing with tweets.js, if available
+    pub full_text: Option<String>,
+}
+
 /// A direct message conversation
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DmConversation {
@@ -171,6 +179,7 @@ pub struct ArchiveStats {
     pub blocks_count: i64,
     pub mutes_count: i64,
     pub grok_messages_count: i64,
+    pub bookmarks_count: i64,
     pub first_tweet_date: Option<DateTime<Utc>>,
     pub last_tweet_date: Option<DateTime<Utc>>,
     pub index_built_at: DateTime<Utc>,
@@ -199,6 +208,7 @@ pub enum SearchResultType {
     Like,
     DirectMessage,
     GrokMessage,
+    Bookmark,
 }
 
 impl std::fmt::Display for SearchResultType {
@@ -208,6 +218,7 @@ impl std::fmt::Display for SearchResultType {
             Self::Like => write!(f, "like"),
             Self::DirectMessage => write!(f, "dm"),
             Self::GrokMessage => write!(f, "grok"),
+            Self::Bookmark => write!(f, "bookmark"),
         }
     }
 }

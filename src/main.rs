@@ -723,6 +723,10 @@ fn print_import_welcome(_archive_path: &PathBuf, cli: &Cli, output: &Output) -> 
         let grok_str = format_number(stats.grok_messages_count);
         output.print(&pad(&format!("  Grok:      [bold]{grok_str:>6}[/]")));
     }
+    if stats.bookmarks_count > 0 {
+        let bookmarks_str = format_number(stats.bookmarks_count);
+        output.print(&pad(&format!("  Bookmarks: [bold]{bookmarks_str:>6}[/]")));
+    }
 
     output.print(&pad(""));
     output.print(&pad(
@@ -993,6 +997,10 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, output: &Output) -> Result<()> {
         }
     };
 
+    // Tweet text lookup for cross-referencing (used by bookmarks)
+    let mut tweet_texts: std::collections::HashMap<String, String> =
+        std::collections::HashMap::new();
+
     // Index each data type
     for data_type in &data_types {
         let item_start = Instant::now();
@@ -1000,6 +1008,10 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, output: &Output) -> Result<()> {
             DataType::Tweet => {
                 pb.set_message("tweets");
                 let tweets = parser.parse_tweets()?;
+                // Build tweet text lookup for bookmark cross-referencing
+                for tweet in &tweets {
+                    tweet_texts.insert(tweet.id.clone(), tweet.full_text.clone());
+                }
                 storage.store_tweets(&tweets)?;
                 search_engine.index_tweets(&mut writer, &tweets)?;
                 let elapsed = format_duration(item_start.elapsed());
@@ -1041,6 +1053,19 @@ fn cmd_index(cli: &Cli, args: &cli::IndexArgs, output: &Output) -> Result<()> {
                 log_line(&format!(
                     "  [green]✓[/] [bold]{}[/] Grok messages [dim]({elapsed})[/]",
                     format_number_usize(messages.len())
+                ));
+            }
+            DataType::Bookmark => {
+                pb.set_message("bookmarks");
+                let bookmarks = parser.parse_bookmarks(&tweet_texts)?;
+                storage.store_bookmarks(&bookmarks)?;
+                search_engine.index_bookmarks(&mut writer, &bookmarks)?;
+                let with_text = bookmarks.iter().filter(|b| b.full_text.is_some()).count();
+                let elapsed = format_duration(item_start.elapsed());
+                log_line(&format!(
+                    "  [green]✓[/] [bold]{}[/] bookmarks ({} with text) [dim]({elapsed})[/]",
+                    format_number_usize(bookmarks.len()),
+                    format_number_usize(with_text)
                 ));
             }
             DataType::Follower => {
@@ -1297,6 +1322,7 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
                         SearchType::Like => Some(search::DocType::Like),
                         SearchType::Dm => Some(search::DocType::DirectMessage),
                         SearchType::Grok => Some(search::DocType::GrokMessage),
+                        SearchType::Bookmark => Some(search::DocType::Bookmark),
                         SearchType::All => None,
                     })
                     .collect(),
@@ -2054,6 +2080,7 @@ fn print_result(num: usize, result: &SearchResult, output: &Output) {
         SearchResultType::Like => "[on magenta]LIKE[/]",
         SearchResultType::DirectMessage => "[on green]DM[/]",
         SearchResultType::GrokMessage => "[on yellow]GROK[/]",
+        SearchResultType::Bookmark => "[on cyan]BOOKMARK[/]",
     };
 
     // Result number is bold for easy scanning, ID is shown but dimmed
@@ -2167,7 +2194,10 @@ fn apply_search_filters(
 ) {
     if since.is_some() || until.is_some() {
         results.retain(|r| {
-            if matches!(r.result_type, SearchResultType::Like) {
+            if matches!(
+                r.result_type,
+                SearchResultType::Like | SearchResultType::Bookmark
+            ) {
                 return false;
             }
             if let Some(since_dt) = since {
@@ -2516,6 +2546,11 @@ fn cmd_stats(cli: &Cli, args: &cli::StatsArgs, output: &Output) -> Result<()> {
                 "  [dim]{:<20}[/] [bold]{:>10}[/]",
                 "Grok Messages:",
                 format_number(stats.grok_messages_count)
+            ));
+            output.print(&format!(
+                "  [dim]{:<20}[/] [bold]{:>10}[/]",
+                "Bookmarks:",
+                format_number(stats.bookmarks_count)
             ));
             output.print(&format!(
                 "  [dim]{:<20}[/] [bold]{:>10}[/]",

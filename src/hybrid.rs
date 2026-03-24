@@ -115,6 +115,7 @@ const fn result_type_str(result_type: SearchResultType) -> &'static str {
         SearchResultType::Like => "like",
         SearchResultType::DirectMessage => "dm",
         SearchResultType::GrokMessage => "grok",
+        SearchResultType::Bookmark => "bookmark",
     }
 }
 

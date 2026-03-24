@@ -22,7 +22,7 @@ your X data archive.
 
 Features:
   - Full-text search with BM25 ranking
-  - Search tweets, likes, DMs, and Grok chats
+  - Search tweets, likes, DMs, Grok chats, and bookmarks
   - Sub-millisecond query latency via Tantivy
   - SQLite storage for metadata queries
   - JSON and human-readable output formats
@@ -33,7 +33,7 @@ Quick start:
   3. Search: xf search "your query"
 "#)]
 #[command(after_help = r#"Common tasks:
-  xf search "query"               # Search tweets, likes, DMs, grok chats
+  xf search "query"               # Search tweets, likes, DMs, grok, bookmarks
   xf search "query" --types dm    # Search DMs only
   xf tweet <id> --thread          # View a tweet thread
   xf export tweets --format csv   # Export tweets to CSV
@@ -206,7 +206,7 @@ pub struct SearchArgs {
     /// Search query
     pub query: String,
 
-    /// Filter by data type (tweet, like, dm, grok, all)
+    /// Filter by data type (tweet, like, dm, grok, bookmark, all)
     #[arg(long, short = 't', value_delimiter = ',')]
     pub types: Option<Vec<SearchType>>,
 
@@ -589,6 +589,7 @@ pub enum DataType {
     Like,
     Dm,
     Grok,
+    Bookmark,
     Follower,
     Following,
     Block,
@@ -602,13 +603,14 @@ pub enum SearchType {
     Like,
     Dm,
     Grok,
+    Bookmark,
     All,
 }
 
 impl SearchType {
     #[must_use]
     pub fn all_content() -> Vec<Self> {
-        vec![Self::Tweet, Self::Like, Self::Dm, Self::Grok]
+        vec![Self::Tweet, Self::Like, Self::Dm, Self::Grok, Self::Bookmark]
     }
 }
 
@@ -620,6 +622,7 @@ impl DataType {
             Self::Like,
             Self::Dm,
             Self::Grok,
+            Self::Bookmark,
             Self::Follower,
             Self::Following,
             Self::Block,
