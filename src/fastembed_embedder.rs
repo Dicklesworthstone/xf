@@ -96,11 +96,14 @@ impl FastEmbedModelEmbedder {
             init = init.with_cache_dir(dir);
         }
 
-        let embedding = TextEmbedding::try_new(init)
+        let mut embedding = TextEmbedding::try_new(init)
             .map_err(|e| EmbedderError::Internal(format!("failed to load FastEmbed model: {e}")))?;
 
         let dim = {
-            // Probe a single embedding to derive dimension.
+            // Probe a single embedding to derive dimension. fastembed 5.x
+            // tightened embed() to take &mut self, so both the probe below
+            // and the per-instance embed calls in embed()/embed_batch()
+            // need mutable bindings.
             let probe = embedding
                 .embed(vec!["dimension probe"], None)
                 .map_err(|e| EmbedderError::EmbeddingFailed(format!("probe failed: {e}")))?;
@@ -323,7 +326,7 @@ impl Embedder for FastEmbedModelEmbedder {
         }
 
         let embeddings = {
-            let model = self
+            let mut model = self
                 .model
                 .lock()
                 .map_err(|e| EmbedderError::Internal(format!("model lock poisoned: {e}")))?;
@@ -360,7 +363,7 @@ impl Embedder for FastEmbedModelEmbedder {
         }
 
         let mut embeddings = {
-            let model = self
+            let mut model = self
                 .model
                 .lock()
                 .map_err(|e| EmbedderError::Internal(format!("model lock poisoned: {e}")))?;

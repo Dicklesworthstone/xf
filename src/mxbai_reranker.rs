@@ -20,6 +20,7 @@ use std::sync::Mutex;
 
 use ndarray::Array2;
 use ort::session::{Session, builder::GraphOptimizationLevel};
+use ort::value::TensorRef;
 use tokenizers::Tokenizer;
 
 use crate::reranker::{Reranker, RerankerError, RerankerResult};
@@ -212,74 +213,59 @@ impl MxbaiReranker {
             })?;
 
         // Run inference
-        let session = self
+        // ort rc.11 tightened Session::run to require &mut self.
+        let mut session = self
             .session
             .lock()
             .map_err(|e| RerankerError::Internal(format!("session lock failed: {e}")))?;
 
+        // ort 2.0.0-rc.11 migration: ort::inputs![] no longer returns a
+        // Result and no longer auto-converts ndarray views. Each input
+        // is wrapped in TensorRef; error propagation happens on the
+        // inner `?` of from_array_view.
         let inputs = ort::inputs![
-            "input_ids" => input_ids.view(),
-            "attention_mask" => attention_mask.view(),
-            "token_type_ids" => token_type_ids.view(),
-        ]
-        .map_err(|e| RerankerError::Internal(format!("failed to create inputs: {e}")))?;
+            "input_ids" => TensorRef::from_array_view(input_ids.view())
+                .map_err(|e| RerankerError::Internal(format!("failed to wrap input_ids: {e}")))?,
+            "attention_mask" => TensorRef::from_array_view(attention_mask.view())
+                .map_err(|e| RerankerError::Internal(format!("failed to wrap attention_mask: {e}")))?,
+            "token_type_ids" => TensorRef::from_array_view(token_type_ids.view())
+                .map_err(|e| RerankerError::Internal(format!("failed to wrap token_type_ids: {e}")))?,
+        ];
 
         let outputs = session
             .run(inputs)
             .map_err(|e| RerankerError::RerankFailed(format!("ONNX inference failed: {e}")))?;
 
         // Extract scores from output
-        // mxbai outputs logits of shape (batch_size, 1) or (batch_size,)
-        // Try named outputs first, fall back to index-based access
+        // mxbai outputs logits of shape (batch_size, 1) or (batch_size,).
+        // ort rc.11 changed try_extract_tensor to return `(&Shape, &[f32])`
+        // — the data slice is already flat and contiguous, no extraction step
+        // needed. Try named outputs first, fall back to index-based access.
         let scores: Vec<f32> = if let Some(output) = outputs.get("logits") {
-            let tensor = output
+            let (_shape, data) = output
                 .try_extract_tensor::<f32>()
                 .map_err(|e| RerankerError::Internal(format!("failed to extract logits: {e}")))?;
-            tensor
-                .as_slice()
-                .ok_or_else(|| RerankerError::Internal("non-contiguous tensor".into()))?
-                .iter()
-                .take(batch_size)
-                .copied()
-                .collect()
+            data.iter().take(batch_size).copied().collect()
         } else if let Some(output) = outputs.get("output") {
-            let tensor = output
+            let (_shape, data) = output
                 .try_extract_tensor::<f32>()
                 .map_err(|e| RerankerError::Internal(format!("failed to extract output: {e}")))?;
-            tensor
-                .as_slice()
-                .ok_or_else(|| RerankerError::Internal("non-contiguous tensor".into()))?
-                .iter()
-                .take(batch_size)
-                .copied()
-                .collect()
+            data.iter().take(batch_size).copied().collect()
         } else if let Some(output) = outputs.get("sentence_embedding") {
             // Some models use different output names
-            let tensor = output.try_extract_tensor::<f32>().map_err(|e| {
+            let (_shape, data) = output.try_extract_tensor::<f32>().map_err(|e| {
                 RerankerError::Internal(format!("failed to extract sentence_embedding: {e}"))
             })?;
-            tensor
-                .as_slice()
-                .ok_or_else(|| RerankerError::Internal("non-contiguous tensor".into()))?
-                .iter()
-                .take(batch_size)
-                .copied()
-                .collect()
+            data.iter().take(batch_size).copied().collect()
         } else {
             // Try first output by index
             #[allow(clippy::len_zero)] // SessionOutputs doesn't have is_empty()
             if outputs.len() > 0 {
                 let output = &outputs[0];
-                let tensor = output.try_extract_tensor::<f32>().map_err(|e| {
+                let (_shape, data) = output.try_extract_tensor::<f32>().map_err(|e| {
                     RerankerError::Internal(format!("failed to extract first output: {e}"))
                 })?;
-                tensor
-                    .as_slice()
-                    .ok_or_else(|| RerankerError::Internal("non-contiguous tensor".into()))?
-                    .iter()
-                    .take(batch_size)
-                    .copied()
-                    .collect()
+                data.iter().take(batch_size).copied().collect()
             } else {
                 return Err(RerankerError::Internal("no output tensor found".into()));
             }

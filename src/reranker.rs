@@ -121,6 +121,11 @@ impl FrankensearchReranker for FrankensearchRerankerAdapter {
                     doc_id: doc.doc_id.clone(),
                     score,
                     original_rank,
+                    // `raw_logit` was added in frankensearch 0.3.0. It's
+                    // the pre-sigmoid logit; backends that only expose
+                    // the post-activation score (as this path does)
+                    // leave it as None per the upstream docstring.
+                    raw_logit: None,
                 })
                 .collect();
 

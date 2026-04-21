@@ -21,6 +21,7 @@ use std::sync::Mutex;
 
 use ndarray::Array2;
 use ort::session::{Session, builder::GraphOptimizationLevel};
+use ort::value::TensorRef;
 use tokenizers::Tokenizer;
 
 use crate::reranker::{Reranker, RerankerError, RerankerResult};
@@ -209,48 +210,45 @@ impl FlashRankReranker {
                 RerankerError::Internal(format!("failed to create token_type_ids tensor: {e}"))
             })?;
 
-        // Run inference
-        let session = self
+        // Run inference. ort rc.11 tightened `Session::run` to take
+        // &mut self, so the lock-guard binding needs to be mut.
+        let mut session = self
             .session
             .lock()
             .map_err(|e| RerankerError::Internal(format!("session lock failed: {e}")))?;
 
+        // ort 2.0.0-rc.11 migration: the `ort::inputs![]` macro no longer
+        // returns a Result and no longer auto-converts ndarray views — each
+        // value must be wrapped in a TensorRef first. Error propagation
+        // happens on the inner `?` of `TensorRef::from_array_view`.
         let inputs = ort::inputs![
-            "input_ids" => input_ids.view(),
-            "attention_mask" => attention_mask.view(),
-            "token_type_ids" => token_type_ids.view(),
-        ]
-        .map_err(|e| RerankerError::Internal(format!("failed to create inputs: {e}")))?;
+            "input_ids" => TensorRef::from_array_view(input_ids.view())
+                .map_err(|e| RerankerError::Internal(format!("failed to wrap input_ids: {e}")))?,
+            "attention_mask" => TensorRef::from_array_view(attention_mask.view())
+                .map_err(|e| RerankerError::Internal(format!("failed to wrap attention_mask: {e}")))?,
+            "token_type_ids" => TensorRef::from_array_view(token_type_ids.view())
+                .map_err(|e| RerankerError::Internal(format!("failed to wrap token_type_ids: {e}")))?,
+        ];
 
         let outputs = session
             .run(inputs)
             .map_err(|e| RerankerError::RerankFailed(format!("ONNX inference failed: {e}")))?;
 
         // Extract scores from output
-        // FlashRank outputs logits of shape (batch_size, 1) or (batch_size,)
-        // Try named outputs first, fall back to index-based access
+        // FlashRank outputs logits of shape (batch_size, 1) or (batch_size,).
+        // ort rc.11 changed `try_extract_tensor` to return `(&Shape, &[f32])`
+        // instead of a tensor object; the flat slice is already contiguous.
+        // Try named outputs first, fall back to index-based access.
         let scores: Vec<f32> = if let Some(output) = outputs.get("logits") {
-            let tensor = output
+            let (_shape, data) = output
                 .try_extract_tensor::<f32>()
                 .map_err(|e| RerankerError::Internal(format!("failed to extract logits: {e}")))?;
-            tensor
-                .as_slice()
-                .ok_or_else(|| RerankerError::Internal("non-contiguous tensor".into()))?
-                .iter()
-                .take(batch_size)
-                .copied()
-                .collect()
+            data.iter().take(batch_size).copied().collect()
         } else if let Some(output) = outputs.get("output") {
-            let tensor = output
+            let (_shape, data) = output
                 .try_extract_tensor::<f32>()
                 .map_err(|e| RerankerError::Internal(format!("failed to extract output: {e}")))?;
-            tensor
-                .as_slice()
-                .ok_or_else(|| RerankerError::Internal("non-contiguous tensor".into()))?
-                .iter()
-                .take(batch_size)
-                .copied()
-                .collect()
+            data.iter().take(batch_size).copied().collect()
         } else {
             return Err(RerankerError::Internal(
                 "no output tensor found (expected 'logits' or 'output')".into(),

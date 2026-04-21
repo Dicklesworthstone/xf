@@ -4509,11 +4509,14 @@ mod tests {
 
     #[test]
     fn test_schema_migration_v5() {
-        // Open in-memory creates schema at current version (v5) with embedding_jobs table.
-        // Verify the tables exist and work.
+        // Open in-memory creates schema at current version (now v6 after
+        // the bookmarks_count migration) with embedding_jobs table.
+        // Verify the tables exist and work. The hard-coded version here
+        // tracks SCHEMA_VERSION at the top of this file; bump both
+        // together when adding a new migration.
         let storage = Storage::open_memory().unwrap();
         let version = storage.get_schema_version();
-        assert_eq!(version, 5);
+        assert_eq!(version, SCHEMA_VERSION);
 
         // Store with model_id should work
         storage

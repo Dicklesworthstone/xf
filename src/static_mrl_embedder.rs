@@ -20,6 +20,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use ort::session::{Session, builder::GraphOptimizationLevel};
+use ort::value::TensorRef;
 use tokenizers::Tokenizer;
 
 use crate::embedder::{Embedder, EmbedderError, EmbedderResult, ModelCategory, l2_normalize};
@@ -241,8 +242,9 @@ impl StaticMrlEmbedder {
             }
         }
 
-        // Run ONNX inference
-        let session = self
+        // Run ONNX inference. ort rc.11 tightened Session::run to
+        // require &mut self.
+        let mut session = self
             .session
             .lock()
             .map_err(|e| EmbedderError::Internal(format!("session lock poisoned: {e}")))?;
@@ -258,42 +260,65 @@ impl StaticMrlEmbedder {
                 |e| EmbedderError::Internal(format!("failed to create attention_mask array: {e}")),
             )?;
 
+        // ort 2.0.0-rc.11 migration: inputs![] takes pre-wrapped
+        // TensorRefs (not raw ndarray views) and no longer returns a Result.
         let outputs = session
-            .run(
-                ort::inputs![
-                    "input_ids" => input_ids_array.view(),
-                    "attention_mask" => attention_mask_array.view(),
-                ]
-                .map_err(|e| EmbedderError::Internal(format!("failed to create inputs: {e}")))?,
-            )
+            .run(ort::inputs![
+                "input_ids" => TensorRef::from_array_view(input_ids_array.view())
+                    .map_err(|e| EmbedderError::Internal(format!("failed to wrap input_ids: {e}")))?,
+                "attention_mask" => TensorRef::from_array_view(attention_mask_array.view())
+                    .map_err(|e| EmbedderError::Internal(format!("failed to wrap attention_mask: {e}")))?,
+            ])
             .map_err(|e| EmbedderError::EmbeddingFailed(format!("ONNX inference failed: {e}")))?;
 
-        // Extract embeddings from output
-        // Static models typically output [batch_size, seq_len, hidden_dim] or [batch_size, hidden_dim]
+        // Extract embeddings from output.
+        // Static models typically output [batch_size, seq_len, hidden_dim] or
+        // [batch_size, hidden_dim]. ort rc.11 changed try_extract_tensor to
+        // return `(&Shape, &[f32])` — a flat row-major slice plus the shape
+        // object. We index manually below via flat offsets.
         let output_tensor = &outputs[0];
 
-        let embeddings = output_tensor.try_extract_tensor::<f32>().map_err(|e| {
+        let (shape, embeddings) = output_tensor.try_extract_tensor::<f32>().map_err(|e| {
             EmbedderError::Internal(format!("failed to extract output tensor: {e}"))
         })?;
 
-        let shape = embeddings.shape();
+        // ort Shape is a &[i64] under Deref; cast to usize for use as
+        // array indices. Guard against negative dims (they would indicate
+        // a dynamic/unknown dim at runtime, which mean-pooling can't
+        // handle anyway).
+        let dims: Vec<usize> = shape
+            .iter()
+            .map(|d| {
+                if *d < 0 {
+                    Err(EmbedderError::Internal(format!(
+                        "negative dim in output shape: {shape:?}"
+                    )))
+                } else {
+                    Ok(*d as usize)
+                }
+            })
+            .collect::<Result<Vec<_>, _>>()?;
 
         // Handle different output shapes
-        let results: Vec<Vec<f32>> = if shape.len() == 3 {
-            // [batch_size, seq_len, hidden_dim] - need mean pooling
-            let hidden_dim = shape[2];
-            let seq_len = shape[1];
+        let results: Vec<Vec<f32>> = if dims.len() == 3 {
+            // [batch_size, seq_len, hidden_dim] — need mean pooling.
+            // Flat index for (b, s, h): b * seq_len * hidden_dim
+            //                          + s * hidden_dim
+            //                          + h.
+            let seq_len = dims[1];
+            let hidden_dim = dims[2];
+            let per_batch_stride = seq_len * hidden_dim;
 
             (0..batch_size)
                 .map(|b| {
-                    // Mean pool over sequence dimension with attention mask
                     let mut pooled = vec![0.0f32; hidden_dim];
                     let mut token_count = 0;
 
                     for s in 0..seq_len {
                         if attention_mask_array[[b, s]] == 1 {
+                            let row_start = b * per_batch_stride + s * hidden_dim;
                             for h in 0..hidden_dim {
-                                pooled[h] += embeddings[[b, s, h]];
+                                pooled[h] += embeddings[row_start + h];
                             }
                             token_count += 1;
                         }
@@ -308,10 +333,16 @@ impl StaticMrlEmbedder {
                     pooled
                 })
                 .collect()
-        } else if shape.len() == 2 {
-            // [batch_size, hidden_dim] - already pooled
+        } else if dims.len() == 2 {
+            // [batch_size, hidden_dim] — already pooled. Flat index is
+            // b * hidden_dim + h.
+            let hidden_dim = dims[1];
             (0..batch_size)
-                .map(|b| (0..shape[1]).map(|h| embeddings[[b, h]]).collect())
+                .map(|b| {
+                    (0..hidden_dim)
+                        .map(|h| embeddings[b * hidden_dim + h])
+                        .collect()
+                })
                 .collect()
         } else {
             return Err(EmbedderError::Internal(format!(

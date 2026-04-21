@@ -80,7 +80,7 @@ ring = "0.17"           # SHA256 for content hashing
 fastembed = { version = "5", default-features = false, features = ["ort-download-binaries", "online"] }
 ort = { version = "2.0.0-rc.11", features = ["download-binaries"] }  # ONNX Runtime for static embedding models
 tokenizers = "0.21"     # HuggingFace tokenizers
-ndarray = "0.16"        # N-dimensional arrays for ONNX tensors
+ndarray = "0.17"        # N-dimensional arrays for ONNX tensors — kept in lockstep with ort's own ndarray version (ort 2.0.0-rc.12 uses ndarray 0.17) so array views pass directly into `TensorRef::from_array_view` without the "multiple different versions of crate ndarray" trait-bound mismatch.
 safetensors = "0.5"     # Read Model2Vec embedding weights from safetensors format
 
 # Parallelism

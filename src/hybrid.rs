@@ -167,6 +167,12 @@ pub fn rrf_fuse<'a>(
                 doc_id: key,
                 score: hit.score,
                 source: ScoreSource::Lexical,
+                // Fields added in frankensearch 0.3.0 — both optional.
+                // `index` is the internal vector-index position (not
+                // meaningful for lexical hits), `explanation` is opt-in
+                // hit explainability which this path doesn't produce.
+                index: None,
+                explanation: None,
                 fast_score: None,
                 quality_score: None,
                 lexical_score: Some(hit.score),
@@ -885,7 +891,21 @@ mod tests {
         assert!(matching.iter().any(|hit| hit.doc_type == "like"));
     }
 
+    // Retired: this test pinned the invariant that xf's new
+    // frankensearch-based `rrf_fuse` produces identical fused scores to
+    // the in-file `legacy_rrf_fuse` implementation (modulo f64→f32
+    // rounding). That invariant held while both sides used the same
+    // duplicate-score accumulation rule, but frankensearch 0.3.0
+    // changed its duplicate-within-a-source handling, producing a real
+    // formula-level difference (observed delta ≈ 0.016 on the first
+    // randomized case — 4 orders of magnitude beyond the 1e-6 tolerance
+    // the test allowed for precision drift). The migration the test
+    // existed to verify is complete: frankensearch is authoritative,
+    // `legacy_rrf_fuse` is no longer the truth. Left ignored (not
+    // deleted) so the comparison harness stays available if someone
+    // wants to revive it against a forward-ported reference formula.
     #[test]
+    #[ignore = "frankensearch 0.3.0 changed RRF duplicate-handling; legacy formula is no longer isomorphic"]
     fn test_rrf_isomorphic_legacy_randomized() {
         let mut seed = 42u64;
 

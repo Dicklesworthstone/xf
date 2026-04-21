@@ -458,6 +458,9 @@ mod tests {
             blocks_count: 10,
             mutes_count: 5,
             grok_messages_count: 100,
+            // Non-zero so dashboard percentages exercise the bookmarks
+            // branch rather than silently collapsing it to zero.
+            bookmarks_count: 200,
             first_tweet_date: Some(Utc::now() - chrono::Duration::days(365)),
             last_tweet_date: Some(Utc::now()),
         }
@@ -602,6 +605,7 @@ mod tests {
             blocks_count: 0,
             mutes_count: 0,
             grok_messages_count: 0,
+            bookmarks_count: 0,
             first_tweet_date: None,
             last_tweet_date: None,
         };
@@ -615,6 +619,10 @@ mod tests {
 
     #[test]
     fn test_content_breakdown_percentages() {
+        // Totals picked to sum to 100 so percentage assertions stay
+        // exact. Keep bookmarks_count at 0 for this breakdown since
+        // the assertions below already partition 100 across the
+        // tweets/likes/dms/conversations/grok buckets only.
         let stats = AllCounts {
             tweets_count: 50,
             likes_count: 30,
@@ -625,6 +633,7 @@ mod tests {
             blocks_count: 0,
             mutes_count: 0,
             grok_messages_count: 5,
+            bookmarks_count: 0,
             first_tweet_date: None,
             last_tweet_date: None,
         };
