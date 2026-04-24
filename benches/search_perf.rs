@@ -202,6 +202,7 @@ fn make_rrf_inputs(size: usize) -> (Vec<SearchResult>, Vec<VectorSearchResult>) 
             SearchResultType::Like => "like",
             SearchResultType::DirectMessage => "dm",
             SearchResultType::GrokMessage => "grok",
+            SearchResultType::Bookmark => "bookmark",
         };
         let doc_id = format!("doc{doc_type}_{i}");
 

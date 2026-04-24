@@ -200,7 +200,11 @@ impl StaticMrlEmbedder {
     }
 
     /// Embed texts and return the raw embeddings before truncation.
-    #[allow(clippy::significant_drop_tightening, clippy::cast_precision_loss)]
+    #[allow(
+        clippy::significant_drop_tightening,
+        clippy::cast_precision_loss,
+        clippy::too_many_lines
+    )]
     fn embed_raw(&self, texts: &[&str]) -> EmbedderResult<Vec<Vec<f32>>> {
         if texts.is_empty() {
             return Ok(Vec::new());
@@ -294,6 +298,8 @@ impl StaticMrlEmbedder {
                         "negative dim in output shape: {shape:?}"
                     )))
                 } else {
+                    // Guarded non-negative above; ONNX dims always fit usize on 64-bit targets.
+                    #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
                     Ok(*d as usize)
                 }
             })
