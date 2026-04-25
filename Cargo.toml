@@ -1,6 +1,6 @@
 [package]
 name = "xf"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2024"
 resolver = "2"
 authors = ["Jeffrey Emanuel <jeff@jeffreyemanuel.dev>"]
@@ -77,8 +77,17 @@ unicode-normalization = "0.1"
 half = "2.4"            # F16 quantization for vector storage
 wide = "0.7"            # Portable SIMD for fast dot products
 ring = "0.17"           # SHA256 for content hashing
-fastembed = { version = "5", default-features = false, features = ["ort-download-binaries", "online"] }
-ort = { version = "2.0.0-rc.11", features = ["download-binaries"] }  # ONNX Runtime for static embedding models
+# Pinned to rustls TLS features so `cargo build --release --target *-musl` and
+# `cross-compile` runners do not need a system OpenSSL toolchain. Without these
+# overrides fastembed/hf-hub/ort/ureq pull in openssl-sys, which fails on
+# x86_64-unknown-linux-musl, aarch64-unknown-linux-{musl,gnu}, and
+# x86_64-apple-darwin GitHub runners that lack openssl headers.
+fastembed = { version = "5", default-features = false, features = [
+    "ort-download-binaries-rustls-tls",
+    "hf-hub-rustls-tls",
+    "online",
+] }
+ort = { version = "2.0.0-rc.11", default-features = false, features = ["download-binaries", "tls-rustls"] }
 tokenizers = "0.21"     # HuggingFace tokenizers
 ndarray = "0.17"        # N-dimensional arrays for ONNX tensors — kept in lockstep with ort's own ndarray version (ort 2.0.0-rc.12 uses ndarray 0.17) so array views pass directly into `TensorRef::from_array_view` without the "multiple different versions of crate ndarray" trait-bound mismatch.
 safetensors = "0.5"     # Read Model2Vec embedding weights from safetensors format
