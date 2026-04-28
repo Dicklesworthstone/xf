@@ -728,7 +728,7 @@ impl Highlighter for XfCompleter {
         Cow::Borrowed(line)
     }
 
-    fn highlight_char(&self, _line: &str, _pos: usize) -> bool {
+    fn highlight_char(&self, _line: &str, _pos: usize, _kind: rustyline::highlight::CmdKind) -> bool {
         false
     }
 }
