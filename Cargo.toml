@@ -34,12 +34,12 @@ tokio = { version = "1.0", features = ["rt-multi-thread", "macros", "fs", "io-ut
 
 # CLI
 clap = { version = "4.5", features = ["derive", "cargo", "env", "unicode", "wrap_help"] }
-clap_complete = "4.5"
+clap_complete = "4.6"
 
 # Terminal output (keep existing for fallback)
-colored = "2.1"
-indicatif = "0.17"
-console = "0.15"
+colored = "3.0"
+indicatif = "0.18"
+console = "0.16"
 
 # Rich terminal output (optional)
 rich_rust = { version = "0.2.0", optional = true }
@@ -51,14 +51,14 @@ terminal_size = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 rmp-serde = "1.3"   # MessagePack serialization for daemon protocol
-toml = "0.8"
+toml = "1.1"
 toon_rust = { version = "0.2", package = "tru" }
 
 # Database
-rusqlite = { version = "0.32", features = ["bundled", "modern_sqlite"] }
+rusqlite = { version = "0.39", features = ["bundled", "modern_sqlite"] }
 
 # Full-text search
-tantivy = "0.22"
+tantivy = "0.26"
 
 # frankensearch (post-cutover: now required, migration complete per bd-3un.35)
 frankensearch-core = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-core" }
@@ -75,7 +75,7 @@ unicode-normalization = "0.1"
 
 # Semantic search / embeddings
 half = "2.4"            # F16 quantization for vector storage
-wide = "0.7"            # Portable SIMD for fast dot products
+wide = "1.3"            # Portable SIMD for fast dot products
 ring = "0.17"           # SHA256 for content hashing
 # Pinned to rustls TLS features so `cargo build --release --target *-musl` and
 # `cross-compile` runners do not need a system OpenSSL toolchain. Without these
@@ -88,9 +88,9 @@ fastembed = { version = "5", default-features = false, features = [
     "online",
 ] }
 ort = { version = "2.0.0-rc.11", default-features = false, features = ["download-binaries", "tls-rustls"] }
-tokenizers = "0.21"     # HuggingFace tokenizers
+tokenizers = "0.23"     # HuggingFace tokenizers
 ndarray = "0.17"        # N-dimensional arrays for ONNX tensors — kept in lockstep with ort's own ndarray version (ort 2.0.0-rc.12 uses ndarray 0.17) so array views pass directly into `TensorRef::from_array_view` without the "multiple different versions of crate ndarray" trait-bound mismatch.
-safetensors = "0.5"     # Read Model2Vec embedding weights from safetensors format
+safetensors = "0.7"     # Read Model2Vec embedding weights from safetensors format
 
 # Parallelism
 rayon = "1.10"
@@ -101,14 +101,14 @@ num_cpus = "1.16"
 # Utilities
 chrono = { version = "0.4", default-features = false, features = ["std", "clock", "serde"] }
 chrono-english = "0.1"
-dirs = "5.0"
+dirs = "6.0"
 fmmap = "0.4"
-rand = "0.8"
+rand = "0.10"
 rustyline = "12"
 walkdir = "2.5"
 glob = "0.3"
 once_cell = "1.19"
-itertools = "0.13"
+itertools = "0.14"
 textwrap = "0.16"
 zip = "2.2"
 
@@ -123,11 +123,11 @@ vergen-gix = { version = "9", features = ["build", "cargo", "rustc"] }
 assert_cmd = "2.0"
 predicates = "3.1"
 tempfile = "3.14"
-criterion = { version = "0.5", features = ["html_reports"] }
+criterion = { version = "0.8", features = ["html_reports"] }
 proptest = "1.5"
 futures = "0.3"
-which = "7.0"
-nix = { version = "0.30", features = ["signal", "process"] }
+which = "8.0"
+nix = { version = "0.31", features = ["signal", "process"] }
 tokio-test = "0.4"
 serial_test = "3.2"
 

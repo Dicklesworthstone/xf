@@ -626,7 +626,7 @@ impl SearchEngine {
         };
 
         // Execute search
-        let top_docs = searcher.search(&query, &TopDocs::with_limit(limit))?;
+        let top_docs = searcher.search(&query, &TopDocs::with_limit(limit).order_by_score())?;
 
         // Create snippet generator for highlighting when query has terms
         let snippet_generator = if enable_highlights {
@@ -757,7 +757,7 @@ impl SearchEngine {
             .sum::<usize>()
             .max(lookups.len());
 
-        let top_docs = searcher.search(&query, &TopDocs::with_limit(max_docs))?;
+        let top_docs = searcher.search(&query, &TopDocs::with_limit(max_docs).order_by_score())?;
 
         // Single map: id -> (doc_type -> result). Eliminates redundant clones.
         let mut results_by_type: HashMap<String, HashMap<String, SearchResult>> =
@@ -821,7 +821,7 @@ impl SearchEngine {
         };
 
         // Execute search (limit 1 since IDs should be unique per type)
-        let top_docs = searcher.search(&query, &TopDocs::with_limit(1))?;
+        let top_docs = searcher.search(&query, &TopDocs::with_limit(1).order_by_score())?;
 
         if let Some((_score, doc_address)) = top_docs.into_iter().next() {
             let doc: TantivyDocument = searcher.doc(doc_address)?;

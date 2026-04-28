@@ -12,7 +12,7 @@
 //! - [`percentile`], [`coefficient_of_variation`]: Statistical aggregation
 //! - [`bootstrap_ci`], [`bootstrap_mean_diff`]: Significance testing
 
-use rand::{Rng, SeedableRng, rngs::StdRng};
+use rand::{RngExt, SeedableRng, rngs::StdRng};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
@@ -244,7 +244,7 @@ pub fn bootstrap_ci(values: &[f64], n_bootstrap: usize, confidence: f64, seed: u
     let mut means = Vec::with_capacity(n_bootstrap);
 
     for _ in 0..n_bootstrap {
-        let sample_mean: f64 = (0..n).map(|_| values[rng.gen_range(0..n)]).sum::<f64>() / n as f64;
+        let sample_mean: f64 = (0..n).map(|_| values[rng.random_range(0..n)]).sum::<f64>() / n as f64;
         means.push(sample_mean);
     }
 
@@ -279,7 +279,7 @@ pub fn bootstrap_mean_diff(
         let mut base_sum = 0.0;
         let mut imp_sum = 0.0;
         for _ in 0..n {
-            let idx = rng.gen_range(0..n);
+            let idx = rng.random_range(0..n);
             base_sum += baseline[idx];
             imp_sum += improved[idx];
         }

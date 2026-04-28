@@ -131,7 +131,7 @@ impl Model2VecEmbedder {
 
     /// Find the embedding tensor name in a safetensors file.
     fn find_embedding_tensor_name(safetensors: &SafeTensors<'_>) -> EmbedderResult<String> {
-        let names: Vec<String> = safetensors.names().into_iter().cloned().collect();
+        let names: Vec<String> = safetensors.names().into_iter().map(String::from).collect();
 
         // Try common embedding tensor names
         for candidate in &["embeddings", "embedding", "word_embeddings", "embed", "emb"] {
