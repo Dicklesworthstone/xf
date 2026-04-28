@@ -610,7 +610,13 @@ pub enum SearchType {
 impl SearchType {
     #[must_use]
     pub fn all_content() -> Vec<Self> {
-        vec![Self::Tweet, Self::Like, Self::Dm, Self::Grok, Self::Bookmark]
+        vec![
+            Self::Tweet,
+            Self::Like,
+            Self::Dm,
+            Self::Grok,
+            Self::Bookmark,
+        ]
     }
 }
 

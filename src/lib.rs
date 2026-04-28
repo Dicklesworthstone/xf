@@ -878,7 +878,11 @@ fn generate_embeddings_for_model(
     let embed_elapsed_secs = embed_start.elapsed().as_secs_f64();
     let embed_elapsed = format_duration(embed_start.elapsed());
     let generated_count = stored_count.saturating_sub(reused_count);
-    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss, clippy::cast_precision_loss)]
+    #[allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss,
+        clippy::cast_precision_loss
+    )]
     let docs_per_sec = if embed_elapsed_secs > 0.0 {
         (stored_count as f64 / embed_elapsed_secs) as u64
     } else {

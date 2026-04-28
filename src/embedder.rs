@@ -5,8 +5,8 @@
 
 use asupersync::Cx;
 use frankensearch_core::{
-    Embedder as FrankensearchEmbedder, ModelCategory as FrankensearchModelCategory,
-    SearchError, SearchFuture, SearchResult as FrankensearchSearchResult,
+    Embedder as FrankensearchEmbedder, ModelCategory as FrankensearchModelCategory, SearchError,
+    SearchFuture, SearchResult as FrankensearchSearchResult,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;

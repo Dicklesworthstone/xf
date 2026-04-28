@@ -1,6 +1,6 @@
 [package]
 name = "xf"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2024"
 resolver = "2"
 authors = ["Jeffrey Emanuel <jeff@jeffreyemanuel.dev>"]

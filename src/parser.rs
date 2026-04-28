@@ -626,10 +626,7 @@ impl ArchiveParser {
     /// # Errors
     ///
     /// Returns an error if the bookmarks file cannot be read or parsed.
-    pub fn parse_bookmarks(
-        &self,
-        tweet_texts: &HashMap<String, String>,
-    ) -> Result<Vec<Bookmark>> {
+    pub fn parse_bookmarks(&self, tweet_texts: &HashMap<String, String>) -> Result<Vec<Bookmark>> {
         info!("Parsing bookmarks...");
         let data = self.read_data_file("bookmarks.js")?;
 

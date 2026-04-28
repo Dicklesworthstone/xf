@@ -244,7 +244,8 @@ pub fn bootstrap_ci(values: &[f64], n_bootstrap: usize, confidence: f64, seed: u
     let mut means = Vec::with_capacity(n_bootstrap);
 
     for _ in 0..n_bootstrap {
-        let sample_mean: f64 = (0..n).map(|_| values[rng.random_range(0..n)]).sum::<f64>() / n as f64;
+        let sample_mean: f64 =
+            (0..n).map(|_| values[rng.random_range(0..n)]).sum::<f64>() / n as f64;
         means.push(sample_mean);
     }
 

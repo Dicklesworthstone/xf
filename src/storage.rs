@@ -855,9 +855,8 @@ impl Storage {
                 }
             }
 
-            let mut stmt = tx.prepare(
-                "INSERT OR REPLACE INTO bookmarks (tweet_id, full_text) VALUES (?, ?)",
-            )?;
+            let mut stmt =
+                tx.prepare("INSERT OR REPLACE INTO bookmarks (tweet_id, full_text) VALUES (?, ?)")?;
             let mut fts_stmt =
                 tx.prepare("INSERT INTO fts_bookmarks (tweet_id, full_text) VALUES (?, ?)")?;
 
@@ -1225,7 +1224,13 @@ impl Storage {
     }
 
     fn check_fts_integrity(&self) -> Vec<HealthCheck> {
-        let tables = ["fts_tweets", "fts_likes", "fts_dms", "fts_grok", "fts_bookmarks"];
+        let tables = [
+            "fts_tweets",
+            "fts_likes",
+            "fts_dms",
+            "fts_grok",
+            "fts_bookmarks",
+        ];
         let mut checks = Vec::with_capacity(tables.len());
 
         for table in tables {
