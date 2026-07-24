@@ -65,7 +65,7 @@ frankensearch-core = { git = "https://github.com/Dicklesworthstone/frankensearch
 frankensearch-fusion = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-fusion" }
 frankensearch-index = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-index" }
 frankensearch-embed = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-embed", features = ["hash", "model2vec", "fastembed"] }
-asupersync = "0.3.4"
+asupersync = "0.3.9"
 
 # High-performance text processing
 regex = "1.10"
