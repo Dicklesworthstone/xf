@@ -33,7 +33,7 @@ thiserror = "2.0"
 tokio = { version = "1.0", features = ["rt-multi-thread", "macros", "fs", "io-util", "time", "signal"] }
 
 # CLI
-clap = { version = "4.5", features = ["derive", "cargo", "env", "unicode", "wrap_help"] }
+clap = { version = "4.6", features = ["derive", "cargo", "env", "unicode", "wrap_help"] }
 clap_complete = "4.6"
 
 # Terminal output (keep existing for fallback)
@@ -52,7 +52,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 rmp-serde = "1.3"   # MessagePack serialization for daemon protocol
 toml = "1.1"
-toon_rust = { version = "0.2", package = "tru" }
+toon_rust = { version = "0.2.3", package = "tru" }
 
 # Database
 rusqlite = { version = "0.39", features = ["bundled", "modern_sqlite"] }
@@ -65,7 +65,7 @@ frankensearch-core = { git = "https://github.com/Dicklesworthstone/frankensearch
 frankensearch-fusion = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-fusion" }
 frankensearch-index = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-index" }
 frankensearch-embed = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-embed", features = ["hash", "model2vec", "fastembed"] }
-asupersync = "0.3.4"
+asupersync = "0.3.9"
 
 # High-performance text processing
 regex = "1.10"
