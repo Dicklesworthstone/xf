@@ -244,9 +244,14 @@ impl Embedder for FastEmbedder {
         }
 
         let FastEmbedBackend::Frankensearch { runtime, delegate } = &self.backend;
-        let cx = Cx::for_testing();
+        // `Cx::for_testing()` is a test-internals-only constructor and is not
+        // available in a production feature set. `block_on` installs an ambient
+        // Cx backed by this runtime's drivers, so take that one instead.
         runtime
-            .block_on(delegate.embed(&cx, text))
+            .block_on(async {
+                let cx = Cx::current().expect("block_on installs an ambient Cx");
+                delegate.embed(&cx, text).await
+            })
             .map_err(|e| map_fs_error("embed", e))
     }
 
@@ -270,9 +275,11 @@ impl Embedder for FastEmbedder {
         }
 
         let FastEmbedBackend::Frankensearch { runtime, delegate } = &self.backend;
-        let cx = Cx::for_testing();
         let embeddings = runtime
-            .block_on(delegate.embed_batch(&cx, &non_empty_texts))
+            .block_on(async {
+                let cx = Cx::current().expect("block_on installs an ambient Cx");
+                delegate.embed_batch(&cx, &non_empty_texts).await
+            })
             .map_err(|e| map_fs_error("embed_batch", e))?;
 
         // Reconstruct full result with empty slots for empty inputs

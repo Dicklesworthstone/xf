@@ -164,7 +164,8 @@ pub fn rrf_fuse<'a>(
                 .entry(key.clone())
                 .or_insert((hit.id.as_str(), doc_type));
             ScoredResult {
-                doc_id: key,
+                // frankensearch now types doc_id as CompactString.
+                doc_id: key.into(),
                 score: hit.score,
                 source: ScoreSource::Lexical,
                 // Fields added in frankensearch 0.3.0 — both optional.
@@ -193,7 +194,8 @@ pub fn rrf_fuse<'a>(
             VectorHit {
                 index: u32::try_from(idx).unwrap_or(u32::MAX),
                 score: hit.score,
-                doc_id: key,
+                // frankensearch now types doc_id as CompactString.
+                doc_id: key.into(),
             }
         })
         .collect();
