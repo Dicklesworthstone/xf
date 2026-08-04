@@ -10,7 +10,7 @@ use crate::model::{
 use crate::{format_bytes_i64, format_number};
 use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
-use rusqlite::{Connection, params};
+use rusqlite::{Connection, OptionalExtension, params};
 use std::collections::HashMap;
 use std::path::Path;
 use tracing::info;
@@ -221,6 +221,95 @@ impl Storage {
             params![version.to_string()],
         )?;
         Ok(())
+    }
+
+    /// Store an arbitrary key/value pair in the `meta` table.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database insert fails.
+    pub fn set_meta(&self, key: &str, value: &str) -> Result<()> {
+        self.conn.execute(
+            "INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)",
+            params![key, value],
+        )?;
+        Ok(())
+    }
+
+    /// Read a value from the `meta` table.
+    ///
+    /// Returns `None` if the key is not present.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database query fails.
+    pub fn get_meta(&self, key: &str) -> Result<Option<String>> {
+        let result = self
+            .conn
+            .query_row("SELECT value FROM meta WHERE key = ?", params![key], |row| {
+                row.get::<_, String>(0)
+            })
+            .optional()?;
+        Ok(result)
+    }
+
+    /// Meta key under which the embedder model for a given embedding
+    /// `model_id` pass is recorded (e.g. `embedding_model.default`).
+    fn embedding_model_meta_key(model_id: &str) -> String {
+        format!("embedding_model.{model_id}")
+    }
+
+    /// Record which embedder model produced the embeddings stored under
+    /// `model_id` (e.g. "default", "fast", "quality").
+    ///
+    /// Search-time code reads this back so that queries are embedded in the
+    /// same vector space as the stored documents.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database insert fails.
+    pub fn set_embedding_model(&self, model_id: &str, model_name: &str) -> Result<()> {
+        self.set_meta(&Self::embedding_model_meta_key(model_id), model_name)
+    }
+
+    /// Read back which embedder model produced the embeddings stored under
+    /// `model_id`, if it was recorded at index time.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database query fails.
+    pub fn get_embedding_model(&self, model_id: &str) -> Result<Option<String>> {
+        self.get_meta(&Self::embedding_model_meta_key(model_id))
+    }
+
+    /// Load a single stored embedding for the given `model_id` pass, decoded
+    /// to f32. Used to infer the embedder family for databases created before
+    /// the embedder model was recorded in `meta`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database query fails.
+    pub fn sample_embedding(&self, model_id: &str) -> Result<Option<Vec<f32>>> {
+        use half::f16;
+
+        let bytes: Option<Vec<u8>> = self
+            .conn
+            .query_row(
+                "SELECT embedding FROM embeddings WHERE model_id = ? LIMIT 1",
+                params![model_id],
+                |row| row.get::<_, Vec<u8>>(0),
+            )
+            .optional()?;
+
+        Ok(bytes.map(|bytes| {
+            bytes
+                .chunks_exact(2)
+                .map(|chunk| {
+                    let arr: [u8; 2] = chunk.try_into().expect("chunks_exact yields 2-byte chunks");
+                    f16::from_le_bytes(arr).to_f32()
+                })
+                .collect()
+        }))
     }
 
     /// Migrate from schema v3 to v4: add model_id column to embeddings.

@@ -51,6 +51,56 @@ const REQUIRED_FILES: &[&str] = &[
     "tokenizer_config.json",
 ];
 
+/// Resolve the cache directory used for fastembed model downloads.
+///
+/// fastembed's own default is `.fastembed_cache` relative to the *current
+/// working directory*, which means a model downloaded by `xf index --semantic`
+/// in one directory is invisible to an `xf search` run elsewhere (and every
+/// new cwd triggers a fresh ~90MB download). To keep index-time downloads and
+/// search-time loads pointed at the same place:
+///
+/// 1. An explicit `FASTEMBED_CACHE_DIR` env var is respected as-is.
+/// 2. An existing `.fastembed_cache` in the cwd is reused (back-compat with
+///    caches downloaded by earlier xf versions).
+/// 3. Otherwise a stable per-user location is used: `<cache_dir>/xf/fastembed`
+///    (e.g. `~/.cache/xf/fastembed` on Linux).
+#[must_use]
+pub fn default_fastembed_cache_dir() -> std::path::PathBuf {
+    if let Ok(dir) = std::env::var("FASTEMBED_CACHE_DIR") {
+        if !dir.is_empty() {
+            return std::path::PathBuf::from(dir);
+        }
+    }
+
+    let local = std::path::Path::new(".fastembed_cache");
+    if local.is_dir() {
+        return local.to_path_buf();
+    }
+
+    dirs::cache_dir().map_or_else(
+        || std::path::PathBuf::from(".fastembed_cache"),
+        |p| p.join("xf").join("fastembed"),
+    )
+}
+
+/// Whether a fastembed-managed model has already been downloaded into the
+/// resolved cache directory.
+///
+/// fastembed stores models in hf-hub layout: `models--<org>--<repo>` derived
+/// from the model code (e.g. `Qdrant/all-MiniLM-L6-v2-onnx` →
+/// `models--Qdrant--all-MiniLM-L6-v2-onnx`).
+#[must_use]
+pub fn fastembed_model_downloaded(model: &EmbeddingModel) -> bool {
+    let Some(info) = TextEmbedding::list_supported_models()
+        .into_iter()
+        .find(|m| &m.model == model)
+    else {
+        return false;
+    };
+    let dir_name = format!("models--{}", info.model_code.replace('/', "--"));
+    default_fastembed_cache_dir().join(dir_name).is_dir()
+}
+
 /// ML-based semantic embedder using MiniLM.
 pub struct FastEmbedder {
     backend: FastEmbedBackend,
@@ -179,7 +229,9 @@ impl FastEmbedder {
         }
 
         Err(EmbedderError::Unavailable(
-            "MiniLM model not found. Run 'xf index --semantic' to auto-download.".to_string(),
+            "MiniLM model files not found in xf model directories (checked \
+             ~/.local/share/xf/models, ~/.cache/fastembed, /usr/local/share/xf/models)"
+                .to_string(),
         ))
     }
 
@@ -201,7 +253,9 @@ impl FastEmbedder {
         }
 
         Err(EmbedderError::Unavailable(
-            "MiniLM model not found. Run 'xf index --semantic' to provision local assets."
+            "MiniLM model files not found in xf model directories; place the model under \
+             ~/.local/share/xf/models/all-MiniLM-L6-v2 or use the registry loader \
+             (all-MiniLM-L6-v2), which downloads into the fastembed cache"
                 .to_string(),
         ))
     }

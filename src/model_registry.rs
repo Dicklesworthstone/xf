@@ -139,6 +139,13 @@ impl ModelRegistry {
         Self::canonical_embedder_name(name).is_some()
     }
 
+    /// Resolve any accepted alias to the canonical registry key
+    /// (e.g. `sentence-transformers/all-MiniLM-L6-v2` → `all-MiniLM-L6-v2`).
+    #[must_use]
+    pub fn canonical_name(name: &str) -> Option<&'static str> {
+        Self::canonical_embedder_name(name)
+    }
+
     /// Whether a reranker name is known to the registry.
     #[must_use]
     pub fn has_reranker(&self, name: &str) -> bool {
@@ -183,6 +190,7 @@ impl ModelRegistry {
     /// dimensions, MRL support, and availability status.
     #[must_use]
     pub fn list_models(&self) -> Vec<ModelInfo> {
+        use crate::fastembed_embedder::fastembed_model_downloaded;
         vec![
             ModelInfo {
                 name: EMBEDDER_HASH_FNV1A_384.to_string(),
@@ -201,8 +209,8 @@ impl ModelRegistry {
                 supports_mrl: false,
                 native_dims: 384,
                 size_mb: Some(80.0),
-                downloaded: true, // fastembed handles download
-                available: true,
+                downloaded: fastembed_model_downloaded(&EmbeddingModel::AllMiniLML6V2),
+                available: true, // fastembed auto-downloads on first use
             },
             ModelInfo {
                 name: EMBEDDER_BGE_SMALL_EN_V15.to_string(),
@@ -211,7 +219,7 @@ impl ModelRegistry {
                 supports_mrl: false,
                 native_dims: 384,
                 size_mb: Some(130.0),
-                downloaded: true,
+                downloaded: fastembed_model_downloaded(&EmbeddingModel::BGESmallENV15),
                 available: true,
             },
             ModelInfo {
@@ -221,7 +229,7 @@ impl ModelRegistry {
                 supports_mrl: true, // Nomic supports MRL
                 native_dims: 768,
                 size_mb: Some(560.0),
-                downloaded: true,
+                downloaded: fastembed_model_downloaded(&EmbeddingModel::NomicEmbedTextV15),
                 available: true,
             },
             ModelInfo {
@@ -231,7 +239,7 @@ impl ModelRegistry {
                 supports_mrl: false,
                 native_dims: 384,
                 size_mb: Some(470.0),
-                downloaded: true,
+                downloaded: fastembed_model_downloaded(&EmbeddingModel::MultilingualE5Small),
                 available: true,
             },
             ModelInfo {
@@ -283,6 +291,18 @@ impl ModelRegistry {
             EmbedderError::InvalidInput(format!("unknown embedder: {}", config.model))
         })?;
 
+        // Use a stable cache dir for fastembed models unless the caller
+        // supplied one, so that index-time downloads and search-time loads
+        // resolve the same location regardless of the current directory.
+        let fastembed_cache = || {
+            Some(
+                config
+                    .cache_dir
+                    .clone()
+                    .unwrap_or_else(crate::fastembed_embedder::default_fastembed_cache_dir),
+            )
+        };
+
         let mut embedder: Box<dyn Embedder> = match name {
             EMBEDDER_HASH_FNV1A_384 => {
                 let dim = config.dimensions.unwrap_or(HASH_DEFAULT_DIM);
@@ -291,28 +311,28 @@ impl ModelRegistry {
             EMBEDDER_MINILM_L6_V2 => Box::new(FastEmbedModelEmbedder::load_or_download(
                 EmbeddingModel::AllMiniLML6V2,
                 name,
-                config.cache_dir.clone(),
+                fastembed_cache(),
                 config.show_progress,
                 false,
             )?),
             EMBEDDER_BGE_SMALL_EN_V15 => Box::new(FastEmbedModelEmbedder::load_or_download(
                 EmbeddingModel::BGESmallENV15,
                 name,
-                config.cache_dir.clone(),
+                fastembed_cache(),
                 config.show_progress,
                 false,
             )?),
             EMBEDDER_NOMIC_V15 => Box::new(FastEmbedModelEmbedder::load_or_download(
                 EmbeddingModel::NomicEmbedTextV15,
                 name,
-                config.cache_dir.clone(),
+                fastembed_cache(),
                 config.show_progress,
                 true,
             )?),
             EMBEDDER_E5_SMALL => Box::new(FastEmbedModelEmbedder::load_or_download(
                 EmbeddingModel::MultilingualE5Small,
                 name,
-                config.cache_dir.clone(),
+                fastembed_cache(),
                 config.show_progress,
                 false,
             )?),

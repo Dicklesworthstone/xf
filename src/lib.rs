@@ -21,6 +21,7 @@ pub mod daemon;
 pub mod date_parser;
 pub mod doctor;
 pub mod embedder;
+pub mod embedder_resolution;
 pub mod error;
 pub mod fastembed_embedder;
 pub mod flashrank_reranker;
@@ -613,6 +614,8 @@ pub fn generate_embeddings_with_config(storage: &Storage, config: &EmbeddingConf
         pb.finish_and_clear();
     }
 
+    record_embedding_model(storage, "default", config, stored_count)?;
+
     let embed_elapsed = format_duration(embed_start.elapsed());
     let generated_count = stored_count.saturating_sub(reused_count);
     if config.show_progress {
@@ -646,6 +649,40 @@ pub fn generate_embeddings_with_config(storage: &Storage, config: &EmbeddingConf
     }
 
     Ok(())
+}
+
+/// Record which embedder model produced the embeddings stored under
+/// `model_id`, so search-time code can embed queries in the same vector
+/// space (see `embedder_resolution`).
+///
+/// When no new embeddings were written (`stored_count == 0`, e.g. a re-run
+/// where every document was skipped as unchanged), an existing record is left
+/// untouched: the previously recorded model still describes the stored
+/// vectors.
+fn record_embedding_model(
+    storage: &Storage,
+    model_id: &str,
+    config: &EmbeddingConfig,
+    stored_count: usize,
+) -> Result<()> {
+    use crate::model_registry::{
+        EMBEDDER_HASH_FNV1A_384, EMBEDDER_MINILM_L6_V2, ModelRegistry,
+    };
+
+    if stored_count == 0 && storage.get_embedding_model(model_id)?.is_some() {
+        return Ok(());
+    }
+
+    let recorded: String = if let Some(model) = &config.model {
+        ModelRegistry::canonical_name(model)
+            .map_or_else(|| model.clone(), std::string::ToString::to_string)
+    } else if config.use_semantic {
+        EMBEDDER_MINILM_L6_V2.to_string()
+    } else {
+        EMBEDDER_HASH_FNV1A_384.to_string()
+    };
+
+    storage.set_embedding_model(model_id, &recorded)
 }
 
 /// Generate embeddings for a specific model and store with the given `model_id`.
