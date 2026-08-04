@@ -97,9 +97,28 @@ impl std::fmt::Debug for ResolvedQueryEmbedder {
 
 /// Heuristic: does a stored embedding look like the FNV-1a hash embedder's
 /// output (mostly exact zeros) rather than a dense transformer embedding?
+///
+/// Besides the sparse common case, the hash embedder emits a *uniform*
+/// L2-normalized all-ones vector for token-less input (emoji-only tweets,
+/// punctuation) — zero exact zeros, so the sparsity test alone would
+/// misclassify it as a dense transformer embedding and silently pick the
+/// wrong query embedder (the exact failure GH#9 removed). Every component
+/// of that vector is bit-identical (also after f16 round-trip), which no
+/// real transformer embedding produces, so all-components-equal is treated
+/// as hash output too.
 #[must_use]
 pub fn looks_like_hash_embedding(embedding: &[f32]) -> bool {
     if embedding.is_empty() {
+        return true;
+    }
+    // Bit-identical on purpose (not an epsilon comparison): the fallback
+    // writes the exact same f32 into every slot, and the f16 round-trip
+    // preserves that property.
+    if embedding
+        .iter()
+        .all(|v| v.to_bits() == embedding[0].to_bits())
+    {
+        // HashEmbedder::uniform_fallback: normalized all-ones vector.
         return true;
     }
     #[allow(clippy::cast_precision_loss)]
@@ -268,6 +287,24 @@ mod tests {
     }
 
     #[test]
+    fn test_uniform_fallback_embedding_detected_as_hash() {
+        // Token-less input (emoji-only tweets, bare punctuation) makes the
+        // hash embedder emit its uniform L2-normalized all-ones fallback:
+        // zero exact zeros, so the sparsity test alone would misclassify it
+        // as a dense transformer embedding.
+        let embedder = HashEmbedder::default();
+        let embedding = embedder.embed("🔥🔥🔥").unwrap();
+        assert!(
+            embedding.iter().all(|v| *v != 0.0),
+            "fallback vector should be fully dense (test precondition)"
+        );
+        assert!(
+            looks_like_hash_embedding(&embedding),
+            "uniform token-less fallback must be recognized as hash-based"
+        );
+    }
+
+    #[test]
     fn test_plan_prefers_recorded_semantic_model() {
         let (_dir, storage) = temp_storage();
         storage
@@ -316,7 +353,11 @@ mod tests {
         // --semantic` (before the model was recorded in meta) must resolve to
         // the MiniLM loader, not the hash embedder.
         let (_dir, storage) = temp_storage();
-        let dense = vec![0.05f32; 384];
+        // Non-uniform on purpose: a bit-identical all-equal vector is the
+        // hash embedder's token-less fallback signature, not a transformer
+        // embedding (real MiniLM output always varies per component).
+        let mut dense = vec![0.05f32; 384];
+        dense[0] = -0.5;
         storage
             .store_embedding("doc1", "tweet", &dense, None)
             .unwrap();
@@ -343,9 +384,26 @@ mod tests {
     }
 
     #[test]
+    fn test_plan_infers_hash_from_uniform_fallback_stored_embedding() {
+        // A legacy hash-built index whose sampled row happens to be the
+        // token-less uniform fallback (emoji-only tweet) must NOT be inferred
+        // as MiniLM: that would silently embed queries with the wrong model —
+        // the exact failure mode GH#9 removed.
+        let (_dir, storage) = temp_storage();
+        let embedder = HashEmbedder::default();
+        let embedding = embedder.embed("🔥🔥🔥").unwrap();
+        storage
+            .store_embedding("doc1", "tweet", &embedding, None)
+            .unwrap();
+        let plan = plan_query_embedder(&storage, false);
+        assert_eq!(plan, QueryEmbedderPlan::HashIndex { recorded: false });
+    }
+
+    #[test]
     fn test_plan_unknown_dense_dimension() {
         let (_dir, storage) = temp_storage();
-        let dense = vec![0.05f32; 768];
+        let mut dense = vec![0.05f32; 768];
+        dense[0] = -0.5; // non-uniform: all-equal is the hash fallback signature
         storage
             .store_embedding("doc1", "tweet", &dense, None)
             .unwrap();
@@ -400,7 +458,8 @@ mod tests {
     #[test]
     fn test_resolve_unknown_semantic_index_is_degraded() {
         let (_dir, storage) = temp_storage();
-        let dense = vec![0.05f32; 768];
+        let mut dense = vec![0.05f32; 768];
+        dense[0] = -0.5; // non-uniform: all-equal is the hash fallback signature
         storage
             .store_embedding("doc1", "tweet", &dense, None)
             .unwrap();
