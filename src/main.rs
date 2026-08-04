@@ -230,6 +230,40 @@ fn get_semantic_embedder() -> Option<&'static FastEmbedder> {
         .as_ref()
 }
 
+/// Resolve the default query embedder from what the index was actually built
+/// with (GH #9), and make any degraded hash fallback LOUD.
+///
+/// Used by every search path when the user did not name a model explicitly
+/// (no `--model`, no `XF_MODEL`, no config entry). The resolver embeds
+/// queries in the same vector space as the stored document embeddings —
+/// previously the search path probed xf-specific model directories that
+/// `xf index --semantic` never populates and silently fell back to the hash
+/// embedder (nDCG@10 = 0 on a real gold set).
+fn resolve_default_query_embedder(storage: &Storage, context: &str) -> Box<dyn Embedder> {
+    let resolved = xf::embedder_resolution::resolve_query_embedder(storage);
+    if resolved.degraded {
+        warn!("{context}: {}", resolved.detail);
+        // tracing WARN is invisible in `--format json | jq` pipelines; write
+        // an unmissable banner to stderr as well.
+        eprintln!(
+            "WARNING: {context} DEGRADED — {}. Falling back to the hash embedder, so semantic \
+             ranking will be effectively random. Pass --model / set XF_MODEL to the model used \
+             at index time, or re-run 'xf index --semantic'.",
+            resolved.detail
+        );
+    } else if resolved.hash_index && context.contains("semantic") {
+        // Correct embedder, but the index holds only hash embeddings: real
+        // semantic quality is impossible; say so once, quietly but visibly.
+        eprintln!(
+            "note: {} — for true semantic search re-index with 'xf index --semantic'",
+            resolved.detail
+        );
+    } else {
+        info!("{context}: {}", resolved.detail);
+    }
+    resolved.embedder
+}
+
 #[derive(Debug, Clone)]
 struct CacheMeta {
     #[allow(dead_code)]
@@ -1427,13 +1461,11 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
                 info!("Using configured embedder: {}", model);
                 embedder_box = Some(boxed);
                 embedder_box.as_ref().unwrap().as_ref()
-            } else if let Some(fe) = get_semantic_embedder() {
-                info!("Using semantic embeddings for search");
-                fe
             } else {
-                warn!("FastEmbed model not available, using hash embeddings for search");
-                hash_embedder_fallback = Some(HashEmbedder::default());
-                hash_embedder_fallback.as_ref().unwrap()
+                // GH #9: resolve from what the index was built with; loud on
+                // any degraded hash fallback.
+                embedder_box = Some(resolve_default_query_embedder(&storage, "semantic search"));
+                embedder_box.as_ref().unwrap().as_ref()
             };
             let canonical_query = canonicalize_for_embedding(&args.query);
 
@@ -1502,11 +1534,14 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
                 info!("Using configured embedder: {}", model);
                 embedder_box = Some(boxed);
                 embedder_box.as_ref().unwrap().as_ref()
-            } else if let Some(fe) = get_semantic_embedder() {
-                fe
             } else {
-                hash_embedder_fallback = Some(HashEmbedder::default());
-                hash_embedder_fallback.as_ref().unwrap()
+                // GH #9: resolve from what the index was built with; loud on
+                // any degraded hash fallback.
+                embedder_box = Some(resolve_default_query_embedder(
+                    &storage,
+                    "hybrid search (semantic half)",
+                ));
+                embedder_box.as_ref().unwrap().as_ref()
             };
             let canonical_query = canonicalize_for_embedding(&args.query);
             let candidate_count = hybrid::candidate_count(args.limit, args.offset);
@@ -1611,11 +1646,14 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
                 let boxed = registry.embedder(&cfg)?;
                 fast_embedder_box = Some(boxed);
                 fast_embedder_box.as_ref().unwrap().as_ref()
-            } else if let Some(fe) = get_semantic_embedder() {
-                fe
             } else {
-                fast_hash_fallback = Some(HashEmbedder::default());
-                fast_hash_fallback.as_ref().unwrap()
+                // GH #9: resolve from what the index was built with; loud on
+                // any degraded hash fallback.
+                fast_embedder_box = Some(resolve_default_query_embedder(
+                    &storage,
+                    "two-tier search (fast tier)",
+                ));
+                fast_embedder_box.as_ref().unwrap().as_ref()
             };
 
             let canonical_query = canonicalize_for_embedding(&args.query);
@@ -1655,11 +1693,14 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
                     let boxed = registry.embedder(&cfg)?;
                     quality_embedder_box = Some(boxed);
                     quality_embedder_box.as_ref().unwrap().as_ref()
-                } else if let Some(fe) = get_semantic_embedder() {
-                    fe
                 } else {
-                    quality_hash_fallback = Some(HashEmbedder::default());
-                    quality_hash_fallback.as_ref().unwrap()
+                    // GH #9: resolve from what the index was built with; loud
+                    // on any degraded hash fallback.
+                    quality_embedder_box = Some(resolve_default_query_embedder(
+                        &storage,
+                        "two-tier search (quality tier)",
+                    ));
+                    quality_embedder_box.as_ref().unwrap().as_ref()
                 };
 
                 // Quality semantic search
