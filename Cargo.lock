@@ -1801,7 +1801,7 @@ dependencies = [
 [[package]]
 name = "frankensearch-core"
 version = "0.2.1"
-source = "git+https://github.com/Dicklesworthstone/frankensearch.git#8e1216b8a1666fb42fc141a396204c976b519a13"
+source = "git+https://github.com/Dicklesworthstone/frankensearch.git#afb7800db541b3213ddb60df407b09093daaf07a"
 dependencies = [
  "asupersync",
  "compact_str",
@@ -1817,7 +1817,7 @@ dependencies = [
 [[package]]
 name = "frankensearch-embed"
 version = "0.2.1"
-source = "git+https://github.com/Dicklesworthstone/frankensearch.git#8e1216b8a1666fb42fc141a396204c976b519a13"
+source = "git+https://github.com/Dicklesworthstone/frankensearch.git#afb7800db541b3213ddb60df407b09093daaf07a"
 dependencies = [
  "asupersync",
  "dirs",
@@ -1836,7 +1836,7 @@ dependencies = [
 [[package]]
 name = "frankensearch-fusion"
 version = "0.2.1"
-source = "git+https://github.com/Dicklesworthstone/frankensearch.git#8e1216b8a1666fb42fc141a396204c976b519a13"
+source = "git+https://github.com/Dicklesworthstone/frankensearch.git#afb7800db541b3213ddb60df407b09093daaf07a"
 dependencies = [
  "ahash",
  "asupersync",
@@ -1855,7 +1855,7 @@ dependencies = [
 [[package]]
 name = "frankensearch-index"
 version = "0.2.1"
-source = "git+https://github.com/Dicklesworthstone/frankensearch.git#8e1216b8a1666fb42fc141a396204c976b519a13"
+source = "git+https://github.com/Dicklesworthstone/frankensearch.git#afb7800db541b3213ddb60df407b09093daaf07a"
 dependencies = [
  "ahash",
  "bytemuck",
