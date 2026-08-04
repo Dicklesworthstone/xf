@@ -391,7 +391,7 @@ impl MessagePanel {
             ));
             output.eprint(&format!(
                 "[{border_color}]│[/] {:<58} [{border_color}]│[/]",
-                &self.message
+                self.message
             ));
         }
 

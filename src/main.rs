@@ -26,8 +26,6 @@ use xf::cli;
 use xf::config::Config;
 use xf::date_parser;
 use xf::embedder::Embedder;
-use xf::fastembed_embedder::FastEmbedder;
-use xf::hash_embedder::HashEmbedder;
 use xf::hybrid::{self, SearchMode};
 use xf::model_registry::{EmbedderConfig, ModelRegistry};
 use xf::output::{Output, OutputFormat as OutFmt, Verbosity};
@@ -208,27 +206,6 @@ impl VectorIndexCache {
 /// Global cached `VectorIndex` for semantic search.
 /// Initialized on first search, reused for subsequent searches.
 static VECTOR_INDEX_CACHE: VectorIndexCache = VectorIndexCache::new();
-
-/// Global cached `FastEmbedder` for semantic search.
-/// Falls back to `HashEmbedder` if the ML model is not available.
-static SEMANTIC_EMBEDDER: OnceLock<Option<FastEmbedder>> = OnceLock::new();
-
-/// Get the semantic embedder, loading it on first use.
-/// Returns `None` if the FastEmbed model is not available (falls back to hash embedder).
-fn get_semantic_embedder() -> Option<&'static FastEmbedder> {
-    SEMANTIC_EMBEDDER
-        .get_or_init(|| match FastEmbedder::try_load() {
-            Ok(embedder) => {
-                info!("Loaded FastEmbed model for semantic search");
-                Some(embedder)
-            }
-            Err(e) => {
-                warn!("FastEmbed model not available, using hash embedder: {e}");
-                None
-            }
-        })
-        .as_ref()
-}
 
 /// Resolve the default query embedder from what the index was actually built
 /// with (GH #9), and make any degraded hash fallback LOUD.
@@ -1445,11 +1422,7 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
             // Model resolution: CLI flag > config file/env > FastEmbedder > hash fallback
             let effective_model = config.semantic.effective_model(args.model.as_deref());
             let effective_dims = config.semantic.effective_dimensions(args.dimensions);
-            #[allow(unused_assignments)]
-            let mut embedder_box: Option<Box<dyn Embedder>> = None;
-            #[allow(unused_assignments)]
-            let mut hash_embedder_fallback: Option<HashEmbedder> = None;
-            let embedder: &dyn Embedder = if let Some(model) = effective_model {
+            let embedder_box: Box<dyn Embedder> = if let Some(model) = effective_model {
                 if let Some(dims) = effective_dims {
                     validate_mrl_dims(dims)?;
                 }
@@ -1459,14 +1432,13 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
                 cfg.show_progress = false;
                 let boxed = registry.embedder(&cfg)?;
                 info!("Using configured embedder: {}", model);
-                embedder_box = Some(boxed);
-                embedder_box.as_ref().unwrap().as_ref()
+                boxed
             } else {
                 // GH #9: resolve from what the index was built with; loud on
                 // any degraded hash fallback.
-                embedder_box = Some(resolve_default_query_embedder(&storage, "semantic search"));
-                embedder_box.as_ref().unwrap().as_ref()
+                resolve_default_query_embedder(&storage, "semantic search")
             };
+            let embedder: &dyn Embedder = embedder_box.as_ref();
             let canonical_query = canonicalize_for_embedding(&args.query);
 
             if canonical_query.is_empty() {
@@ -1518,11 +1490,7 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
             // Model resolution: CLI flag > config file/env > FastEmbedder > hash fallback
             let effective_model = config.semantic.effective_model(args.model.as_deref());
             let effective_dims = config.semantic.effective_dimensions(args.dimensions);
-            #[allow(unused_assignments)]
-            let mut embedder_box: Option<Box<dyn Embedder>> = None;
-            #[allow(unused_assignments)]
-            let mut hash_embedder_fallback: Option<HashEmbedder> = None;
-            let embedder: &dyn Embedder = if let Some(model) = effective_model {
+            let embedder_box: Box<dyn Embedder> = if let Some(model) = effective_model {
                 if let Some(dims) = effective_dims {
                     validate_mrl_dims(dims)?;
                 }
@@ -1532,17 +1500,13 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
                 cfg.show_progress = false;
                 let boxed = registry.embedder(&cfg)?;
                 info!("Using configured embedder: {}", model);
-                embedder_box = Some(boxed);
-                embedder_box.as_ref().unwrap().as_ref()
+                boxed
             } else {
                 // GH #9: resolve from what the index was built with; loud on
                 // any degraded hash fallback.
-                embedder_box = Some(resolve_default_query_embedder(
-                    &storage,
-                    "hybrid search (semantic half)",
-                ));
-                embedder_box.as_ref().unwrap().as_ref()
+                resolve_default_query_embedder(&storage, "hybrid search (semantic half)")
             };
+            let embedder: &dyn Embedder = embedder_box.as_ref();
             let canonical_query = canonicalize_for_embedding(&args.query);
             let candidate_count = hybrid::candidate_count(args.limit, args.offset);
 
@@ -1634,27 +1598,18 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
                 .fast_model
                 .as_deref()
                 .or_else(|| config.semantic.effective_model(args.model.as_deref()));
-            #[allow(unused_assignments)]
-            let mut fast_embedder_box: Option<Box<dyn Embedder>> = None;
-            #[allow(unused_assignments)]
-            let mut fast_hash_fallback: Option<HashEmbedder> = None;
-            let fast_embedder: &dyn Embedder = if let Some(model) = fast_model {
+            let fast_embedder_box: Box<dyn Embedder> = if let Some(model) = fast_model {
                 let registry = ModelRegistry::new();
                 let mut cfg = EmbedderConfig::new(model);
                 cfg.dimensions = config.semantic.effective_dimensions(args.dimensions);
                 cfg.show_progress = false;
-                let boxed = registry.embedder(&cfg)?;
-                fast_embedder_box = Some(boxed);
-                fast_embedder_box.as_ref().unwrap().as_ref()
+                registry.embedder(&cfg)?
             } else {
                 // GH #9: resolve from what the index was built with; loud on
                 // any degraded hash fallback.
-                fast_embedder_box = Some(resolve_default_query_embedder(
-                    &storage,
-                    "two-tier search (fast tier)",
-                ));
-                fast_embedder_box.as_ref().unwrap().as_ref()
+                resolve_default_query_embedder(&storage, "two-tier search (fast tier)")
             };
+            let fast_embedder: &dyn Embedder = fast_embedder_box.as_ref();
 
             let canonical_query = canonicalize_for_embedding(&args.query);
             let candidate_count = hybrid::candidate_count(args.limit, args.offset);
@@ -1681,27 +1636,18 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
                     .quality_model
                     .as_deref()
                     .or_else(|| config.semantic.effective_model(args.model.as_deref()));
-                #[allow(unused_assignments)]
-                let mut quality_embedder_box: Option<Box<dyn Embedder>> = None;
-                #[allow(unused_assignments)]
-                let mut quality_hash_fallback: Option<HashEmbedder> = None;
-                let quality_embedder: &dyn Embedder = if let Some(model) = quality_model {
+                let quality_embedder_box: Box<dyn Embedder> = if let Some(model) = quality_model {
                     let registry = ModelRegistry::new();
                     let mut cfg = EmbedderConfig::new(model);
                     cfg.dimensions = config.semantic.effective_dimensions(args.dimensions);
                     cfg.show_progress = false;
-                    let boxed = registry.embedder(&cfg)?;
-                    quality_embedder_box = Some(boxed);
-                    quality_embedder_box.as_ref().unwrap().as_ref()
+                    registry.embedder(&cfg)?
                 } else {
                     // GH #9: resolve from what the index was built with; loud
                     // on any degraded hash fallback.
-                    quality_embedder_box = Some(resolve_default_query_embedder(
-                        &storage,
-                        "two-tier search (quality tier)",
-                    ));
-                    quality_embedder_box.as_ref().unwrap().as_ref()
+                    resolve_default_query_embedder(&storage, "two-tier search (quality tier)")
                 };
+                let quality_embedder: &dyn Embedder = quality_embedder_box.as_ref();
 
                 // Quality semantic search
                 let type_strs: Option<Vec<&str>> = doc_types

@@ -131,7 +131,7 @@ impl EmbeddingWorker {
     }
 
     /// Resume pending jobs from the database.
-    #[allow(clippy::unused_async)]
+    #[allow(clippy::unused_async, clippy::unused_async_trait_impl)]
     async fn resume_pending_jobs(&self) -> anyhow::Result<()> {
         // We need a database to check for pending jobs
         // For now, skip this - the daemon will track jobs per-database
@@ -140,7 +140,7 @@ impl EmbeddingWorker {
     }
 
     /// Cancel jobs for a database path.
-    #[allow(clippy::unused_async)]
+    #[allow(clippy::unused_async, clippy::unused_async_trait_impl)]
     async fn cancel_jobs(&self, db_path: &Path, model_id: Option<&str>) -> anyhow::Result<()> {
         let storage = Storage::open(db_path)?;
         let db_path_str = db_path.to_string_lossy();
@@ -150,7 +150,7 @@ impl EmbeddingWorker {
     }
 
     /// Process a single embedding job.
-    #[allow(clippy::unused_async)]
+    #[allow(clippy::unused_async, clippy::unused_async_trait_impl)]
     async fn process_job(&self, config: EmbeddingJobConfig) -> anyhow::Result<()> {
         let db_path_str = config.db_path.to_string_lossy().to_string();
         let start = Instant::now();

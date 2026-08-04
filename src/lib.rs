@@ -665,22 +665,25 @@ fn record_embedding_model(
     config: &EmbeddingConfig,
     stored_count: usize,
 ) -> Result<()> {
-    use crate::model_registry::{
-        EMBEDDER_HASH_FNV1A_384, EMBEDDER_MINILM_L6_V2, ModelRegistry,
-    };
+    use crate::model_registry::{EMBEDDER_HASH_FNV1A_384, EMBEDDER_MINILM_L6_V2, ModelRegistry};
 
     if stored_count == 0 && storage.get_embedding_model(model_id)?.is_some() {
         return Ok(());
     }
 
-    let recorded: String = if let Some(model) = &config.model {
-        ModelRegistry::canonical_name(model)
-            .map_or_else(|| model.clone(), std::string::ToString::to_string)
-    } else if config.use_semantic {
-        EMBEDDER_MINILM_L6_V2.to_string()
-    } else {
-        EMBEDDER_HASH_FNV1A_384.to_string()
-    };
+    let recorded: String = config.model.as_ref().map_or_else(
+        || {
+            if config.use_semantic {
+                EMBEDDER_MINILM_L6_V2.to_string()
+            } else {
+                EMBEDDER_HASH_FNV1A_384.to_string()
+            }
+        },
+        |model| {
+            ModelRegistry::canonical_name(model)
+                .map_or_else(|| model.clone(), std::string::ToString::to_string)
+        },
+    );
 
     Ok(storage.set_embedding_model(model_id, &recorded)?)
 }

@@ -246,9 +246,11 @@ impl Storage {
     pub fn get_meta(&self, key: &str) -> Result<Option<String>> {
         let result = self
             .conn
-            .query_row("SELECT value FROM meta WHERE key = ?", params![key], |row| {
-                row.get::<_, String>(0)
-            })
+            .query_row(
+                "SELECT value FROM meta WHERE key = ?",
+                params![key],
+                |row| row.get::<_, String>(0),
+            )
             .optional()?;
         Ok(result)
     }
@@ -289,6 +291,11 @@ impl Storage {
     /// # Errors
     ///
     /// Returns an error if the database query fails.
+    ///
+    /// # Panics
+    ///
+    /// Does not panic in practice: the `expect` converts `chunks_exact(2)`
+    /// output, which is guaranteed to yield exactly 2-byte chunks.
     pub fn sample_embedding(&self, model_id: &str) -> Result<Option<Vec<f32>>> {
         use half::f16;
 

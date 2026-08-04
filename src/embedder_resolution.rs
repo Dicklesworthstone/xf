@@ -34,20 +34,18 @@ use crate::storage::Storage;
 pub const DEFAULT_MODEL_ID: &str = "default";
 
 /// Fraction of exactly-zero components above which a stored embedding is
-/// considered hash-based. FNV-1a feature hashing leaves most of its 384
-/// buckets untouched for short texts (tweets/DMs), while transformer
-/// embeddings (MiniLM et al.) are fully dense — even after f16 quantization
-/// exact zeros are vanishingly rare.
+/// considered hash-based.
+///
+/// FNV-1a feature hashing leaves most of its 384 buckets untouched for short
+/// texts (tweets/DMs), while transformer embeddings (MiniLM et al.) are fully
+/// dense — even after f16 quantization exact zeros are vanishingly rare.
 pub const HASH_ZERO_FRACTION_THRESHOLD: f32 = 0.25;
 
 /// How the default query embedder should be obtained.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum QueryEmbedderPlan {
     /// Load this registry model — the same loader the index path uses.
-    LoadModel {
-        model: String,
-        source: PlanSource,
-    },
+    LoadModel { model: String, source: PlanSource },
     /// Use the hash embedder: the index itself was built with hash
     /// embeddings, so the hash embedder is the *correct* query embedder.
     HashIndex {
@@ -200,17 +198,17 @@ fn resolve_plan(storage: &Storage, plan: QueryEmbedderPlan) -> ResolvedQueryEmbe
                 },
             }
         }
-        QueryEmbedderPlan::LegacyXfLayout => match FastEmbedder::try_load() {
-            Ok(embedder) => ResolvedQueryEmbedder {
+        QueryEmbedderPlan::LegacyXfLayout => FastEmbedder::try_load().map_or_else(
+            // The directory probe passed but the actual load failed; fall
+            // back to the remaining plan steps (meta was already absent).
+            |_| resolve_plan(storage, plan_query_embedder(storage, false)),
+            |embedder| ResolvedQueryEmbedder {
                 embedder: Box::new(embedder),
                 detail: "using MiniLM from xf model directory".to_string(),
                 degraded: false,
                 hash_index: false,
             },
-            // The directory probe passed but the actual load failed; fall
-            // back to the remaining plan steps (meta was already absent).
-            Err(_) => resolve_plan(storage, plan_query_embedder(storage, false)),
-        },
+        ),
         QueryEmbedderPlan::HashIndex { recorded } => ResolvedQueryEmbedder {
             embedder: Box::new(HashEmbedder::default()),
             detail: if recorded {
@@ -247,7 +245,9 @@ mod tests {
     #[test]
     fn test_hash_embedding_detected_as_hash() {
         let embedder = HashEmbedder::default();
-        let embedding = embedder.embed("tips for haggling with overseas factories").unwrap();
+        let embedding = embedder
+            .embed("tips for haggling with overseas factories")
+            .unwrap();
         assert!(
             looks_like_hash_embedding(&embedding),
             "hash embedder output should be recognized as hash-based"
@@ -350,7 +350,10 @@ mod tests {
             .store_embedding("doc1", "tweet", &dense, None)
             .unwrap();
         let plan = plan_query_embedder(&storage, false);
-        assert_eq!(plan, QueryEmbedderPlan::UnknownSemanticIndex { dimension: 768 });
+        assert_eq!(
+            plan,
+            QueryEmbedderPlan::UnknownSemanticIndex { dimension: 768 }
+        );
     }
 
     #[test]

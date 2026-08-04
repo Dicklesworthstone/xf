@@ -230,7 +230,7 @@ impl Model2VecEmbedder {
         std::fs::read_dir(&snapshots_dir)
             .ok()?
             .filter_map(Result::ok)
-            .filter(|e| e.file_type().ok().is_some_and(|ft| ft.is_dir()))
+            .filter(|e| e.file_type().is_ok_and(|ft| ft.is_dir()))
             .map(|e| e.path())
             .max_by_key(|p| {
                 std::fs::metadata(p)
