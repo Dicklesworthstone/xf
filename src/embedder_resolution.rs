@@ -237,7 +237,6 @@ fn resolve_plan(storage: &Storage, plan: QueryEmbedderPlan) -> ResolvedQueryEmbe
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::embedder::Embedder as _;
 
     fn temp_storage() -> (tempfile::TempDir, Storage) {
         let dir = tempfile::tempdir().expect("create tempdir");

@@ -682,7 +682,7 @@ fn record_embedding_model(
         EMBEDDER_HASH_FNV1A_384.to_string()
     };
 
-    storage.set_embedding_model(model_id, &recorded)
+    Ok(storage.set_embedding_model(model_id, &recorded)?)
 }
 
 /// Generate embeddings for a specific model and store with the given `model_id`.
