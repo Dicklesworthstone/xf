@@ -85,3 +85,5 @@ ci-artifacts/
 storage.sqlite3*
 test_meminfo
 perf.data
+/target-rel/
+/target-rel-a64/
