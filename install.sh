@@ -17,6 +17,7 @@
 #   --from-source      Build from source instead of downloading binary
 #   --quiet            Suppress non-error output
 #   --no-gum           Disable gum formatting even if available
+#   --insecure-skip-checksum   Skip SHA256 verification (NOT recommended)
 #
 set -euo pipefail
 umask 022
@@ -33,6 +34,7 @@ VERIFY=0
 FROM_SOURCE=0
 CHECKSUM="${CHECKSUM:-}"
 CHECKSUM_URL="${CHECKSUM_URL:-}"
+SKIP_CHECKSUM="${SKIP_CHECKSUM:-0}"
 ARTIFACT_URL="${ARTIFACT_URL:-}"
 LOCK_FILE="/tmp/xf-install.lock"
 SYSTEM=0
@@ -118,8 +120,11 @@ resolve_version() {
         return 0
       fi
     fi
-    VERSION="v0.1.0"
-    warn "Could not resolve latest version; defaulting to $VERSION"
+    err "Could not resolve the latest release version (GitHub API and redirect lookup both failed)."
+    err "This is usually a transient network issue or GitHub API rate limiting."
+    err "Retry later, or pin a version explicitly, e.g.: install.sh --version v0.4.0"
+    err "Releases: https://github.com/${OWNER}/${REPO}/releases"
+    exit 1
   fi
 }
 
@@ -171,7 +176,8 @@ ensure_rust() {
 usage() {
   cat <<EOFU
 Usage: install.sh [--version vX.Y.Z] [--dest DIR] [--system] [--easy-mode] [--verify] \\
-                  [--artifact-url URL] [--checksum HEX] [--checksum-url URL] [--quiet] [--no-gum]
+                  [--artifact-url URL] [--checksum HEX] [--checksum-url URL] \\
+                  [--insecure-skip-checksum] [--quiet] [--no-gum]
 
 Options:
   --version vX.Y.Z   Install specific version (default: latest)
@@ -182,6 +188,7 @@ Options:
   --from-source      Build from source instead of downloading binary
   --quiet            Suppress non-error output
   --no-gum           Disable gum formatting even if available
+  --insecure-skip-checksum   Skip SHA256 verification (NOT recommended)
 EOFU
 }
 
@@ -196,6 +203,7 @@ while [ $# -gt 0 ]; do
     --checksum) CHECKSUM="$2"; shift 2;;
     --checksum-url) CHECKSUM_URL="$2"; shift 2;;
     --from-source) FROM_SOURCE=1; shift;;
+    --insecure-skip-checksum) SKIP_CHECKSUM=1; shift;;
     --quiet|-q) QUIET=1; shift;;
     --no-gum) NO_GUM=1; shift;;
     -h|--help) usage; exit 0;;
@@ -315,28 +323,39 @@ if [ "$FROM_SOURCE" -eq 1 ]; then
   exit 0
 fi
 
-if [ -z "$CHECKSUM" ]; then
-  # Use SHA256SUMS file from release (contains checksums for all artifacts)
-  if [ -z "$CHECKSUM_URL" ]; then
-    CHECKSUM_URL="https://github.com/${OWNER}/${REPO}/releases/download/${VERSION}/SHA256SUMS"
-  fi
-  info "Fetching checksum from ${CHECKSUM_URL}"
-  CHECKSUM_FILE="$TMP/SHA256SUMS"
-  if ! curl -fsSL "$CHECKSUM_URL" -o "$CHECKSUM_FILE"; then
-    warn "Checksum not available; skipping verification"
-    CHECKSUM="SKIP"
-  else
-    # Extract checksum for our specific file from SHA256SUMS
-    CHECKSUM=$(grep "  ${TAR}$" "$CHECKSUM_FILE" 2>/dev/null | awk '{print $1}')
+if [ "$SKIP_CHECKSUM" -eq 1 ]; then
+  warn "SHA256 verification DISABLED (--insecure-skip-checksum); installing unverified artifact"
+else
+  if [ -z "$CHECKSUM" ]; then
+    # Use SHA256SUMS file from release (contains checksums for all artifacts)
+    if [ -z "$CHECKSUM_URL" ]; then
+      CHECKSUM_URL="https://github.com/${OWNER}/${REPO}/releases/download/${VERSION}/SHA256SUMS"
+    fi
+    info "Fetching checksum from ${CHECKSUM_URL}"
+    CHECKSUM_FILE="$TMP/SHA256SUMS"
+    if ! curl -fsSL "$CHECKSUM_URL" -o "$CHECKSUM_FILE"; then
+      err "Could not fetch checksums from ${CHECKSUM_URL}"
+      err "Refusing to install an unverified binary."
+      err "Retry later, supply one via --checksum HEX / --checksum-url URL,"
+      err "or (NOT recommended) bypass verification with --insecure-skip-checksum."
+      exit 1
+    fi
+    # Extract checksum for our specific file from SHA256SUMS.
+    # `|| true` guards set -e -o pipefail: a missing entry must reach the
+    # explicit error below, not kill the script mid-pipeline with no message.
+    CHECKSUM=$(grep "  ${TAR}$" "$CHECKSUM_FILE" 2>/dev/null | awk '{print $1}' || true)
     if [ -z "$CHECKSUM" ]; then
       # Try alternate format (single space)
-      CHECKSUM=$(grep " ${TAR}$" "$CHECKSUM_FILE" 2>/dev/null | awk '{print $1}')
+      CHECKSUM=$(grep " ${TAR}$" "$CHECKSUM_FILE" 2>/dev/null | awk '{print $1}' || true)
     fi
-    if [ -z "$CHECKSUM" ]; then warn "Checksum for ${TAR} not found; skipping verification"; CHECKSUM="SKIP"; fi
+    if [ -z "$CHECKSUM" ]; then
+      err "No checksum entry for ${TAR} in ${CHECKSUM_URL}"
+      err "Refusing to install an unverified binary."
+      err "Supply one via --checksum HEX / --checksum-url URL,"
+      err "or (NOT recommended) bypass verification with --insecure-skip-checksum."
+      exit 1
+    fi
   fi
-fi
-
-if [ "$CHECKSUM" != "SKIP" ]; then
   echo "$CHECKSUM  $TMP/$TAR" | sha256sum -c - || { err "Checksum mismatch"; exit 1; }
   ok "Checksum verified"
 fi
