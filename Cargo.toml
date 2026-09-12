@@ -61,11 +61,11 @@ rusqlite = { version = "0.39", features = ["bundled", "modern_sqlite"] }
 tantivy = "0.26"
 
 # frankensearch (post-cutover: now required, migration complete per bd-3un.35)
-frankensearch-core = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-core" }
-frankensearch-fusion = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-fusion" }
-frankensearch-index = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-index" }
-frankensearch-embed = { git = "https://github.com/Dicklesworthstone/frankensearch.git", package = "frankensearch-embed", features = ["hash", "model2vec", "fastembed"] }
-asupersync = "0.3.9"
+frankensearch-core = { version = "=0.3.0", git = "https://github.com/Dicklesworthstone/frankensearch.git", rev = "dd093fb230404ab08be2ed6f27776ed6c4796485", package = "frankensearch-core" }
+frankensearch-fusion = { version = "=0.3.0", git = "https://github.com/Dicklesworthstone/frankensearch.git", rev = "dd093fb230404ab08be2ed6f27776ed6c4796485", package = "frankensearch-fusion" }
+frankensearch-index = { version = "=0.3.0", git = "https://github.com/Dicklesworthstone/frankensearch.git", rev = "dd093fb230404ab08be2ed6f27776ed6c4796485", package = "frankensearch-index" }
+frankensearch-embed = { version = "=0.3.0", git = "https://github.com/Dicklesworthstone/frankensearch.git", rev = "dd093fb230404ab08be2ed6f27776ed6c4796485", package = "frankensearch-embed", features = ["hash", "model2vec", "fastembed"] }
+asupersync = "=0.5.0"
 
 # High-performance text processing
 regex = "1.10"
