@@ -12,16 +12,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -40,10 +32,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Tayyab112/crossencoder-hardneg"
@@ -55,16 +44,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "csv",
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["csv", "gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -83,10 +64,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/OloriBern/musique-bge-m3-2000-mixer-3ep"
@@ -98,16 +76,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "csv",
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["csv", "gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -128,10 +98,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/OloriBern/checkpoints_musique_BAAI_bge-m3_3ep-bge-m3-2000-mixer-3ep"
@@ -143,17 +110,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -170,10 +128,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/noooop9527/Qwen3-Reranker-0.6B-STv6"
@@ -185,16 +140,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "csv",
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["csv", "gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -213,10 +160,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/OloriBern/bge-m3-musique-mixer-3ep"
@@ -228,16 +172,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "csv",
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["csv", "gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -256,10 +192,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/OloriBern/bge-m3-musique-hybrid-3ep"
@@ -271,14 +204,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -294,10 +221,7 @@
         "region:us",
         "conversational"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/yeahbeen/Qwen3-Reranker-0.6B-Q8_0-GGUF"
@@ -309,14 +233,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -332,10 +250,7 @@
         "region:us",
         "conversational"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Chiwei/Qwen3-Reranker-0.6B-Q8_0-GGUF"
@@ -347,16 +262,8 @@
       "pipeline_tag": "text-ranking",
       "library": null,
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "model",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "model", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -374,10 +281,7 @@
         "license:apache-2.0",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/MedSwin/MedSwin-Reranker-bge-gemma"
@@ -389,16 +293,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "csv",
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["csv", "gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -417,10 +313,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/OloriBern/hybrid-bge-m3-tuned"
@@ -432,17 +325,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -459,10 +343,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/noooop9527/Qwen3-Reranker-0.6B-seq-cls-STv6"
@@ -474,18 +355,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "py",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "py", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -503,10 +374,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Qwen/Qwen3-VL-Reranker-8B"
@@ -518,18 +386,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "py",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "py", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -547,10 +405,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Qwen/Qwen3-VL-Reranker-2B"
@@ -562,14 +417,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -585,10 +434,7 @@
         "region:us",
         "conversational"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Chiwei/Qwen3-Reranker-4B-Q3_K_M-GGUF"
@@ -600,14 +446,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -623,10 +463,7 @@
         "region:us",
         "conversational"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Chiwei/Qwen3-Reranker-4B-Q4_K_S-GGUF"
@@ -638,14 +475,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -661,10 +492,7 @@
         "region:us",
         "conversational"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Chiwei/Qwen3-Reranker-4B-Q4_K_M-GGUF"
@@ -676,14 +504,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -699,10 +521,7 @@
         "region:us",
         "conversational"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/guidalleprane/Qwen3-Reranker-4B-Q4_K_M-GGUF"
@@ -714,18 +533,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jpg",
-        "json",
-        "md",
-        "png",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jpg", "json", "md", "png", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -753,10 +562,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/AQ-MedAI/Diver-Retriever-4B"
@@ -768,18 +574,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "bin",
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "py",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["bin", "gitattributes", "jinja", "json", "md", "py", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -799,11 +595,7 @@
         "license:other",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown",
-        "custom_code"
-      ],
+      "flags": ["license_unknown", "size_unknown", "custom_code"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/noooop9527/llama-nemotron-rerank-1b-v2-STv6"
@@ -815,16 +607,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -846,10 +630,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/OverSamu/reranker-sapbert-ncbi-disease-bce-context-title"
@@ -861,17 +642,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -915,10 +687,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/thebajajra/RexReranker-0.6B"
@@ -930,14 +699,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -953,10 +716,7 @@
         "region:us",
         "conversational"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Zygisluk/Qwen3-Reranker-4B-Q8_0-GGUF"
@@ -968,16 +728,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -998,10 +750,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/taido/minilm"
@@ -1013,17 +762,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "bin",
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["bin", "gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1044,10 +784,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/usamaahmedsh/roberta-base-reranker-llm-weaklabels-v1"
@@ -1059,14 +796,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1082,10 +813,7 @@
         "region:us",
         "conversational"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Zygisluk/Qwen3-Reranker-4B-Q4_K_M-GGUF"
@@ -1097,17 +825,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1129,10 +848,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/thebajajra/RexReranker-0.6B-MXFP4"
@@ -1144,17 +860,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "csv",
-        "gitattributes",
-        "json",
-        "md",
-        "model",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["csv", "gitattributes", "json", "md", "model", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1175,10 +882,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/laura2243/cross-encoder-expert"
@@ -1190,14 +894,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1218,10 +916,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/godkingleto/zerank-2-Q8_0-GGUF"
@@ -1233,14 +928,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1261,10 +950,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/godkingleto/zerank-2-Q4_K_M-GGUF"
@@ -1276,18 +962,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "safetensors",
-        "txt",
-        "yaml"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "safetensors", "txt", "yaml"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1306,10 +982,7 @@
         "compressed-tensors",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/thebajajra/RexReranker-0.6B-FP8"
@@ -1321,16 +994,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "py",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "py", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1351,11 +1016,7 @@
         "model-index",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown",
-        "custom_code"
-      ],
+      "flags": ["license_unknown", "size_unknown", "custom_code"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cometadata/jina-reranker-v2-multilingual-affiliations-v5"
@@ -1367,16 +1028,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "py",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "py", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1400,11 +1053,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown",
-        "custom_code"
-      ],
+      "flags": ["license_unknown", "size_unknown", "custom_code"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cometadata/gte-multilingual-reranker-affiliations"
@@ -1416,15 +1065,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1444,10 +1086,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/voIsung/bge-reranker-cvjd"
@@ -1459,14 +1098,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1482,10 +1115,7 @@
         "region:us",
         "conversational"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ReddaGlue/Qwen3-Reranker-4B-Q8_0-GGUF"
@@ -1497,18 +1127,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "bin",
-        "csv",
-        "gitattributes",
-        "json",
-        "md",
-        "py",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["bin", "csv", "gitattributes", "json", "md", "py", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1529,11 +1149,7 @@
         "model-index",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown",
-        "custom_code"
-      ],
+      "flags": ["license_unknown", "size_unknown", "custom_code"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cometadata/jina-reranker-v2-multilingual-affiliations-large"
@@ -1545,15 +1161,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1575,10 +1184,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-400m-listnet"
@@ -1590,15 +1196,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1620,10 +1219,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-150m-listnet"
@@ -1635,16 +1231,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "py",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "py", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1665,11 +1253,7 @@
         "model-index",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown",
-        "custom_code"
-      ],
+      "flags": ["license_unknown", "size_unknown", "custom_code"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cometadata/jina-reranker-v2-multilingual-affiliations"
@@ -1681,15 +1265,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1711,10 +1288,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-68m-listnet"
@@ -1726,15 +1300,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1756,10 +1323,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-32m-listnet"
@@ -1771,15 +1335,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1801,10 +1358,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-17m-listnet"
@@ -1816,15 +1370,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1846,10 +1393,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-400m-ranknet"
@@ -1861,15 +1405,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1891,10 +1428,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-150m-ranknet"
@@ -1906,15 +1440,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1936,10 +1463,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-17m-ranknet"
@@ -1951,15 +1475,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -1981,10 +1498,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-68m-ranknet"
@@ -1996,15 +1510,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2026,10 +1533,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-32m-ranknet"
@@ -2041,16 +1545,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "py",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "py", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2071,11 +1567,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown",
-        "custom_code"
-      ],
+      "flags": ["license_unknown", "size_unknown", "custom_code"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cringeee/ce_finetuned_bce"
@@ -2087,17 +1579,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "csv",
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["csv", "gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2110,10 +1593,7 @@
         "base_model:finetune:distilbert/distilbert-base-uncased",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/chungimungi/fine-tuned-msmarco"
@@ -2125,14 +1605,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2147,10 +1621,7 @@
         "region:us",
         "conversational"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/iyanello/Qwen3-Reranker-0.6B-GGUF"
@@ -2162,16 +1633,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "model",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "model", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2192,10 +1655,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ntAnh-dev/mmarco-mMiniLMv2-L12-H384-v1-bk-quyche"
@@ -2207,18 +1667,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "csv",
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["csv", "gitattributes", "jinja", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2237,10 +1687,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/varin/jamniti-law-reranker-v1"
@@ -2252,16 +1699,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "model",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "model", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2282,10 +1721,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ntAnh-dev/mmarco-mMiniLMv2-L12-H384-v1"
@@ -2297,16 +1733,8 @@
       "pipeline_tag": "text-ranking",
       "library": null,
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2323,10 +1751,7 @@
         "base_model:finetune:Omartificial-Intelligence-Space/Arabic-Triplet-Matryoshka-V2",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/oddadmix/arabic-reranker-v1"
@@ -2338,18 +1763,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "onnx",
-        "txt",
-        "weight"
-      ],
-      "cpu_runtimes": [
-        "onnxruntime"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "onnx", "txt", "weight"],
+      "cpu_runtimes": ["onnxruntime"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2366,10 +1781,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/DocDBrown/Qwen3-rerank-8B-onnx"
@@ -2381,16 +1793,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2412,10 +1816,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/OverSamu/reranker-sapbert-ncbi-disease-bce-context"
@@ -2427,16 +1828,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2459,10 +1852,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/OverSamu/reranker-sapbert-ncbi-disease-bce"
@@ -2474,17 +1864,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "csv",
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["csv", "gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2505,10 +1886,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/NeuML/biomedbert-base-reranker"
@@ -2520,17 +1898,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2546,10 +1915,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cross-encoder-testing/ctxl-rerank-v2-instruct-multilingual-1b-STv6"
@@ -2561,18 +1927,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "png",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "png", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2587,10 +1943,7 @@
         "compressed-tensors",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ContextualAI/ctxl-rerank-v2-instruct-multilingual-1b-nvfp4"
@@ -2602,18 +1955,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "png",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "png", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2629,10 +1972,7 @@
         "compressed-tensors",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ContextualAI/ctxl-rerank-v2-instruct-multilingual-2b-nvfp4"
@@ -2644,16 +1984,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "png",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "png", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2669,10 +2001,7 @@
         "compressed-tensors",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ContextualAI/ctxl-rerank-v2-instruct-multilingual-6b-nvfp4"
@@ -2684,17 +2013,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "png",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "png", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2708,10 +2028,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ContextualAI/ctxl-rerank-v2-instruct-multilingual-1b"
@@ -2723,17 +2040,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "png",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "png", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2747,10 +2055,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ContextualAI/ctxl-rerank-v2-instruct-multilingual-2b"
@@ -2763,9 +2068,7 @@
       "library": "transformers",
       "license": "",
       "formats": [],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2779,10 +2082,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "no_weight_files",
       "url": "https://huggingface.co/ContextualAI/ctxl-rerank-v2-instruct-multilingual-6b"
@@ -2795,9 +2095,7 @@
       "library": "sentence-transformers",
       "license": "",
       "formats": [],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2818,10 +2116,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "no_weight_files",
       "url": "https://huggingface.co/vkimbris/qwen3_06b_items_reranker"
@@ -2834,9 +2129,7 @@
       "library": "sentence-transformers",
       "license": "",
       "formats": [],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2859,10 +2152,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "no_weight_files",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-150m-bce"
@@ -2875,9 +2165,7 @@
       "library": "sentence-transformers",
       "license": "",
       "formats": [],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2900,10 +2188,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "no_weight_files",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-68m-bce"
@@ -2916,9 +2201,7 @@
       "library": "sentence-transformers",
       "license": "",
       "formats": [],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2941,10 +2224,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "no_weight_files",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-32m-bce"
@@ -2956,15 +2236,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -2987,10 +2260,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bansalaman18/reranker-msmarco-v1.1-ettin-encoder-17m-bce"
@@ -3002,19 +2272,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "bin",
-        "gitattributes",
-        "json",
-        "md",
-        "pt",
-        "pth",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["bin", "gitattributes", "json", "md", "pt", "pth", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3035,10 +2294,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/svk2118/reranker-22m"
@@ -3050,17 +2306,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3076,10 +2323,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cross-encoder-testing/Qwen3-Reranker-0.6B-STv6"
@@ -3091,16 +2335,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3116,10 +2352,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cross-encoder-testing/Qwen3-Reranker-0.6B-seq-cls-STv6"
@@ -3131,17 +2364,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "pt",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "pt", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3155,10 +2379,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/griffith-bigdata/GRAST-SQL-4B-BIRD-Reranker"
@@ -3170,17 +2391,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "pt",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "pt", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3199,10 +2411,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/griffith-bigdata/GRAST-SQL-8B-BIRD-Reranker"
@@ -3214,17 +2423,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "pt",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "pt", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3239,10 +2439,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/griffith-bigdata/GRAST-SQL-0.6B-BIRD-Reranker"
@@ -3254,17 +2451,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3280,10 +2468,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cross-encoder-testing/mxbai-rerank-large-v2-STv6"
@@ -3295,17 +2480,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3321,10 +2497,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cross-encoder-testing/mxbai-rerank-base-v2-STv6"
@@ -3336,16 +2509,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3368,10 +2533,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/OverSamu/reranker-biomedbert-base-ncbi-disease-bce-1"
@@ -3383,15 +2545,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3413,10 +2568,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/andreribeiro87/aethel-reranker-en-v1-mmarco-pt-pt-finetuned"
@@ -3428,15 +2580,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3459,10 +2604,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/chingackgook/reranker-ModernBERT-base-gooaq-bce"
@@ -3474,17 +2616,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "bin",
-        "csv",
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["bin", "csv", "gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3512,10 +2645,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/redis/langcache-reranker-v2-softmnrl-triplet"
@@ -3527,18 +2657,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "csv",
-        "gitattributes",
-        "json",
-        "md",
-        "py",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["csv", "gitattributes", "json", "md", "py", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3560,11 +2680,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown",
-        "custom_code"
-      ],
+      "flags": ["license_unknown", "size_unknown", "custom_code"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/TakoData/chart-reranker"
@@ -3576,16 +2692,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3605,10 +2713,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/filmonfeme/financial-chatbot-reranker"
@@ -3620,17 +2725,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3651,10 +2747,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/XingTuLab/BinSeek-Reranker"
@@ -3666,13 +2759,8 @@
       "pipeline_tag": "text-ranking",
       "library": "asteroid",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "md"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3685,10 +2773,7 @@
         "license:bigcode-openrail-m",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "no_weight_files",
       "url": "https://huggingface.co/mdmasud8800/cost-free"
@@ -3700,17 +2785,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "csv",
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["csv", "gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3731,10 +2807,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Ete423/finetuned-cat-reranker"
@@ -3746,17 +2819,8 @@
       "pipeline_tag": "text-ranking",
       "library": null,
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3771,10 +2835,7 @@
         "license:mit",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/MosRat/ucas-ir-2025-Qwen3-Reranker-8B-finetuned"
@@ -3786,17 +2847,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "py",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "py", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3813,10 +2865,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/homesome/qwen3-reranker-4b-homesome"
@@ -3828,18 +2877,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "bin",
-        "csv",
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["bin", "csv", "gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3867,10 +2906,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/redis/langcache-reranker-v1-miniL6"
@@ -3882,18 +2918,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "bin",
-        "csv",
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["bin", "csv", "gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3922,10 +2948,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/redis/langcache-reranker-v1-miniL6-softmnrl-triplet"
@@ -3937,14 +2960,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -3965,10 +2982,7 @@
         "imatrix",
         "conversational"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/mradermacher/Diver-GroupRank-7B-i1-GGUF"
@@ -3980,16 +2994,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4013,10 +3019,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/alantang2025/reranker-MiniLM-L12-H384-uncased-msmarco-margin-mse"
@@ -4028,16 +3031,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4058,10 +3053,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ingridchien/harvard-loop-reranker"
@@ -4073,17 +3065,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "py",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "py", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4106,10 +3089,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cross-encoder-testing/reranker-bert-tiny-gooaq-bce-v6"
@@ -4121,17 +3101,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "model",
-        "py",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "model", "py", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4168,11 +3139,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown",
-        "custom_code"
-      ],
+      "flags": ["license_unknown", "size_unknown", "custom_code"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/naver/xprovence-reranker-bgem3-v2"
@@ -4184,16 +3151,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4213,10 +3172,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/sofiakris/audit-match"
@@ -4228,18 +3184,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "bin",
-        "gitattributes",
-        "json",
-        "md",
-        "pt",
-        "pth",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["bin", "gitattributes", "json", "md", "pt", "pth", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4261,10 +3207,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/mjaliz/product-titles-reranker-v1"
@@ -4276,17 +3219,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "bin",
-        "csv",
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["bin", "csv", "gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4314,10 +3248,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/redis/langcache-reranker-v1-softmnrl-triplet"
@@ -4329,16 +3260,8 @@
       "pipeline_tag": "text-ranking",
       "library": "rk-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "rknn",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "rknn", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4360,10 +3283,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "no_weight_files",
       "url": "https://huggingface.co/rk-transformers/ms-marco-MiniLM-L12-v2"
@@ -4375,18 +3295,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "12",
-        "bin",
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["12", "bin", "gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4405,10 +3315,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ahmedfarazsyk/ms-marco-MiniLM-L6-v2-finetuned-scidocs"
@@ -4420,16 +3327,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4450,10 +3349,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Laseung/klue-roberta-small-klue-mrc-cross-encoder-finetuned"
@@ -4465,16 +3361,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "py",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "py", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4493,11 +3381,7 @@
         "text-embeddings-inference",
         "region:eu"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown",
-        "custom_code"
-      ],
+      "flags": ["license_unknown", "size_unknown", "custom_code"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/jinaai/jina-reranker-v3"
@@ -4509,15 +3393,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "onnx"
-      ],
-      "cpu_runtimes": [
-        "onnxruntime"
-      ],
+      "formats": ["gitattributes", "json", "md", "onnx"],
+      "cpu_runtimes": ["onnxruntime"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4536,10 +3413,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bourdoiscatie/crossencoder-camembert-base-mmarcoFR"
@@ -4551,14 +3425,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4574,10 +3442,7 @@
         "region:us",
         "conversational"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/redsquirrel/Qwen3-Reranker-8B-Q8_0-GGUF"
@@ -4589,17 +3454,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "bin",
-        "gitattributes",
-        "json",
-        "md",
-        "py",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["bin", "gitattributes", "json", "md", "py", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4619,11 +3475,7 @@
         "license:other",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown",
-        "custom_code"
-      ],
+      "flags": ["license_unknown", "size_unknown", "custom_code"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/nvidia/llama-nemotron-rerank-1b-v2"
@@ -4635,14 +3487,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4658,10 +3504,7 @@
         "region:us",
         "conversational"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/redsquirrel/Qwen3-Reranker-8B-Q4_K_M-GGUF"
@@ -4673,15 +3516,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4706,10 +3542,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/tomaarsen/ms-marco-ettin-17m-reranker"
@@ -4721,15 +3554,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4754,10 +3580,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/tomaarsen/ms-marco-ettin-32m-reranker"
@@ -4769,15 +3592,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4802,10 +3618,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/tomaarsen/ms-marco-ettin-68m-reranker"
@@ -4817,15 +3630,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4850,10 +3656,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/tomaarsen/ms-marco-ettin-150m-reranker"
@@ -4865,17 +3668,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4898,10 +3692,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/AQ-MedAI/Diver-GroupRank-7B"
@@ -4913,17 +3704,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4946,10 +3728,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/AQ-MedAI/Diver-GroupRank-32B"
@@ -4961,16 +3740,8 @@
       "pipeline_tag": "text-ranking",
       "library": null,
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "py",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "py", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -4988,11 +3759,7 @@
         "license:mit",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown",
-        "custom_code"
-      ],
+      "flags": ["license_unknown", "size_unknown", "custom_code"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/hotchpotch/open-provence-reranker-v1-gte-modernbert-base"
@@ -5004,17 +3771,8 @@
       "pipeline_tag": "text-ranking",
       "library": null,
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "model",
-        "py",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "model", "py", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5034,11 +3792,7 @@
         "license:mit",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown",
-        "custom_code"
-      ],
+      "flags": ["license_unknown", "size_unknown", "custom_code"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/hotchpotch/open-provence-reranker-large-v1"
@@ -5050,17 +3804,8 @@
       "pipeline_tag": "text-ranking",
       "library": null,
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "model",
-        "py",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "model", "py", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5080,11 +3825,7 @@
         "license:mit",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown",
-        "custom_code"
-      ],
+      "flags": ["license_unknown", "size_unknown", "custom_code"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/hotchpotch/open-provence-reranker-xsmall-v1"
@@ -5096,17 +3837,8 @@
       "pipeline_tag": "text-ranking",
       "library": null,
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "model",
-        "py",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "model", "py", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5126,11 +3858,7 @@
         "license:mit",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown",
-        "custom_code"
-      ],
+      "flags": ["license_unknown", "size_unknown", "custom_code"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/hotchpotch/open-provence-reranker-v1"
@@ -5142,16 +3870,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5172,10 +3892,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/tomaarsen/reranker-MiniLM-L12-H384-msmarco-mse"
@@ -5187,18 +3904,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "py",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "py", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5219,10 +3926,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/zeroentropy/zerank-2"
@@ -5234,14 +3938,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5261,10 +3959,7 @@
         "region:us",
         "conversational"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/mradermacher/Diver-GroupRank-7B-GGUF"
@@ -5276,16 +3971,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5306,10 +3993,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/andrewma5/harvard-loop-reranker"
@@ -5321,16 +4005,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "model",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "model", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5347,10 +4023,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/lumees/aethel-reranker-en-v1"
@@ -5362,16 +4035,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "model",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "model", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5394,10 +4059,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/hasankursun/reranker-Multilingual-MiniLM-L12-H384-msmarco-mse"
@@ -5409,17 +4071,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5438,10 +4091,7 @@
         "bitsandbytes",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ManiKumarAdapala/Qwen3-Reranker-0.6B-Q8_0-Safetensors"
@@ -5453,17 +4103,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "py",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "py", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5485,11 +4126,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown",
-        "custom_code"
-      ],
+      "flags": ["license_unknown", "size_unknown", "custom_code"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/zeroentropy/zerank-1"
@@ -5501,14 +4138,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5524,10 +4155,7 @@
         "region:us",
         "conversational"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ManiKumarAdapala/Qwen3-Reranker-0.6B-Q8_0-GGUF"
@@ -5539,16 +4167,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5563,10 +4183,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/songtingyu/limrank"
@@ -5578,17 +4195,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "jinja",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "jinja", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5605,10 +4213,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Lipdog/Qwen3-Reranker-4B-mlx-fp16"
@@ -5620,15 +4225,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5652,10 +4250,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bnkc123/modernbert-base-gooaq-bce"
@@ -5667,16 +4262,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5700,10 +4287,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/emilwin/reranker-ms-marco-sympathy-docs"
@@ -5715,15 +4299,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5745,10 +4322,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/aqweteddy/AuroraX-Reranker-Base-v1.0"
@@ -5760,14 +4334,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5788,10 +4356,7 @@
         "region:us",
         "feature-extraction"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/kazalbrur/jina-reranker-v2-base-multilingual-finetuned-Q8_0-GGUF"
@@ -5803,14 +4368,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5830,10 +4389,7 @@
         "region:us",
         "feature-extraction"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/kazalbrur/jina-reranker-v2-base-multilingual-Q8_0-GGUF"
@@ -5845,17 +4401,8 @@
       "pipeline_tag": "text-ranking",
       "library": "lightning-ir",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt",
-        "yaml"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt", "yaml"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5869,10 +4416,7 @@
         "license:apache-2.0",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/webis/colbert"
@@ -5884,17 +4428,8 @@
       "pipeline_tag": "text-ranking",
       "library": "lightning-ir",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt",
-        "yaml"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt", "yaml"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5908,10 +4443,7 @@
         "license:apache-2.0",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/webis/splade"
@@ -5923,17 +4455,8 @@
       "pipeline_tag": "text-ranking",
       "library": "lightning-ir",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt",
-        "yaml"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt", "yaml"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5948,10 +4471,7 @@
         "license:apache-2.0",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/webis/bert-bi-encoder"
@@ -5963,16 +4483,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -5992,10 +4504,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/tikanosa/mk_crossencoder"
@@ -6007,16 +4516,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -6036,10 +4537,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/tikanosa/syllabus_crossencoder"
@@ -6051,16 +4549,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -6079,10 +4569,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/hutuhehe/finretriever-cross-reranker"
@@ -6094,16 +4581,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "model",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "model", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -6124,10 +4603,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/IoannisKat1/bge_reranker_ft"
@@ -6139,16 +4615,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -6169,10 +4637,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/skygudanr/klue-roberta-small-cross-encoder"
@@ -6184,17 +4649,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "codes",
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["codes", "gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -6213,10 +4669,7 @@
         "model-index",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/truong1301/PhoRanker_vinum"
@@ -6228,14 +4681,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -6251,10 +4698,7 @@
         "region:us",
         "conversational"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/bdesnos/Qwen3-Reranker-8B-Q6_K-GGUF"
@@ -6266,16 +4710,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -6294,10 +4730,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/Adarsh921/cross-encoder"
@@ -6309,15 +4742,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -6340,10 +4766,7 @@
         "deploy:azure",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/ibm-granite/granite-embedding-reranker-english-r2"
@@ -6355,16 +4778,8 @@
       "pipeline_tag": "text-ranking",
       "library": null,
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "model",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "model", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -6376,10 +4791,7 @@
         "base_model:finetune:cambridgeltl/SapBERT-UMLS-2020AB-all-lang-from-XLMR",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/na399/THIRAWAT-reranker-beta"
@@ -6391,14 +4803,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -6414,10 +4820,7 @@
         "region:us",
         "conversational"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/akinsella-socrate/Qwen3-Reranker-4B-Q5_K_M-GGUF"
@@ -6429,14 +4832,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -6452,10 +4849,7 @@
         "region:us",
         "conversational"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/akinsella-socrate/Qwen3-Reranker-4B-Q6_K-GGUF"
@@ -6467,16 +4861,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "onnx",
-        "py"
-      ],
-      "cpu_runtimes": [
-        "onnxruntime"
-      ],
+      "formats": ["gitattributes", "json", "md", "onnx", "py"],
+      "cpu_runtimes": ["onnxruntime"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -6494,11 +4880,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown",
-        "custom_code"
-      ],
+      "flags": ["license_unknown", "size_unknown", "custom_code"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/fixergroup/polish-reranker-base-mse-quantized-onnx"
@@ -6510,17 +4892,8 @@
       "pipeline_tag": "text-ranking",
       "library": "sentence-transformers",
       "license": "",
-      "formats": [
-        "bin",
-        "gitattributes",
-        "json",
-        "md",
-        "safetensors",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["bin", "gitattributes", "json", "md", "safetensors", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -6541,10 +4914,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/tmy100000001/LitDD_crossencoder"
@@ -6556,16 +4926,8 @@
       "pipeline_tag": "text-ranking",
       "library": null,
       "license": "",
-      "formats": [
-        "bin",
-        "gitattributes",
-        "json",
-        "md",
-        "txt"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["bin", "gitattributes", "json", "md", "txt"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -6578,10 +4940,7 @@
         "base_model:finetune:google/electra-base-discriminator",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/castorini/monoelectra-base"
@@ -6593,16 +4952,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "py",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "pytorch"
-      ],
+      "formats": ["gitattributes", "json", "md", "py", "safetensors"],
+      "cpu_runtimes": ["pytorch"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -6621,11 +4972,7 @@
         "text-embeddings-inference",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown",
-        "custom_code"
-      ],
+      "flags": ["license_unknown", "size_unknown", "custom_code"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/qq574599829/jina-reranker-v3"
@@ -6637,14 +4984,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -6659,10 +5000,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/endyjasmi/Qwen3-Reranker-0.6B-Q4_K_M-GGUF"
@@ -6674,14 +5012,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -6696,10 +5028,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/endyjasmi/Qwen3-Reranker-4B-Q4_K_M-GGUF"
@@ -6711,14 +5040,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gguf",
-        "gitattributes",
-        "md"
-      ],
-      "cpu_runtimes": [
-        "ggml/llama.cpp"
-      ],
+      "formats": ["gguf", "gitattributes", "md"],
+      "cpu_runtimes": ["ggml/llama.cpp"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -6733,10 +5056,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/endyjasmi/Qwen3-Reranker-8B-Q4_K_M-GGUF"
@@ -6759,9 +5079,7 @@
         "txt",
         "xml"
       ],
-      "cpu_runtimes": [
-        "onnxruntime"
-      ],
+      "cpu_runtimes": ["onnxruntime"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -6784,10 +5102,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2"
@@ -6799,17 +5114,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "model",
-        "onnx",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "onnxruntime"
-      ],
+      "formats": ["gitattributes", "json", "md", "model", "onnx", "safetensors"],
+      "cpu_runtimes": ["onnxruntime"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -6828,10 +5134,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/mixedbread-ai/mxbai-rerank-xsmall-v1"
@@ -6843,17 +5146,8 @@
       "pipeline_tag": "text-ranking",
       "library": "transformers",
       "license": "",
-      "formats": [
-        "gitattributes",
-        "json",
-        "md",
-        "model",
-        "onnx",
-        "safetensors"
-      ],
-      "cpu_runtimes": [
-        "onnxruntime"
-      ],
+      "formats": ["gitattributes", "json", "md", "model", "onnx", "safetensors"],
+      "cpu_runtimes": ["onnxruntime"],
       "min_weight_mb": null,
       "max_weight_mb": null,
       "tags": [
@@ -6872,10 +5166,7 @@
         "endpoints_compatible",
         "region:us"
       ],
-      "flags": [
-        "license_unknown",
-        "size_unknown"
-      ],
+      "flags": ["license_unknown", "size_unknown"],
       "status": "reject",
       "reject_reason": "size_unknown",
       "url": "https://huggingface.co/mixedbread-ai/mxbai-rerank-base-v1"
@@ -6888,9 +5179,7 @@
       "release_date": "2025-12-01",
       "size_params_b": 0.6,
       "status": "out_of_scope",
-      "reasons": [
-        "size_gt_500m"
-      ],
+      "reasons": ["size_gt_500m"],
       "notes": "Listed as supported by OpenVINO 2025.4 on CPUs/GPUs; exceeds tiny threshold.",
       "release_source_url": "https://docs.openvino.ai/2025/about-openvino/release-notes-openvino.html"
     }
@@ -6902,9 +5191,7 @@
       "release_date": "2025-12-01",
       "size_params_b": 0.6,
       "status": "out_of_scope",
-      "reasons": [
-        "size_gt_500m"
-      ],
+      "reasons": ["size_gt_500m"],
       "notes": "Listed as supported by OpenVINO 2025.4 on CPUs/GPUs; exceeds tiny threshold.",
       "release_source_url": "https://docs.openvino.ai/2025/about-openvino/release-notes-openvino.html"
     }

@@ -1,1 +1,182 @@
-[{"result_type":"grok_message","id":"5000000000000_1610488800_0_grok","text":"Here are some great resources for machine learning...","created_at":"2021-01-12T22:00:00Z","score":5.232151,"highlights":["Here are some great resources for <b>machine</b> learning"],"metadata":{"chat_id":"5000000000000","grok_mode":"default","sender":"grok"}},{"result_type":"grok_message","id":"5000000000002_1616824800_0_grok","text":"Here are some great resources for machine learning...","created_at":"2021-03-27T06:00:00Z","score":5.232151,"highlights":["Here are some great resources for <b>machine</b> learning"],"metadata":{"chat_id":"5000000000002","grok_mode":"default","sender":"grok"}},{"result_type":"grok_message","id":"5000000000003_1620032400_0_grok","text":"Here are some great resources for machine learning...","created_at":"2021-05-03T09:00:00Z","score":5.232151,"highlights":["Here are some great resources for <b>machine</b> learning"],"metadata":{"chat_id":"5000000000003","grok_mode":"default","sender":"grok"}},{"result_type":"grok_message","id":"5000000000005_1626332400_0_grok","text":"Here are some great resources for machine learning...","created_at":"2021-07-15T07:00:00Z","score":5.232151,"highlights":["Here are some great resources for <b>machine</b> learning"],"metadata":{"chat_id":"5000000000005","grok_mode":"default","sender":"grok"}},{"result_type":"grok_message","id":"5000000000014_1654632000_0_grok","text":"Here are some great resources for machine learning...","created_at":"2022-06-07T20:00:00Z","score":5.232151,"highlights":["Here are some great resources for <b>machine</b> learning"],"metadata":{"chat_id":"5000000000014","grok_mode":"default","sender":"grok"}},{"result_type":"grok_message","id":"5000000000017_1664164800_0_grok","text":"Here are some great resources for machine learning...","created_at":"2022-09-26T04:00:00Z","score":5.232151,"highlights":["Here are some great resources for <b>machine</b> learning"],"metadata":{"chat_id":"5000000000017","grok_mode":"default","sender":"grok"}},{"result_type":"grok_message","id":"5000000000026_1692457200_0_grok","text":"Here are some great resources for machine learning...","created_at":"2023-08-19T15:00:00Z","score":5.232151,"highlights":["Here are some great resources for <b>machine</b> learning"],"metadata":{"chat_id":"5000000000026","grok_mode":"default","sender":"grok"}},{"result_type":"grok_message","id":"5000000000029_1702000800_0_grok","text":"Here are some great resources for machine learning...","created_at":"2023-12-08T02:00:00Z","score":5.232151,"highlights":["Here are some great resources for <b>machine</b> learning"],"metadata":{"chat_id":"5000000000029","grok_mode":"default","sender":"grok"}},{"result_type":"grok_message","id":"5000000000030_1705082400_0_grok","text":"Here are some great resources for machine learning...","created_at":"2024-01-12T18:00:00Z","score":5.232151,"highlights":["Here are some great resources for <b>machine</b> learning"],"metadata":{"chat_id":"5000000000030","grok_mode":"default","sender":"grok"}},{"result_type":"grok_message","id":"5000000000031_1708340400_0_grok","text":"Here are some great resources for machine learning...","created_at":"2024-02-19T11:00:00Z","score":5.232151,"highlights":["Here are some great resources for <b>machine</b> learning"],"metadata":{"chat_id":"5000000000031","grok_mode":"default","sender":"grok"}},{"result_type":"grok_message","id":"5000000000034_1717743600_0_grok","text":"Here are some great resources for machine learning...","created_at":"2024-06-07T07:00:00Z","score":5.232151,"highlights":["Here are some great resources for <b>machine</b> learning"],"metadata":{"chat_id":"5000000000034","grok_mode":"default","sender":"grok"}},{"result_type":"grok_message","id":"5000000000039_1733522400_0_grok","text":"Here are some great resources for machine learning...","created_at":"2024-12-06T22:00:00Z","score":5.232151,"highlights":["Here are some great resources for <b>machine</b> learning"],"metadata":{"chat_id":"5000000000039","grok_mode":"default","sender":"grok"}},{"result_type":"grok_message","id":"5000000000040_1736668800_0_grok","text":"Here are some great resources for machine learning...","created_at":"2025-01-12T08:00:00Z","score":5.232151,"highlights":["Here are some great resources for <b>machine</b> learning"],"metadata":{"chat_id":"5000000000040","grok_mode":"default","sender":"grok"}},{"result_type":"grok_message","id":"5000000000047_1758769200_0_grok","text":"Here are some great resources for machine learning...","created_at":"2025-09-25T03:00:00Z","score":5.232151,"highlights":["Here are some great resources for <b>machine</b> learning"],"metadata":{"chat_id":"5000000000047","grok_mode":"default","sender":"grok"}},{"result_type":"grok_message","id":"5000000000007_1632639600_0_grok","text":"Here are some great resources for machine learning...","created_at":"2021-09-26T07:00:00Z","score":5.232151,"highlights":["Here are some great resources for <b>machine</b> learning"],"metadata":{"chat_id":"5000000000007","grok_mode":"default","sender":"grok"}},{"result_type":"grok_message","id":"5000000000008_1635685200_0_grok","text":"Here are some great resources for machine learning...","created_at":"2021-10-31T13:00:00Z","score":5.232151,"highlights":["Here are some great resources for <b>machine</b> learning"],"metadata":{"chat_id":"5000000000008","grok_mode":"default","sender":"grok"}},{"result_type":"grok_message","id":"5000000000019_1670475600_0_grok","text":"Here are some great resources for machine learning...","created_at":"2022-12-08T05:00:00Z","score":5.232151,"highlights":["Here are some great resources for <b>machine</b> learning"],"metadata":{"chat_id":"5000000000019","grok_mode":"default","sender":"grok"}},{"result_type":"grok_message","id":"5000000000022_1679878800_0_grok","text":"Here are some great resources for machine learning...","created_at":"2023-03-27T01:00:00Z","score":5.232151,"highlights":["Here are some great resources for <b>machine</b> learning"],"metadata":{"chat_id":"5000000000022","grok_mode":"default","sender":"grok"}},{"result_type":"grok_message","id":"5000000000025_1689379200_0_grok","text":"Here are some great resources for machine learning...","created_at":"2023-07-15T00:00:00Z","score":5.232151,"highlights":["Here are some great resources for <b>machine</b> learning"],"metadata":{"chat_id":"5000000000025","grok_mode":"default","sender":"grok"}},{"result_type":"grok_message","id":"5000000000027_1695668400_0_grok","text":"Here are some great resources for machine learning...","created_at":"2023-09-25T19:00:00Z","score":5.232151,"highlights":["Here are some great resources for <b>machine</b> learning"],"metadata":{"chat_id":"5000000000027","grok_mode":"default","sender":"grok"}}]
+[
+  {
+    "result_type": "grok_message",
+    "id": "5000000000000_1610488800_0_grok",
+    "text": "Here are some great resources for machine learning...",
+    "created_at": "2021-01-12T22:00:00Z",
+    "score": 5.232151,
+    "highlights": ["Here are some great resources for <b>machine</b> learning"],
+    "metadata": { "chat_id": "5000000000000", "grok_mode": "default", "sender": "grok" }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000002_1616824800_0_grok",
+    "text": "Here are some great resources for machine learning...",
+    "created_at": "2021-03-27T06:00:00Z",
+    "score": 5.232151,
+    "highlights": ["Here are some great resources for <b>machine</b> learning"],
+    "metadata": { "chat_id": "5000000000002", "grok_mode": "default", "sender": "grok" }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000003_1620032400_0_grok",
+    "text": "Here are some great resources for machine learning...",
+    "created_at": "2021-05-03T09:00:00Z",
+    "score": 5.232151,
+    "highlights": ["Here are some great resources for <b>machine</b> learning"],
+    "metadata": { "chat_id": "5000000000003", "grok_mode": "default", "sender": "grok" }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000005_1626332400_0_grok",
+    "text": "Here are some great resources for machine learning...",
+    "created_at": "2021-07-15T07:00:00Z",
+    "score": 5.232151,
+    "highlights": ["Here are some great resources for <b>machine</b> learning"],
+    "metadata": { "chat_id": "5000000000005", "grok_mode": "default", "sender": "grok" }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000014_1654632000_0_grok",
+    "text": "Here are some great resources for machine learning...",
+    "created_at": "2022-06-07T20:00:00Z",
+    "score": 5.232151,
+    "highlights": ["Here are some great resources for <b>machine</b> learning"],
+    "metadata": { "chat_id": "5000000000014", "grok_mode": "default", "sender": "grok" }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000017_1664164800_0_grok",
+    "text": "Here are some great resources for machine learning...",
+    "created_at": "2022-09-26T04:00:00Z",
+    "score": 5.232151,
+    "highlights": ["Here are some great resources for <b>machine</b> learning"],
+    "metadata": { "chat_id": "5000000000017", "grok_mode": "default", "sender": "grok" }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000026_1692457200_0_grok",
+    "text": "Here are some great resources for machine learning...",
+    "created_at": "2023-08-19T15:00:00Z",
+    "score": 5.232151,
+    "highlights": ["Here are some great resources for <b>machine</b> learning"],
+    "metadata": { "chat_id": "5000000000026", "grok_mode": "default", "sender": "grok" }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000029_1702000800_0_grok",
+    "text": "Here are some great resources for machine learning...",
+    "created_at": "2023-12-08T02:00:00Z",
+    "score": 5.232151,
+    "highlights": ["Here are some great resources for <b>machine</b> learning"],
+    "metadata": { "chat_id": "5000000000029", "grok_mode": "default", "sender": "grok" }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000030_1705082400_0_grok",
+    "text": "Here are some great resources for machine learning...",
+    "created_at": "2024-01-12T18:00:00Z",
+    "score": 5.232151,
+    "highlights": ["Here are some great resources for <b>machine</b> learning"],
+    "metadata": { "chat_id": "5000000000030", "grok_mode": "default", "sender": "grok" }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000031_1708340400_0_grok",
+    "text": "Here are some great resources for machine learning...",
+    "created_at": "2024-02-19T11:00:00Z",
+    "score": 5.232151,
+    "highlights": ["Here are some great resources for <b>machine</b> learning"],
+    "metadata": { "chat_id": "5000000000031", "grok_mode": "default", "sender": "grok" }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000034_1717743600_0_grok",
+    "text": "Here are some great resources for machine learning...",
+    "created_at": "2024-06-07T07:00:00Z",
+    "score": 5.232151,
+    "highlights": ["Here are some great resources for <b>machine</b> learning"],
+    "metadata": { "chat_id": "5000000000034", "grok_mode": "default", "sender": "grok" }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000039_1733522400_0_grok",
+    "text": "Here are some great resources for machine learning...",
+    "created_at": "2024-12-06T22:00:00Z",
+    "score": 5.232151,
+    "highlights": ["Here are some great resources for <b>machine</b> learning"],
+    "metadata": { "chat_id": "5000000000039", "grok_mode": "default", "sender": "grok" }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000040_1736668800_0_grok",
+    "text": "Here are some great resources for machine learning...",
+    "created_at": "2025-01-12T08:00:00Z",
+    "score": 5.232151,
+    "highlights": ["Here are some great resources for <b>machine</b> learning"],
+    "metadata": { "chat_id": "5000000000040", "grok_mode": "default", "sender": "grok" }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000047_1758769200_0_grok",
+    "text": "Here are some great resources for machine learning...",
+    "created_at": "2025-09-25T03:00:00Z",
+    "score": 5.232151,
+    "highlights": ["Here are some great resources for <b>machine</b> learning"],
+    "metadata": { "chat_id": "5000000000047", "grok_mode": "default", "sender": "grok" }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000007_1632639600_0_grok",
+    "text": "Here are some great resources for machine learning...",
+    "created_at": "2021-09-26T07:00:00Z",
+    "score": 5.232151,
+    "highlights": ["Here are some great resources for <b>machine</b> learning"],
+    "metadata": { "chat_id": "5000000000007", "grok_mode": "default", "sender": "grok" }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000008_1635685200_0_grok",
+    "text": "Here are some great resources for machine learning...",
+    "created_at": "2021-10-31T13:00:00Z",
+    "score": 5.232151,
+    "highlights": ["Here are some great resources for <b>machine</b> learning"],
+    "metadata": { "chat_id": "5000000000008", "grok_mode": "default", "sender": "grok" }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000019_1670475600_0_grok",
+    "text": "Here are some great resources for machine learning...",
+    "created_at": "2022-12-08T05:00:00Z",
+    "score": 5.232151,
+    "highlights": ["Here are some great resources for <b>machine</b> learning"],
+    "metadata": { "chat_id": "5000000000019", "grok_mode": "default", "sender": "grok" }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000022_1679878800_0_grok",
+    "text": "Here are some great resources for machine learning...",
+    "created_at": "2023-03-27T01:00:00Z",
+    "score": 5.232151,
+    "highlights": ["Here are some great resources for <b>machine</b> learning"],
+    "metadata": { "chat_id": "5000000000022", "grok_mode": "default", "sender": "grok" }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000025_1689379200_0_grok",
+    "text": "Here are some great resources for machine learning...",
+    "created_at": "2023-07-15T00:00:00Z",
+    "score": 5.232151,
+    "highlights": ["Here are some great resources for <b>machine</b> learning"],
+    "metadata": { "chat_id": "5000000000025", "grok_mode": "default", "sender": "grok" }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000027_1695668400_0_grok",
+    "text": "Here are some great resources for machine learning...",
+    "created_at": "2023-09-25T19:00:00Z",
+    "score": 5.232151,
+    "highlights": ["Here are some great resources for <b>machine</b> learning"],
+    "metadata": { "chat_id": "5000000000027", "grok_mode": "default", "sender": "grok" }
+  }
+]

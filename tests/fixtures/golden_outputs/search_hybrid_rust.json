@@ -1,1 +1,248 @@
-[{"result_type":"tweet","id":"1000000004500","text":"@rust","created_at":"2023-04-04T01:27:00Z","score":0.032786883,"highlights":["@<b>rust</b>"],"metadata":{"favorite_count":132,"hashtags":[],"in_reply_to":"user_0","retweet_count":21,"source":"X for iPhone"}},{"result_type":"tweet","id":"1000000000195","text":"Just finished reading an amazing book about Rust programming! #cloud #rust #programming","created_at":"2021-02-06T16:42:00Z","score":0.016129032,"highlights":[],"metadata":{"favorite_count":578,"hashtags":["cloud","rust","programming"],"in_reply_to":null,"retweet_count":131,"source":"X for iPhone"}},{"result_type":"grok_message","id":"5000000000001_1615208400_0_user","text":"What is Rust's ownership model?","created_at":"2021-03-08T13:00:00Z","score":0.016129032,"highlights":["What is <b>Rust</b>&#x27;s ownership model"],"metadata":{"chat_id":"5000000000001","grok_mode":"default","sender":"user"}},{"result_type":"tweet","id":"1000000000615","text":"Just finished reading an amazing book about Rust programming! #cloud #rust #programming","created_at":"2021-04-25T10:52:00Z","score":0.015873017,"highlights":[],"metadata":{"favorite_count":203,"hashtags":["cloud","rust","programming"],"in_reply_to":null,"retweet_count":52,"source":"X for iPhone"}},{"result_type":"grok_message","id":"5000000000002_1618416000_0_user","text":"What is Rust's ownership model?","created_at":"2021-04-14T16:00:00Z","score":0.015873017,"highlights":["What is <b>Rust</b>&#x27;s ownership model"],"metadata":{"chat_id":"5000000000002","grok_mode":"default","sender":"user"}},{"result_type":"tweet","id":"1000000001035","text":"Just finished reading an amazing book about Rust programming! #cloud #rust #programming","created_at":"2021-07-10T04:46:00Z","score":0.015625,"highlights":[],"metadata":{"favorite_count":823,"hashtags":["cloud","rust","programming"],"in_reply_to":null,"retweet_count":99,"source":"X for iPhone"}},{"result_type":"grok_message","id":"5000000000003_1621598400_0_user","text":"What is Rust's ownership model?","created_at":"2021-05-21T12:00:00Z","score":0.015625,"highlights":["What is <b>Rust</b>&#x27;s ownership model"],"metadata":{"chat_id":"5000000000003","grok_mode":"default","sender":"user"}},{"result_type":"tweet","id":"1000000001455","text":"Just finished reading an amazing book about Rust programming! #cloud #rust #programming","created_at":"2021-09-24T12:26:00Z","score":0.015384615,"highlights":[],"metadata":{"favorite_count":402,"hashtags":["cloud","rust","programming"],"in_reply_to":null,"retweet_count":40,"source":"X for iPhone"}},{"result_type":"grok_message","id":"5000000000006_1631052000_0_user","text":"What is Rust's ownership model?","created_at":"2021-09-07T22:00:00Z","score":0.015384615,"highlights":["What is <b>Rust</b>&#x27;s ownership model"],"metadata":{"chat_id":"5000000000006","grok_mode":"default","sender":"user"}},{"result_type":"tweet","id":"1000000001875","text":"Just finished reading an amazing book about Rust programming! #cloud #rust #programming","created_at":"2021-12-11T03:58:00Z","score":0.015151516,"highlights":[],"metadata":{"favorite_count":48,"hashtags":["cloud","rust","programming"],"in_reply_to":null,"retweet_count":1,"source":"X for iPhone"}},{"result_type":"grok_message","id":"5000000000009_1640520000_0_user","text":"What is Rust's ownership model?","created_at":"2021-12-26T12:00:00Z","score":0.015151516,"highlights":["What is <b>Rust</b>&#x27;s ownership model"],"metadata":{"chat_id":"5000000000009","grok_mode":"default","sender":"user"}},{"result_type":"tweet","id":"1000000002295","text":"Just finished reading an amazing book about Rust programming! #cloud #rust #programming","created_at":"2022-02-24T18:53:00Z","score":0.014925373,"highlights":[],"metadata":{"favorite_count":7,"hashtags":["cloud","rust","programming"],"in_reply_to":null,"retweet_count":0,"source":"X for iPhone"}},{"result_type":"grok_message","id":"5000000000024_1687816800_0_user","text":"What is Rust's ownership model?","created_at":"2023-06-26T22:00:00Z","score":0.014925373,"highlights":["What is <b>Rust</b>&#x27;s ownership model"],"metadata":{"chat_id":"5000000000024","grok_mode":"default","sender":"user"}},{"result_type":"tweet","id":"1000000002715","text":"Just finished reading an amazing book about Rust programming! #cloud #rust #programming","created_at":"2022-05-13T02:54:00Z","score":0.014705882,"highlights":[],"metadata":{"favorite_count":600,"hashtags":["cloud","rust","programming"],"in_reply_to":null,"retweet_count":18,"source":"X for iPhone"}},{"result_type":"grok_message","id":"5000000000035_1722445200_0_user","text":"What is Rust's ownership model?","created_at":"2024-07-31T17:00:00Z","score":0.014705882,"highlights":["What is <b>Rust</b>&#x27;s ownership model"],"metadata":{"chat_id":"5000000000035","grok_mode":"default","sender":"user"}},{"result_type":"tweet","id":"1000000003135","text":"Just finished reading an amazing book about Rust programming! #cloud #rust #programming","created_at":"2022-07-29T04:11:00Z","score":0.014492754,"highlights":[],"metadata":{"favorite_count":468,"hashtags":["cloud","rust","programming"],"in_reply_to":null,"retweet_count":38,"source":"X for iPhone"}},{"result_type":"grok_message","id":"5000000000012_1649984400_0_user","text":"What is Rust's ownership model?","created_at":"2022-04-15T01:00:00Z","score":0.014492754,"highlights":["What is <b>Rust</b>&#x27;s ownership model"],"metadata":{"chat_id":"5000000000012","grok_mode":"default","sender":"user"}},{"result_type":"tweet","id":"1000000003555","text":"Just finished reading an amazing book about Rust programming! #cloud #rust #programming","created_at":"2022-10-12T22:24:00Z","score":0.014285714,"highlights":[],"metadata":{"favorite_count":480,"hashtags":["cloud","rust","programming"],"in_reply_to":null,"retweet_count":64,"source":"X for iPhone"}},{"result_type":"grok_message","id":"5000000000017_1665691200_0_user","text":"What is Rust's ownership model?","created_at":"2022-10-13T20:00:00Z","score":0.014285714,"highlights":["What is <b>Rust</b>&#x27;s ownership model"],"metadata":{"chat_id":"5000000000017","grok_mode":"default","sender":"user"}},{"result_type":"tweet","id":"1000000003975","text":"Just finished reading an amazing book about Rust programming! #cloud #rust #programming","created_at":"2022-12-28T17:21:00Z","score":0.014084507,"highlights":[],"metadata":{"favorite_count":585,"hashtags":["cloud","rust","programming"],"in_reply_to":null,"retweet_count":40,"source":"X for iPhone"}}]
+[
+  {
+    "result_type": "tweet",
+    "id": "1000000004500",
+    "text": "@rust",
+    "created_at": "2023-04-04T01:27:00Z",
+    "score": 0.032786883,
+    "highlights": ["@<b>rust</b>"],
+    "metadata": {
+      "favorite_count": 132,
+      "hashtags": [],
+      "in_reply_to": "user_0",
+      "retweet_count": 21,
+      "source": "X for iPhone"
+    }
+  },
+  {
+    "result_type": "tweet",
+    "id": "1000000000195",
+    "text": "Just finished reading an amazing book about Rust programming! #cloud #rust #programming",
+    "created_at": "2021-02-06T16:42:00Z",
+    "score": 0.016129032,
+    "highlights": [],
+    "metadata": {
+      "favorite_count": 578,
+      "hashtags": ["cloud", "rust", "programming"],
+      "in_reply_to": null,
+      "retweet_count": 131,
+      "source": "X for iPhone"
+    }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000001_1615208400_0_user",
+    "text": "What is Rust's ownership model?",
+    "created_at": "2021-03-08T13:00:00Z",
+    "score": 0.016129032,
+    "highlights": ["What is <b>Rust</b>&#x27;s ownership model"],
+    "metadata": { "chat_id": "5000000000001", "grok_mode": "default", "sender": "user" }
+  },
+  {
+    "result_type": "tweet",
+    "id": "1000000000615",
+    "text": "Just finished reading an amazing book about Rust programming! #cloud #rust #programming",
+    "created_at": "2021-04-25T10:52:00Z",
+    "score": 0.015873017,
+    "highlights": [],
+    "metadata": {
+      "favorite_count": 203,
+      "hashtags": ["cloud", "rust", "programming"],
+      "in_reply_to": null,
+      "retweet_count": 52,
+      "source": "X for iPhone"
+    }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000002_1618416000_0_user",
+    "text": "What is Rust's ownership model?",
+    "created_at": "2021-04-14T16:00:00Z",
+    "score": 0.015873017,
+    "highlights": ["What is <b>Rust</b>&#x27;s ownership model"],
+    "metadata": { "chat_id": "5000000000002", "grok_mode": "default", "sender": "user" }
+  },
+  {
+    "result_type": "tweet",
+    "id": "1000000001035",
+    "text": "Just finished reading an amazing book about Rust programming! #cloud #rust #programming",
+    "created_at": "2021-07-10T04:46:00Z",
+    "score": 0.015625,
+    "highlights": [],
+    "metadata": {
+      "favorite_count": 823,
+      "hashtags": ["cloud", "rust", "programming"],
+      "in_reply_to": null,
+      "retweet_count": 99,
+      "source": "X for iPhone"
+    }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000003_1621598400_0_user",
+    "text": "What is Rust's ownership model?",
+    "created_at": "2021-05-21T12:00:00Z",
+    "score": 0.015625,
+    "highlights": ["What is <b>Rust</b>&#x27;s ownership model"],
+    "metadata": { "chat_id": "5000000000003", "grok_mode": "default", "sender": "user" }
+  },
+  {
+    "result_type": "tweet",
+    "id": "1000000001455",
+    "text": "Just finished reading an amazing book about Rust programming! #cloud #rust #programming",
+    "created_at": "2021-09-24T12:26:00Z",
+    "score": 0.015384615,
+    "highlights": [],
+    "metadata": {
+      "favorite_count": 402,
+      "hashtags": ["cloud", "rust", "programming"],
+      "in_reply_to": null,
+      "retweet_count": 40,
+      "source": "X for iPhone"
+    }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000006_1631052000_0_user",
+    "text": "What is Rust's ownership model?",
+    "created_at": "2021-09-07T22:00:00Z",
+    "score": 0.015384615,
+    "highlights": ["What is <b>Rust</b>&#x27;s ownership model"],
+    "metadata": { "chat_id": "5000000000006", "grok_mode": "default", "sender": "user" }
+  },
+  {
+    "result_type": "tweet",
+    "id": "1000000001875",
+    "text": "Just finished reading an amazing book about Rust programming! #cloud #rust #programming",
+    "created_at": "2021-12-11T03:58:00Z",
+    "score": 0.015151516,
+    "highlights": [],
+    "metadata": {
+      "favorite_count": 48,
+      "hashtags": ["cloud", "rust", "programming"],
+      "in_reply_to": null,
+      "retweet_count": 1,
+      "source": "X for iPhone"
+    }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000009_1640520000_0_user",
+    "text": "What is Rust's ownership model?",
+    "created_at": "2021-12-26T12:00:00Z",
+    "score": 0.015151516,
+    "highlights": ["What is <b>Rust</b>&#x27;s ownership model"],
+    "metadata": { "chat_id": "5000000000009", "grok_mode": "default", "sender": "user" }
+  },
+  {
+    "result_type": "tweet",
+    "id": "1000000002295",
+    "text": "Just finished reading an amazing book about Rust programming! #cloud #rust #programming",
+    "created_at": "2022-02-24T18:53:00Z",
+    "score": 0.014925373,
+    "highlights": [],
+    "metadata": {
+      "favorite_count": 7,
+      "hashtags": ["cloud", "rust", "programming"],
+      "in_reply_to": null,
+      "retweet_count": 0,
+      "source": "X for iPhone"
+    }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000024_1687816800_0_user",
+    "text": "What is Rust's ownership model?",
+    "created_at": "2023-06-26T22:00:00Z",
+    "score": 0.014925373,
+    "highlights": ["What is <b>Rust</b>&#x27;s ownership model"],
+    "metadata": { "chat_id": "5000000000024", "grok_mode": "default", "sender": "user" }
+  },
+  {
+    "result_type": "tweet",
+    "id": "1000000002715",
+    "text": "Just finished reading an amazing book about Rust programming! #cloud #rust #programming",
+    "created_at": "2022-05-13T02:54:00Z",
+    "score": 0.014705882,
+    "highlights": [],
+    "metadata": {
+      "favorite_count": 600,
+      "hashtags": ["cloud", "rust", "programming"],
+      "in_reply_to": null,
+      "retweet_count": 18,
+      "source": "X for iPhone"
+    }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000035_1722445200_0_user",
+    "text": "What is Rust's ownership model?",
+    "created_at": "2024-07-31T17:00:00Z",
+    "score": 0.014705882,
+    "highlights": ["What is <b>Rust</b>&#x27;s ownership model"],
+    "metadata": { "chat_id": "5000000000035", "grok_mode": "default", "sender": "user" }
+  },
+  {
+    "result_type": "tweet",
+    "id": "1000000003135",
+    "text": "Just finished reading an amazing book about Rust programming! #cloud #rust #programming",
+    "created_at": "2022-07-29T04:11:00Z",
+    "score": 0.014492754,
+    "highlights": [],
+    "metadata": {
+      "favorite_count": 468,
+      "hashtags": ["cloud", "rust", "programming"],
+      "in_reply_to": null,
+      "retweet_count": 38,
+      "source": "X for iPhone"
+    }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000012_1649984400_0_user",
+    "text": "What is Rust's ownership model?",
+    "created_at": "2022-04-15T01:00:00Z",
+    "score": 0.014492754,
+    "highlights": ["What is <b>Rust</b>&#x27;s ownership model"],
+    "metadata": { "chat_id": "5000000000012", "grok_mode": "default", "sender": "user" }
+  },
+  {
+    "result_type": "tweet",
+    "id": "1000000003555",
+    "text": "Just finished reading an amazing book about Rust programming! #cloud #rust #programming",
+    "created_at": "2022-10-12T22:24:00Z",
+    "score": 0.014285714,
+    "highlights": [],
+    "metadata": {
+      "favorite_count": 480,
+      "hashtags": ["cloud", "rust", "programming"],
+      "in_reply_to": null,
+      "retweet_count": 64,
+      "source": "X for iPhone"
+    }
+  },
+  {
+    "result_type": "grok_message",
+    "id": "5000000000017_1665691200_0_user",
+    "text": "What is Rust's ownership model?",
+    "created_at": "2022-10-13T20:00:00Z",
+    "score": 0.014285714,
+    "highlights": ["What is <b>Rust</b>&#x27;s ownership model"],
+    "metadata": { "chat_id": "5000000000017", "grok_mode": "default", "sender": "user" }
+  },
+  {
+    "result_type": "tweet",
+    "id": "1000000003975",
+    "text": "Just finished reading an amazing book about Rust programming! #cloud #rust #programming",
+    "created_at": "2022-12-28T17:21:00Z",
+    "score": 0.014084507,
+    "highlights": [],
+    "metadata": {
+      "favorite_count": 585,
+      "hashtags": ["cloud", "rust", "programming"],
+      "in_reply_to": null,
+      "retweet_count": 40,
+      "source": "X for iPhone"
+    }
+  }
+]

@@ -11,17 +11,34 @@
   "removed_surfaces": [
     {
       "file": "src/hash_embedder.rs",
-      "items": ["FNV_OFFSET_BASIS", "FNV_PRIME", "fnv1a_hash()", "embed_tokens_legacy()", "test_fnv1a_hash"],
+      "items": [
+        "FNV_OFFSET_BASIS",
+        "FNV_PRIME",
+        "fnv1a_hash()",
+        "embed_tokens_legacy()",
+        "test_fnv1a_hash"
+      ],
       "rationale": "Legacy FNV hashing replaced by frankensearch HashEmbedder delegate"
     },
     {
       "file": "src/fastembed_embedder.rs",
-      "items": ["FastEmbedBackend::Legacy(Mutex<TextEmbedding>)", "MODEL_ID constant", "legacy load_from_dir path", "legacy load_or_download path", "legacy embed/embed_batch match arms"],
+      "items": [
+        "FastEmbedBackend::Legacy(Mutex<TextEmbedding>)",
+        "MODEL_ID constant",
+        "legacy load_from_dir path",
+        "legacy load_or_download path",
+        "legacy embed/embed_batch match arms"
+      ],
       "rationale": "FastEmbed now uses frankensearch delegate exclusively; legacy TextEmbedding paths removed"
     },
     {
       "file": "src/hybrid.rs",
-      "items": ["DocKey struct", "legacy rrf_fuse() (~70 lines)", "legacy candidate_count()", "std::cmp::Ordering import"],
+      "items": [
+        "DocKey struct",
+        "legacy rrf_fuse() (~70 lines)",
+        "legacy candidate_count()",
+        "std::cmp::Ordering import"
+      ],
       "rationale": "RRF fusion now delegates to frankensearch_fusion; legacy manual implementation removed"
     },
     {
@@ -36,12 +53,20 @@
     },
     {
       "file": "scripts/verify_isomorphism.sh",
-      "items": ["run_migration_parity()", "--migration-parity flags", "--migration-parity-only flag", "MIGRATION_PARITY_ONLY guards"],
+      "items": [
+        "run_migration_parity()",
+        "--migration-parity flags",
+        "--migration-parity-only flag",
+        "MIGRATION_PARITY_ONLY guards"
+      ],
       "rationale": "Migration parity testing lane no longer applicable post-cutover"
     },
     {
       "file": "Cargo.toml",
-      "items": ["frankensearch-migration feature definition", "optional=true on frankensearch deps"],
+      "items": [
+        "frankensearch-migration feature definition",
+        "optional=true on frankensearch deps"
+      ],
       "rationale": "Feature flag and conditional compilation removed; frankensearch is now mandatory"
     }
   ],
