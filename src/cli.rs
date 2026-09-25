@@ -375,10 +375,10 @@ pub struct ExportArgs {
     #[arg(long, short = 'o')]
     pub output: Option<PathBuf>,
 
-    /// Export format
-    #[arg(long, short = 'f', default_value = "json")]
-    pub format: ExportFormat,
-
+    // The export format comes from the global --format/-f (json, jsonl or csv;
+    // any other value exports JSON). A second --format here made clap panic on
+    // every `xf export` call, because argument names must be unique across
+    // globals and subcommands.
     /// Limit number of items
     #[arg(long, short = 'n')]
     pub limit: Option<usize>,
@@ -647,6 +647,8 @@ pub enum OutputFormat {
     Csv,
     /// Token-optimized output notation (40-60% fewer tokens than JSON)
     Toon,
+    /// JSON Lines: one compact JSON value per line (search results, export)
+    Jsonl,
 }
 
 impl OutputFormat {
@@ -671,6 +673,7 @@ impl OutputFormat {
             "compact" => Some(Self::Compact),
             "csv" => Some(Self::Csv),
             "toon" => Some(Self::Toon),
+            "jsonl" | "ndjson" => Some(Self::Jsonl),
             _ => None,
         }
     }
@@ -721,10 +724,61 @@ pub enum ExportTarget {
     All,
 }
 
-#[derive(ValueEnum, Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub enum ExportFormat {
     #[default]
     Json,
     Jsonl,
     Csv,
+}
+
+impl ExportFormat {
+    /// Map the global `--format` to an export format. `text` (the global
+    /// default) and the other JSON-like formats export JSON.
+    #[must_use]
+    pub const fn from_output(format: &OutputFormat) -> Self {
+        match format {
+            OutputFormat::Jsonl => Self::Jsonl,
+            OutputFormat::Csv => Self::Csv,
+            OutputFormat::Text
+            | OutputFormat::Json
+            | OutputFormat::JsonPretty
+            | OutputFormat::Compact
+            | OutputFormat::Toon => Self::Json,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use clap::CommandFactory;
+
+    #[test]
+    fn cli_definition_passes_clap_debug_asserts() {
+        Cli::command().debug_assert();
+    }
+
+    #[test]
+    fn export_takes_its_format_from_the_global_flag() {
+        for (args, expected) in [
+            (vec!["xf", "export", "tweets"], ExportFormat::Json),
+            (
+                vec!["xf", "export", "tweets", "--format", "csv"],
+                ExportFormat::Csv,
+            ),
+            (
+                vec!["xf", "export", "likes", "-f", "jsonl"],
+                ExportFormat::Jsonl,
+            ),
+            (
+                vec!["xf", "--format", "json-pretty", "export", "all"],
+                ExportFormat::Json,
+            ),
+        ] {
+            let cli = Cli::try_parse_from(&args).expect("export args should parse");
+            assert!(matches!(cli.command, Some(Commands::Export(_))));
+            assert_eq!(ExportFormat::from_output(&cli.format), expected, "{args:?}");
+        }
+    }
 }

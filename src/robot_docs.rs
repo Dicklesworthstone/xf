@@ -388,7 +388,9 @@ fn commands() -> Vec<CommandDoc> {
             flags: vec![FlagDoc {
                 name: "--format".into(),
                 short: Some("-f".into()),
-                description: "Export format (json, csv, markdown)".into(),
+                description:
+                    "Global output format; export writes json, jsonl or csv (other values export json)"
+                        .into(),
                 default: Some("json".into()),
                 required: false,
             }],

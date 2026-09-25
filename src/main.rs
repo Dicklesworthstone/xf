@@ -274,7 +274,10 @@ impl CacheMeta {
 const fn cli_format_to_output(format: OutputFormat) -> OutFmt {
     match format {
         OutputFormat::Text | OutputFormat::Compact => OutFmt::Text,
-        OutputFormat::Json | OutputFormat::JsonPretty | OutputFormat::Toon => OutFmt::Json,
+        OutputFormat::Json
+        | OutputFormat::JsonPretty
+        | OutputFormat::Toon
+        | OutputFormat::Jsonl => OutFmt::Json,
         OutputFormat::Csv => OutFmt::Csv,
     }
 }
@@ -294,7 +297,11 @@ fn main() -> Result<()> {
     // Default to xf-only logs so machine-readable output stays clean.
     let machine_output = matches!(
         cli.format,
-        OutputFormat::Json | OutputFormat::JsonPretty | OutputFormat::Csv | OutputFormat::Toon
+        OutputFormat::Json
+            | OutputFormat::JsonPretty
+            | OutputFormat::Csv
+            | OutputFormat::Toon
+            | OutputFormat::Jsonl
     );
     // For machine-readable formats, force quiet unless user explicitly asked for verbose
     let effective_quiet = cli.quiet || (machine_output && cli.verbose == 0);
@@ -1290,9 +1297,15 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
     if args.context {
         if !matches!(
             cli.format,
-            OutputFormat::Text | OutputFormat::Json | OutputFormat::JsonPretty | OutputFormat::Toon
+            OutputFormat::Text
+                | OutputFormat::Json
+                | OutputFormat::JsonPretty
+                | OutputFormat::Toon
+                | OutputFormat::Jsonl
         ) {
-            anyhow::bail!("--context only supports text, json, json-pretty, or toon output.");
+            anyhow::bail!(
+                "--context only supports text, json, json-pretty, jsonl, or toon output."
+            );
         }
         if let Some(types) = &args.types {
             if types.len() != 1 || !types.contains(&SearchType::Dm) {
@@ -1307,9 +1320,14 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
         }
         if !matches!(
             cli.format,
-            OutputFormat::Json | OutputFormat::JsonPretty | OutputFormat::Toon
+            OutputFormat::Json
+                | OutputFormat::JsonPretty
+                | OutputFormat::Toon
+                | OutputFormat::Jsonl
         ) {
-            anyhow::bail!("--fields is only supported with --format json, json-pretty, or toon.");
+            anyhow::bail!(
+                "--fields is only supported with --format json, json-pretty, jsonl, or toon."
+            );
         }
         validate_output_fields(fields)?;
     }
@@ -1808,6 +1826,17 @@ fn cmd_search(cli: &Cli, args: &cli::SearchArgs, output: &Output) -> Result<()> 
                 output.print_data(&serde_json::to_string_pretty(&results)?);
             }
         }
+        OutputFormat::Jsonl => {
+            if let Some(fields) = &args.fields {
+                for value in filter_results_fields(&results, fields)? {
+                    output.print_data(&serde_json::to_string(&value)?);
+                }
+            } else {
+                for r in &results {
+                    output.print_data(&serde_json::to_string(r)?);
+                }
+            }
+        }
         OutputFormat::Csv => {
             output.print("type,id,created_at,score,text");
             for r in &results {
@@ -2010,6 +2039,11 @@ fn output_dm_context(
         OutputFormat::Json => {
             output.print_data(&serde_json::to_string(contexts)?);
         }
+        OutputFormat::Jsonl => {
+            for context in contexts {
+                output.print_data(&serde_json::to_string(context)?);
+            }
+        }
         OutputFormat::JsonPretty => {
             output.print_data(&serde_json::to_string_pretty(contexts)?);
         }
@@ -2021,7 +2055,9 @@ fn output_dm_context(
             output.print_data(&toon_rust::encode(json, None));
         }
         _ => {
-            anyhow::bail!("--context only supports text, json, json-pretty, or toon output.");
+            anyhow::bail!(
+                "--context only supports text, json, json-pretty, jsonl, or toon output."
+            );
         }
     }
     Ok(())
@@ -2448,7 +2484,7 @@ fn cmd_stats(cli: &Cli, args: &cli::StatsArgs, output: &Output) -> Result<()> {
     };
 
     match cli.format {
-        OutputFormat::Json | OutputFormat::JsonPretty => {
+        OutputFormat::Json | OutputFormat::JsonPretty | OutputFormat::Jsonl => {
             if needs_extended {
                 let extended = StatsExtended {
                     stats,
@@ -2901,7 +2937,7 @@ fn cmd_tweet(cli: &Cli, args: &cli::TweetArgs, output: &Output) -> Result<()> {
 
     match tweet {
         Some(t) => match cli.format {
-            OutputFormat::Json | OutputFormat::JsonPretty => {
+            OutputFormat::Json | OutputFormat::JsonPretty | OutputFormat::Jsonl => {
                 let json = if matches!(cli.format, OutputFormat::JsonPretty) {
                     serde_json::to_string_pretty(&t)?
                 } else {
@@ -3176,28 +3212,29 @@ fn cmd_export(cli: &Cli, args: &cli::ExportArgs, output: &Output) -> Result<()> 
     }
 
     let storage = Storage::open(&db_path)?;
+    let format = ExportFormat::from_output(&cli.format);
 
     // Build export data based on target
     let export_data = match args.what {
         ExportTarget::Tweets => {
             let tweets = storage.get_all_tweets(args.limit)?;
-            format_export(&tweets, &args.format)?
+            format_export(&tweets, &format)?
         }
         ExportTarget::Likes => {
             let likes = storage.get_all_likes(args.limit)?;
-            format_export(&likes, &args.format)?
+            format_export(&likes, &format)?
         }
         ExportTarget::Dms => {
             let dms = storage.get_all_dms(args.limit)?;
-            format_export(&dms, &args.format)?
+            format_export(&dms, &format)?
         }
         ExportTarget::Followers => {
             let followers = storage.get_all_followers(args.limit)?;
-            format_export(&followers, &args.format)?
+            format_export(&followers, &format)?
         }
         ExportTarget::Following => {
             let following = storage.get_all_following(args.limit)?;
-            format_export(&following, &args.format)?
+            format_export(&following, &format)?
         }
         ExportTarget::All => {
             // For "all", we create a combined structure
@@ -3207,7 +3244,7 @@ fn cmd_export(cli: &Cli, args: &cli::ExportArgs, output: &Output) -> Result<()> 
             let followers = storage.get_all_followers(args.limit)?;
             let following = storage.get_all_following(args.limit)?;
 
-            match args.format {
+            match format {
                 ExportFormat::Json => {
                     let combined = serde_json::json!({
                         "tweets": tweets,
@@ -3388,7 +3425,7 @@ fn cmd_tweet_thread(
     }
 
     match cli.format {
-        OutputFormat::Json | OutputFormat::JsonPretty => {
+        OutputFormat::Json | OutputFormat::JsonPretty | OutputFormat::Jsonl => {
             let json = if matches!(cli.format, OutputFormat::JsonPretty) {
                 serde_json::to_string_pretty(&thread)?
             } else {
@@ -3867,7 +3904,7 @@ fn cmd_doctor(cli: &Cli, args: &cli::DoctorArgs, output: &Output) -> Result<()> 
 
     // ========== Output ==========
     match cli.format {
-        OutputFormat::Json => {
+        OutputFormat::Json | OutputFormat::Jsonl => {
             let doctor_output = DoctorOutput {
                 checks: all_checks,
                 summary,
