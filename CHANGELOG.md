@@ -173,8 +173,8 @@ Patch release: the Linux binaries run on Ubuntu 24.04 again. No changes to xf's 
 
 ### Fixed
 
-- **Linux glibc floor.** v0.4.2's Linux binaries (x86_64 and aarch64) were built on a host with a much newer glibc and accidentally required `GLIBC_2.43`, so they did not start on Ubuntu 24.04 or other current LTS distributions. v0.4.3 builds both Linux targets in an Ubuntu 24.04 environment. They require glibc 2.39+, the same floor as v0.4.1, and libstdc++ with `GLIBCXX_3.4.31` (Ubuntu 24.04, Debian 13, Fedora 39+). They cannot go lower: the prebuilt ONNX Runtime that `ort` links statically already needs glibc 2.38 (#12 tracks Ubuntu 22.04 / Debian 12 support).
-- **No OpenSSL dependency.** fastembed's `online` feature had pulled native-tls back in next to the rustls pins, so v0.4.2 also needed `libssl.so.3`. xf now uses rustls only for model downloads, as v0.4.1 did.
+- **Linux glibc floor.** v0.4.2's Linux binaries (x86_64 and aarch64) were built on a host with a much newer glibc and accidentally required `GLIBC_2.43`, so they did not start on Ubuntu 24.04 or other current LTS distributions. v0.4.3 builds both Linux targets in an Ubuntu 24.04 environment. They require glibc 2.39+, the same floor as v0.4.1, and libstdc++ with `GLIBCXX_3.4.31` (Ubuntu 24.04, Debian 13, Fedora 40+). They cannot go lower: the prebuilt ONNX Runtime that `ort` links statically already needs glibc 2.38 (#12 tracks Ubuntu 22.04 / Debian 12 support).
+- **No OpenSSL dependency.** fastembed's `online` feature (`hf-hub-native-tls`) routed model-file downloads through native-tls. v0.4.1 carried a vendored OpenSSL for it, and v0.4.2 linked the system `libssl.so.3`. Model downloads now use rustls only, and the Linux binaries need no OpenSSL at all. Trusted roots are unchanged: v0.4.1 and v0.4.2 also trusted only the bundled Mozilla root set for these downloads, never the system store or `SSL_CERT_FILE`. A TLS-intercepting proxy with a private CA therefore still needs a pre-filled model cache (`FASTEMBED_CACHE_DIR` / `HF_HOME`) or an `HF_ENDPOINT` mirror. `HTTPS_PROXY`, `ALL_PROXY` and `NO_PROXY` are honored as before.
 
 ### Changed
 
