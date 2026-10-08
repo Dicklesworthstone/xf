@@ -30,7 +30,7 @@ anyhow = "1.0"
 thiserror = "2.0"
 
 # Async runtime
-tokio = { version = "1.0", features = ["rt-multi-thread", "macros", "fs", "io-util", "time", "signal"] }
+tokio = { version = "1.0", features = ["rt-multi-thread", "macros", "fs", "io-util", "net", "sync", "time", "signal"] }
 
 # CLI
 clap = { version = "4.6", features = ["derive", "cargo", "env", "unicode", "wrap_help"] }
@@ -82,10 +82,12 @@ ring = "0.17"           # SHA256 for content hashing
 # overrides fastembed/hf-hub/ort/ureq pull in openssl-sys, which fails on
 # x86_64-unknown-linux-musl, aarch64-unknown-linux-{musl,gnu}, and
 # x86_64-apple-darwin GitHub runners that lack openssl headers.
+# No "online": since fastembed 5.17 that feature is just `hf-hub-native-tls`,
+# which pulled native-tls/openssl back in (v0.4.2 linked libssl.so.3). Model
+# downloads use hf-hub over rustls through "hf-hub-rustls-tls".
 fastembed = { version = "5", default-features = false, features = [
     "ort-download-binaries-rustls-tls",
     "hf-hub-rustls-tls",
-    "online",
 ] }
 ort = { version = "2.0.0-rc.12", default-features = false, features = ["download-binaries", "tls-rustls"] }
 tokenizers = "0.23"     # HuggingFace tokenizers
