@@ -169,11 +169,16 @@ The vector index was made persistent and mmap-capable, replacing the in-memory-o
 
 ## [0.4.3] - 2026-10-08
 
-Patch release: the Linux binaries run on older distributions again. No code changes since v0.4.2.
+Patch release: the Linux binaries run on Ubuntu 24.04 again. No changes to xf's own code since v0.4.2.
 
 ### Fixed
 
-- **Linux glibc floor.** The v0.4.2 Linux binaries (x86_64 and aarch64) were built on a host with a much newer glibc and required `GLIBC_2.43` and `GLIBCXX_3.4.31`, so they did not start on Ubuntu 24.04, 22.04 or other current LTS distributions. v0.4.3 builds both Linux targets against a fixed glibc 2.28 floor with `cargo zigbuild`. The darwin and Windows builds are unchanged.
+- **Linux glibc floor.** v0.4.2's Linux binaries (x86_64 and aarch64) were built on a host with a much newer glibc and accidentally required `GLIBC_2.43`, so they did not start on Ubuntu 24.04 or other current LTS distributions. v0.4.3 builds both Linux targets in an Ubuntu 24.04 environment. They require glibc 2.39+, the same floor as v0.4.1, and libstdc++ with `GLIBCXX_3.4.31` (Ubuntu 24.04, Debian 13, Fedora 39+). They cannot go lower: the prebuilt ONNX Runtime that `ort` links statically already needs glibc 2.38 (#12 tracks Ubuntu 22.04 / Debian 12 support).
+- **No OpenSSL dependency.** fastembed's `online` feature had pulled native-tls back in next to the rustls pins, so v0.4.2 also needed `libssl.so.3`. xf now uses rustls only for model downloads, as v0.4.1 did.
+
+### Changed
+
+- **Windows build.** The `x86_64-pc-windows-msvc` zip is now cross-built with `cargo xwin`, not a native MSVC host. Same target and asset name.
 
 Compare: [`v0.4.2...v0.4.3`](https://github.com/Dicklesworthstone/xf/compare/v0.4.2...v0.4.3)
 
