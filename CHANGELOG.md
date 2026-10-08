@@ -167,6 +167,16 @@ The vector index was made persistent and mmap-capable, replacing the in-memory-o
 
 ---
 
+## [0.4.3] - 2026-10-08
+
+Patch release: the Linux binaries run on older distributions again. No code changes since v0.4.2.
+
+### Fixed
+
+- **Linux glibc floor.** The v0.4.2 Linux binaries (x86_64 and aarch64) were built on a host with a much newer glibc and required `GLIBC_2.43` and `GLIBCXX_3.4.31`, so they did not start on Ubuntu 24.04, 22.04 or other current LTS distributions. v0.4.3 builds both Linux targets against a fixed glibc 2.28 floor with `cargo zigbuild`. The darwin and Windows builds are unchanged.
+
+Compare: [`v0.4.2...v0.4.3`](https://github.com/Dicklesworthstone/xf/compare/v0.4.2...v0.4.3)
+
 ## [0.2.0] - 2026-01-12
 
 **GitHub Release**: [xf v0.2.0](https://github.com/Dicklesworthstone/xf/releases/tag/v0.2.0)
