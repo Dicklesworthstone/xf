@@ -167,7 +167,7 @@ The vector index was made persistent and mmap-capable, replacing the in-memory-o
 
 ---
 
-## [0.4.3] - 2026-10-08
+## [0.4.3] - 2026-10-13
 
 Patch release: the Linux binaries run on Ubuntu 24.04 again. No changes to xf's own code since v0.4.2.
 
@@ -176,9 +176,18 @@ Patch release: the Linux binaries run on Ubuntu 24.04 again. No changes to xf's 
 - **Linux glibc floor.** v0.4.2's Linux binaries (x86_64 and aarch64) were built on a host with a much newer glibc and accidentally required `GLIBC_2.43`, so they did not start on Ubuntu 24.04 or other current LTS distributions. v0.4.3 builds both Linux targets in an Ubuntu 24.04 environment. They require glibc 2.39+, the same floor as v0.4.1, and libstdc++ with `GLIBCXX_3.4.31` (Ubuntu 24.04, Debian 13, Fedora 40+). They cannot go lower: the prebuilt ONNX Runtime that `ort` links statically already needs glibc 2.38 (#12 tracks Ubuntu 22.04 / Debian 12 support).
 - **No OpenSSL dependency.** fastembed's `online` feature (`hf-hub-native-tls`) routed model-file downloads through native-tls. v0.4.1 carried a vendored OpenSSL for it, and v0.4.2 linked the system `libssl.so.3`. Model downloads now use rustls only, and the Linux binaries need no OpenSSL at all. Trusted roots are unchanged: v0.4.1 and v0.4.2 also trusted only the bundled Mozilla root set for these downloads, never the system store or `SSL_CERT_FILE`. A TLS-intercepting proxy with a private CA therefore still needs a pre-filled model cache (`FASTEMBED_CACHE_DIR` / `HF_HOME`) or an `HF_ENDPOINT` mirror. `HTTPS_PROXY`, `ALL_PROXY` and `NO_PROXY` are honored as before.
 
+### Security
+
+- Lock-only updates for RustSec advisories that `cargo audit` reported on v0.4.2's lockfile: `rustls` 0.23.39 → 0.23.45 (RUSTSEC-2026-0285, with `rustls-webpki` 0.103.15), `quinn-proto` 0.11.14 → 0.11.19 (RUSTSEC-2026-0185, -0338, -0339, -0340, -0342), `crossbeam-epoch` 0.9.18 → 0.9.21 (RUSTSEC-2026-0204) and `memmap2` 0.9.10 → 0.9.11 (unsound, RUSTSEC-2026-0186). All are semver-compatible patch releases. The remaining unmaintained, unsound and yanked warnings (`chrono-english`, `paste`, `faster-hex`, `lru`, `scc`, `aes`, `chacha20`) need larger updates and are planned for the next release.
+
 ### Changed
 
 - **Windows build.** The `x86_64-pc-windows-msvc` zip is now cross-built with `cargo xwin`, not a native MSVC host. Same target and asset name.
+- **Release binaries are built for speed.** The published binaries use `opt-level = 3` instead of the size profile (`opt-level = "z"`) in `Cargo.toml`. They are larger and faster. `cargo build --release` and `cargo install` from source still use the size profile.
+
+### Known issues
+
+- Re-running `xf index` on an already indexed archive adds every document to the search index again (#14). It has been present since v0.4.1. Until it is fixed, re-index with `xf index --force`.
 
 Compare: [`v0.4.2...v0.4.3`](https://github.com/Dicklesworthstone/xf/compare/v0.4.2...v0.4.3)
 
