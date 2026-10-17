@@ -131,6 +131,17 @@ fi
 
 log ""
 log "Phase 3: Environment variable tests"
+if XF_DB="$DB_PATH" XF_INDEX="$INDEX_PATH" XF_FORMAT=toon "$XF" stats \
+  >"$LOG_DIR/env_xf_format_toon.out" 2>"$LOG_DIR/env_xf_format_toon.err"; then
+  if [[ "$(head -1 "$LOG_DIR/env_xf_format_toon.out")" != "{"* ]]; then
+    pass "XF_FORMAT=toon produces TOON output"
+  else
+    fail "XF_FORMAT=toon still produced JSON"
+  fi
+else
+  fail "XF_FORMAT test failed"
+fi
+
 if XF_DB="$DB_PATH" XF_INDEX="$INDEX_PATH" XF_OUTPUT_FORMAT=toon "$XF" stats \
   >"$LOG_DIR/env_xf_toon.out" 2>"$LOG_DIR/env_xf_toon.err"; then
   if [[ "$(head -1 "$LOG_DIR/env_xf_toon.out")" != "{"* ]]; then
@@ -203,7 +214,7 @@ log ""
 log "Phase 6: Token savings"
 if [[ -s "$LOG_DIR/search_json.out" ]]; then
   if command -v tru &>/dev/null; then
-    STATS_LINE=$(tru --stats "$LOG_DIR/search_json.out" 2>&1 | rg -m1 "Saved" || true)
+    STATS_LINE=$(tru --stats "$LOG_DIR/search_json.out" 2>&1 | grep -m1 "Saved" || true)
     log "$STATS_LINE"
     if [[ -z "$STATS_LINE" ]]; then
       # No "Saved" line means TOON is larger than JSON

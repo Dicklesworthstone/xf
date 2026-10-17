@@ -52,19 +52,20 @@ if [[ "$UPDATE_MODE" == "true" ]]; then
     echo -e "${YELLOW}Running in UPDATE mode - golden files will be updated${NC}"
 fi
 
-# Check if xf binary exists.
-if ! command -v xf &> /dev/null; then
-    # Try to find it in target directory
-    if [[ -f "$PROJECT_ROOT/target/release/xf" ]]; then
-        XF="$PROJECT_ROOT/target/release/xf"
-    elif [[ -f "$PROJECT_ROOT/target/debug/xf" ]]; then
-        XF="$PROJECT_ROOT/target/debug/xf"
-    else
-        echo -e "${RED}Error: xf binary not found. Run 'cargo build --release' first.${NC}"
-        exit 1
-    fi
-else
+# Check if xf binary exists (prefer local target builds over system PATH).
+if [[ -n "${CARGO_TARGET_DIR:-}" && -f "$CARGO_TARGET_DIR/release/xf" ]]; then
+    XF="$CARGO_TARGET_DIR/release/xf"
+elif [[ -n "${CARGO_TARGET_DIR:-}" && -f "$CARGO_TARGET_DIR/debug/xf" ]]; then
+    XF="$CARGO_TARGET_DIR/debug/xf"
+elif [[ -f "$PROJECT_ROOT/target/release/xf" ]]; then
+    XF="$PROJECT_ROOT/target/release/xf"
+elif [[ -f "$PROJECT_ROOT/target/debug/xf" ]]; then
+    XF="$PROJECT_ROOT/target/debug/xf"
+elif command -v xf &> /dev/null; then
     XF="xf"
+else
+    echo -e "${RED}Error: xf binary not found. Run 'cargo build --release' first.${NC}"
+    exit 1
 fi
 
 echo "Using xf binary: $XF"
@@ -95,13 +96,13 @@ check_golden() {
     if [[ "$UPDATE_MODE" == "true" ]]; then
         cp "$actual_file" "$golden_file"
         echo -e "${YELLOW}Updated: $name${NC}"
-        ((UPDATED++))
+        UPDATED=$((UPDATED + 1))
         return 0
     fi
 
     if [[ ! -f "$golden_file" ]]; then
         echo -e "${RED}MISSING: $name (golden file not found)${NC}"
-        ((FAILED++))
+        FAILED=$((FAILED + 1))
         return 1
     fi
 
@@ -111,13 +112,13 @@ check_golden() {
            jq -S '.' "$golden_file" > "$TEMP_DIR/golden_normalized.json" 2>/dev/null; then
             if diff -q "$TEMP_DIR/actual_normalized.json" "$TEMP_DIR/golden_normalized.json" > /dev/null 2>&1; then
                 echo -e "${GREEN}PASS: $name${NC}"
-                ((PASSED++))
+                PASSED=$((PASSED + 1))
                 return 0
             else
                 echo -e "${RED}FAIL: $name${NC}"
                 echo "Differences:"
                 diff "$TEMP_DIR/golden_normalized.json" "$TEMP_DIR/actual_normalized.json" | head -20
-                ((FAILED++))
+                FAILED=$((FAILED + 1))
                 return 1
             fi
         fi
@@ -126,13 +127,13 @@ check_golden() {
     # For text files, direct comparison
     if diff -q "$actual_file" "$golden_file" > /dev/null 2>&1; then
         echo -e "${GREEN}PASS: $name${NC}"
-        ((PASSED++))
+        PASSED=$((PASSED + 1))
         return 0
     else
         echo -e "${RED}FAIL: $name${NC}"
         echo "Differences:"
         diff "$golden_file" "$actual_file" | head -20
-        ((FAILED++))
+        FAILED=$((FAILED + 1))
         return 1
     fi
 }

@@ -38,18 +38,18 @@ MODE="${1:-html}"
 case "$MODE" in
     summary)
         echo -e "${YELLOW}Generating coverage summary...${NC}"
-        cargo llvm-cov --all-features --summary-only
+        cargo llvm-cov --features full,parallel-search --summary-only
         ;;
 
     lcov)
         echo -e "${YELLOW}Generating LCOV report...${NC}"
-        cargo llvm-cov --all-features --lcov --output-path lcov.info
+        cargo llvm-cov --features full,parallel-search --lcov --output-path lcov.info
         echo -e "${GREEN}LCOV report saved to: lcov.info${NC}"
         ;;
 
     html)
         echo -e "${YELLOW}Generating HTML coverage report...${NC}"
-        cargo llvm-cov --all-features --html --output-dir coverage
+        cargo llvm-cov --features full,parallel-search --html --output-dir coverage
         echo -e "${GREEN}HTML report saved to: coverage/html/index.html${NC}"
         echo ""
         echo "Open with: open coverage/html/index.html"
@@ -57,7 +57,7 @@ case "$MODE" in
 
     json)
         echo -e "${YELLOW}Generating JSON coverage report...${NC}"
-        cargo llvm-cov --all-features --json --output-path coverage.json
+        cargo llvm-cov --features full,parallel-search --json --output-path coverage.json
         echo -e "${GREEN}JSON report saved to: coverage.json${NC}"
         ;;
 
