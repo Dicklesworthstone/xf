@@ -63,7 +63,7 @@ jobs:
 
       - name: Run Clippy
         # Note: --all-features excluded; alloc-count feature requires unsafe code for profiling
-        run: cargo clippy --all-targets --features parallel-search -- -D warnings
+        run: cargo clippy --all-targets --features full,parallel-search -- -D warnings
 
   # ==========================================================================
   # Tests
@@ -97,7 +97,7 @@ jobs:
 
       - name: Run tests
         # Note: alloc-count feature excluded (requires unsafe code for profiling)
-        run: cargo test --features parallel-search --verbose
+        run: cargo test --features full,parallel-search --verbose
 
   # ==========================================================================
   # Documentation
@@ -126,7 +126,7 @@ jobs:
 
       - name: Check documentation
         # Note: alloc-count feature excluded (requires unsafe code for profiling)
-        run: cargo doc --no-deps --features parallel-search
+        run: cargo doc --no-deps --features full,parallel-search
         env:
           RUSTDOCFLAGS: -D warnings
 
@@ -191,7 +191,7 @@ jobs:
 
       - name: Generate coverage report
         # Note: alloc-count feature excluded (requires unsafe code for profiling)
-        run: cargo llvm-cov --features parallel-search --lcov --output-path lcov.info
+        run: cargo llvm-cov --features full,parallel-search --lcov --output-path lcov.info
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -243,7 +243,7 @@ jobs:
             ${{ runner.os }}-cargo-
 
       - name: Build release binary
-        run: cargo build --release --target ${{ matrix.target }}
+        run: cargo build --release --features full --target ${{ matrix.target }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
