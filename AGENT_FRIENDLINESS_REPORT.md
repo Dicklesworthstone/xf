@@ -20,22 +20,28 @@ xf is highly optimized for AI coding agent archive search:
 
 | Feature | Status | Details |
 |---------|--------|---------|
-| `--format` flag | YES | json, text output formats |
-| JSON output | YES | Clean structured JSON |
-| `doctor` command | YES | Health diagnostics |
-| `--db` env var | YES | `XF_DB` environment variable |
+| `--format` flag | YES | `text`, `json`, `json-pretty`, `compact`, `csv`, `toon`, `jsonl` |
+| JSON / TOON / JSONL output | YES | Clean structured JSON, token-compact TOON, and streaming JSONL |
+| `robot-docs` command | YES | Machine-readable CLI schema and command documentation |
+| `doctor` command | YES | Health diagnostics and `--fix` auto-repair |
+| `--db` / `--index` / `--format` env vars | YES | `XF_DB`, `XF_INDEX`, `XF_FORMAT`, `XF_OUTPUT_FORMAT`, `TOON_DEFAULT_FORMAT` |
 | Completions | YES | Shell completion generation |
 
 ### 1.2 Key Commands
 
 | Command | Purpose |
 |---------|---------|
-| `search` | Full-text search with BM25 ranking |
-| `stats` | Show archive statistics |
-| `tweet` | Show specific tweet info |
-| `list` | List available data |
-| `export` | Export in various formats |
-| `doctor` | Check health |
+| `import` | Extract and index an X archive `.zip` in one step |
+| `index` | Index an archive directory or `.zip` file |
+| `search` | Lexical, semantic, hybrid, and two-tier search with optional reranking |
+| `stats` | Show archive statistics and temporal/engagement analytics |
+| `tweet` | Show specific tweet info, replies, or thread |
+| `list` | List indexed data (`tweets`, `likes`, `dms`, `bookmarks`, `grok`, `account`, `followers`, `following`, `blocks`, `mutes`, `files`, `types`) |
+| `export` | Export data (`tweets`, `likes`, `dms`, `bookmarks`, `grok`, `followers`, `following`, `blocks`, `mutes`) in `json`, `jsonl`, `csv`, `toon`, or `markdown` |
+| `doctor` | Check archive, database, and index health (`--fix` for auto-repair) |
+| `robot-docs` | Emit machine-readable JSON schema for AI agents |
+| `models` | List, inspect, and benchmark embedding and reranker models |
+| `daemon` | Manage background model server (`start`, `stop`, `status`) |
 | `shell` | Interactive REPL mode |
 
 ### 1.3 Output Structure (stats)
@@ -48,7 +54,10 @@ xf is highly optimized for AI coding agent archive search:
   "dm_conversations_count": 735,
   "followers_count": 33513,
   "following_count": 12146,
+  "blocks_count": 42,
+  "mutes_count": 18,
   "grok_messages_count": 3930,
+  "bookmarks_count": 215,
   "first_tweet_date": "2009-04-24T22:08:23Z",
   "last_tweet_date": "2026-01-23T01:30:06Z",
   "index_built_at": "2026-01-23T09:05:36Z"
@@ -59,7 +68,7 @@ xf is highly optimized for AI coding agent archive search:
 
 ### 2.1 AGENTS.md
 
-**Status**: EXISTS and comprehensive (23KB)
+**Status**: EXISTS and comprehensive
 
 Contains:
 - Rule 1: Absolute file deletion protection
@@ -72,41 +81,34 @@ Contains:
 
 - README.md: Quick start guide
 - Built-in help: `xf --help`, `xf <cmd> --help`
+- `xf robot-docs`: Machine-readable JSON command/schema reference
 - `xf completions`: Shell completion generation
 
 ## 3. Scorecard
 
 | Dimension | Score (1-5) | Notes |
 |-----------|-------------|-------|
-| Documentation | 5 | Comprehensive AGENTS.md |
+| Documentation | 5 | Comprehensive AGENTS.md + `xf robot-docs` |
 | CLI Ergonomics | 5 | Clean subcommand structure |
-| Robot Mode | 4 | Good JSON support, no streaming |
-| Error Handling | 4 | Exit codes, doctor command |
+| Robot Mode | 5 | Full JSON, TOON, and JSONL support across commands |
+| Error Handling | 5 | Structured suggestions, EPIPE handling, `doctor --fix` |
 | Consistency | 5 | Unified output structure |
-| Zero-shot Usability | 5 | Doctor + stats commands |
-| **Overall** | **4.7** | Excellent maturity |
+| Zero-shot Usability | 5 | `robot-docs` + `doctor` + `stats` commands |
+| **Overall** | **5.0** | Complete agent-native maturity |
 
 ## 4. TOON Integration Status
 
-**Status: NOT YET IMPLEMENTED**
+**Status: IMPLEMENTED**
 
-May benefit from TOON for large search result sets.
+- Supported via `--format toon` on `search`, `stats`, `tweet`, `list`, `export`, `config`, `doctor`, `models`, and `daemon status`.
+- Supported via environment variables `XF_FORMAT=toon`, `XF_OUTPUT_FORMAT=toon`, and `TOON_DEFAULT_FORMAT=toon` (with CLI `--format` taking precedence).
+- Verified by `scripts/test_xf_toon.sh` and `tests/output_format_env.rs`.
 
 ## 5. Recommendations
 
 ### 5.1 High Priority (P1)
 
-None - xf is already highly agent-friendly
-
-### 5.2 Medium Priority (P2)
-
-1. Add TOON format option
-2. Add streaming output for large results
-
-### 5.3 Low Priority (P3)
-
-1. Add schema export option
-2. Document query syntax in --help
+None - all agent-friendliness requirements are implemented.
 
 ## 6. Agent Usage Patterns
 

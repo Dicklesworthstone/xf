@@ -160,10 +160,9 @@ Key features:
 - FTS5 for backup search capability
 - Efficient batch inserts
 
-### vector.rs - Vector Search + File Format (planned)
+### vector.rs - Persistent Mmap Vector Search + File Format
 
-The persistent vector index will use a compact, versioned binary format to
-preserve exact embeddings and deterministic iteration order.
+The persistent vector index (`vector.idx`, `vector.fast.idx`, `vector.quality.idx`) uses a compact, versioned binary format (`XFVI`) with memory-mapped zero-copy reads and zero-allocation SIMD (`wide::f32x8`) dot-product scoring over IEEE 754 `f16` embeddings.
 
 #### Binary Layout (Little-Endian)
 
@@ -190,7 +189,7 @@ Record layout (variable length):
 
 | Field | Size | Notes |
 |-------|------|-------|
-| doc_type | 1 | enum (0 tweet, 1 like, 2 dm, 3 grok) |
+| doc_type | 1 | enum (`0` tweet, `1` like, `2` dm, `3` grok, `4` bookmark) |
 | reserved | 1 | `0` |
 | doc_id_len | 2 | u16 byte length |
 | doc_id | N | UTF-8 bytes |
@@ -205,7 +204,13 @@ Record layout (variable length):
 - Offsets table must fit in file.
 - Record offsets must be sorted, in-bounds, and point into data section.
 - Each record must fit within file bounds and have valid UTF-8 `doc_id`.
-- `doc_type` must be in the enum range.
+- `doc_type` must be in the enum range (`0..=4`).
+
+### hybrid.rs, reranker.rs & daemon/ - Fusion, Reranking & Model Server
+
+- **Hybrid RRF Fusion (`hybrid.rs`)**: Combines lexical BM25 rankings with semantic vector rankings via Reciprocal Rank Fusion (`K = 60`), plus two-tier progressive search (`--mode two-tier`) blending fast static embeddings with quality transformer embeddings.
+- **Cross-Encoder Reranking (`reranker.rs`, `flashrank_reranker.rs`, `mxbai_reranker.rs`, `rerank_step.rs`)**: Optional post-retrieval reranking (`--rerank`, `--reranker`, `--rerank-top`) with deterministic zero-dependency `hash-reranker` fallback when ONNX models are not downloaded.
+- **Daemon Mode (`daemon/`)**: Background Unix domain socket server speaking length-prefixed MessagePack (`rmp_serde`) to keep embedders and rerankers warm across CLI invocations and execute background embedding jobs.
 
 ## Design Decisions
 
@@ -222,7 +227,7 @@ Record layout (variable length):
 
 The hybrid approach gives us:
 - **Tantivy** for blazing-fast text search
-- **SQLite** for structured queries and statistics
+- **SQLite** for structured queries, statistics, and automatic FTS5 fallback when the Tantivy index directory is absent
 
 ### Why Parse JavaScript Files?
 
@@ -248,7 +253,6 @@ rayon provides 3-4x speedup on typical multi-core systems.
 
 ## Future Considerations
 
-1. **Incremental Indexing**: Currently we require full re-index for updates
-2. **Remote Search**: Could expose search via HTTP API
-3. **Multiple Archives**: Support for searching across multiple accounts
-4. **Export Formats**: More export options (Markdown, HTML)
+1. **Remote Search**: Optional local HTTP API mode
+2. **Multiple Archives**: Unified search across multiple X accounts
+3. **Additional Export Formats**: Markdown and HTML archive reports

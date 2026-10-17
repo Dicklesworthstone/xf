@@ -10,11 +10,20 @@ Repository: <https://github.com/Dicklesworthstone/xf>
 
 ## [Unreleased]
 
-278 commits since v0.2.0 (2026-01-12 through 2026-03-21). No release tag yet.
+Compare: [`v0.4.3...main`](https://github.com/Dicklesworthstone/xf/compare/v0.4.3...main)
 
-Compare: [`v0.2.0...main`](https://github.com/Dicklesworthstone/xf/compare/v0.2.0...main)
+### Added & Fixed (Post-v0.4.3 Reality-Check Overhaul)
 
-### Semantic Search Pipeline
+- **Idempotent re-indexing (`#14` fixed)**: Re-running `xf index <path>` without `--force` now deletes existing Tantivy documents for re-indexed types before indexing (`SearchEngine::clear_doc_type` / `SearchEngine::delete_existing_docs`), detects embedding model/dimension changes (`target_embedding_model_name`, `stored_model_matches_target`), and writes `vector.idx` in `--two-tier` mode so semantic/hybrid search works out of the box.
+- **Zero-allocation SIMD `f16` dot product**: `dot_product_f16_simd` in `src/vector.rs` converts `f16` chunks into stack-allocated `wide::f32x8` vectors with zero heap allocations per candidate, and supports `bookmark` (`doc_type = 4`) in the persistent `XFVI` vector index.
+- **Model2Vec memory & startup optimization**: Removed duplicate `tokenizer.json` and 128MB `model.safetensors` loading in `src/model2vec_embedder.rs` and avoided loading ONNX runtime sessions during `is_available()` checks.
+- **Full Bookmark, Group DM & Account/Profile support**: Group DMs without `recipientId` parse cleanly (`unwrap_or("group")`); `account.js` and `profile.js` are persisted in SQLite (`account`, `profile` tables); bookmarks are hydrated with local tweet text, indexed in Tantivy + FTS5 + vector embeddings, and supported across `search`, `list`, and `export`; `xf index` accepts `.zip` archives directly.
+- **Cross-encoder & deterministic lexical reranking**: Wired `--rerank`, `--reranker`, and `--rerank-top` into `xf search` with a zero-dependency deterministic `hash-reranker` fallback alongside `flashrank-nano` and `mxbai-rerank-xsmall`.
+- **Automatic SQLite FTS5 search fallback**: When the Tantivy index directory is absent or empty, `xf search` automatically falls back to SQLite FTS5 (`Storage::search_fts`) instead of failing.
+- **Rich terminal UI & machine output truthfulness**: Enabled `default = ["rich"]` in `Cargo.toml` and `--features full` in CI/release builds; replaced naive bracket stripping in `src/output.rs` with a style-tag parser that preserves literal brackets (`[tweet]`, `[No text]`, `[1/5]`, JSON arrays); added `EPIPE` (`BrokenPipe`) handling; routed all machine outputs (`json`, `json-pretty`, `jsonl`, `toon`, `csv`) through `Output::print_data`.
+- **CLI & Config truthfulness**: Wired `config.search.*`, `config.indexing.*`, `config.output.*`, and `config.semantic.*` into runtime execution; added `--model` and `--dimensions` to `xf index`; wired `--daemon` / `--no-daemon` into `xf search`; updated `xf doctor --fix` and `xf robot-docs` to cover all 16 subcommands, 7 output formats, and `bookmark` schemas.
+
+### Semantic Search Pipeline (v0.2.0 – v0.4.3)
 
 A complete embedding bake-off infrastructure was built to evaluate embedding models for xf's search quality, then the winning model was wired into production.
 
@@ -342,6 +351,7 @@ All content types from the X data export are indexed and searchable:
 ---
 
 <!-- Link references -->
-[Unreleased]: https://github.com/Dicklesworthstone/xf/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Dicklesworthstone/xf/compare/v0.4.3...HEAD
+[0.4.3]: https://github.com/Dicklesworthstone/xf/compare/v0.4.2...v0.4.3
 [0.2.0]: https://github.com/Dicklesworthstone/xf/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Dicklesworthstone/xf/releases/tag/v0.1.0

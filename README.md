@@ -476,9 +476,23 @@ xf search "AI" --limit 5
 
 ## Commands
 
+### `xf import <zip_file>`
+
+Extract an X archive `.zip` and index it in one step.
+
+```bash
+xf import ~/Downloads/twitter-archive.zip
+
+# Customize extraction directory
+xf import ~/Downloads/twitter-archive.zip -o ~/my_x_history
+
+# Extract only (skip auto-indexing)
+xf import ~/Downloads/twitter-archive.zip --no-index
+```
+
 ### `xf index <archive_path>`
 
-Index an X data archive.
+Index an X data archive directory (or `.zip` file directly).
 
 ```bash
 xf index ~/Downloads/x-archive
@@ -486,11 +500,20 @@ xf index ~/Downloads/x-archive
 # Force re-index (clear existing data)
 xf index ~/Downloads/x-archive --force
 
-# Build true semantic embeddings (MiniLM; downloads ~80MB on first use)
+# Build fast static embeddings (~55MB Model2Vec potion-128M)
+xf index ~/Downloads/x-archive --fast
+
+# Build quality transformer embeddings (MiniLM; downloads ~80MB on first use)
 xf index ~/Downloads/x-archive --semantic
 
+# Build two-tier progressive embeddings (fast + quality)
+xf index ~/Downloads/x-archive --two-tier
+
+# Choose a specific embedding model and MRL dimension
+xf index ~/Downloads/x-archive --model hash-fnv1a-384 --dimensions 256
+
 # Index only specific data types
-xf index ~/Downloads/x-archive --only tweet,like
+xf index ~/Downloads/x-archive --only tweet,like,bookmark
 
 # Skip certain data types
 xf index ~/Downloads/x-archive --skip dm,grok
@@ -505,18 +528,24 @@ Search the indexed archive.
 xf search "your query"
 
 # Search modes
-xf search "query" --mode hybrid    # Default: combines keyword + vector similarity (hash default; ML if indexed with --semantic)
+xf search "query" --mode hybrid    # Default: combines keyword + vector similarity
 xf search "query" --mode lexical   # Keyword-only (BM25)
-xf search "query" --mode semantic  # Vector similarity (hash default; ML if indexed with --semantic)
+xf search "query" --mode semantic  # Vector similarity
+xf search "query" --mode two-tier  # Progressive fast + quality vector blending
+
+# Cross-encoder / lexical reranking
+xf search "query" --rerank --reranker hash-reranker --rerank-top 50
 
 # Filter by type
-xf search "query" --types tweet,dm
+xf search "query" --types tweet,dm,bookmark
 
-# Pagination
-xf search "query" --limit 20 --offset 40
+# Pagination & sorting
+xf search "query" --limit 20 --offset 40 --sort date
 
 # Output formats
 xf search "query" --format json
+xf search "query" --format jsonl
+xf search "query" --format toon
 xf search "query" --format csv
 xf search "query" --format compact
 
@@ -529,9 +558,10 @@ xf search "meeting" --types dm --context --format json
 
 | Mode | Best For | How It Works |
 |------|----------|--------------|
-| `hybrid` | General use (default) | Combines keyword + vector similarity (hash default; ML with `--semantic`) |
-| `lexical` | Exact terms, boolean queries | Classic BM25 keyword matching |
-| `semantic` | Similar wording | Vector similarity (hash default; ML with `--semantic`) |
+| `hybrid` | General use (default) | Combines keyword + vector similarity via RRF (`K = 60`) |
+| `lexical` | Exact terms, boolean queries | Classic BM25 keyword matching (falls back to SQLite FTS5 if Tantivy index is absent) |
+| `semantic` | Similar wording | Vector similarity (`XFVI` mmap + SIMD `f16` dot product) |
+| `two-tier` | Progressive refinement | Blends fast embeddings (`vector.fast.idx`) with quality embeddings (`vector.quality.idx`) |
 
 **Query syntax:**
 - Simple terms: `machine learning`
@@ -541,15 +571,16 @@ xf search "meeting" --types dm --context --format json
 
 ### `xf stats`
 
-Show archive statistics.
+Show archive statistics and temporal/engagement analytics.
 
 ```bash
 xf stats
 
-# JSON output
+# JSON or TOON output
 xf stats --format json
+xf stats --format toon
 
-# Detailed breakdown
+# Detailed breakdown (temporal, engagement, content)
 xf stats --detailed
 ```
 
@@ -560,8 +591,86 @@ Show details for a specific tweet.
 ```bash
 xf tweet 1234567890
 
-# Show engagement metrics
+# Show engagement metrics, replies, or full thread
 xf tweet 1234567890 --engagement
+xf tweet 1234567890 --replies
+xf tweet 1234567890 --thread
+```
+
+### `xf list <target>`
+
+Browse indexed records (`tweets`, `likes`, `dms`, `bookmarks`, `grok`, `account`, `followers`, `following`, `blocks`, `mutes`, `files`, `types`).
+
+```bash
+xf list tweets --limit 20
+xf list bookmarks --limit 20
+xf list dms --limit 10
+xf list account --format json
+```
+
+### `xf export <target>`
+
+Export indexed records (`tweets`, `likes`, `dms`, `bookmarks`, `grok`, `followers`, `following`, `blocks`, `mutes`) in `json`, `jsonl`, `csv`, `toon`, or `markdown`.
+
+```bash
+xf export tweets --format jsonl -o tweets.jsonl
+xf export bookmarks --format toon
+xf export likes --format csv -o likes.csv
+```
+
+### `xf doctor`
+
+Run archive, SQLite, FTS5, Tantivy, and vector index diagnostics.
+
+```bash
+xf doctor
+xf doctor --fix
+xf doctor --format json
+```
+
+### `xf shell`
+
+Start the interactive REPL with history, tab completion, mode switching (`:mode`), and variable expansion.
+
+```bash
+xf shell
+```
+
+### `xf models`
+
+List, inspect, download, or benchmark embedding and reranker models.
+
+```bash
+xf models list
+xf models info hash-fnv1a-384
+xf models benchmark --count 100
+```
+
+### `xf daemon`
+
+Manage the background model server (`start`, `stop`, `status`).
+
+```bash
+xf daemon status
+xf daemon start
+xf daemon stop
+```
+
+### `xf benchmark`
+
+Run search and embedding performance benchmarks.
+
+```bash
+xf benchmark --corpus tests/fixtures/perf_corpus
+```
+
+### `xf robot-docs`
+
+Emit machine-readable CLI and schema documentation for AI agents.
+
+```bash
+xf robot-docs
+xf robot-docs --section schemas
 ```
 
 ### `xf config`
@@ -571,6 +680,10 @@ Manage configuration.
 ```bash
 # Show current config
 xf config --show
+
+# Update config values
+xf config --set search.default_limit=50
+xf config --set semantic.rerank=true
 ```
 
 ### `xf update`
@@ -600,11 +713,15 @@ xf completions fish > ~/.config/fish/completions/xf.fish
 
 | Format | Description |
 |--------|-------------|
-| `text` | Human-readable with colors (default) |
+| `text` | Human-readable with colors and rich cards/tables (default) |
 | `json` | Compact JSON |
 | `json-pretty` | Pretty-printed JSON |
+| `jsonl` | Newline-delimited JSON records (streaming-friendly) |
+| `toon` | Token-Oriented Object Notation (compact LLM/agent format) |
 | `csv` | Comma-separated values |
 | `compact` | One result per line |
+
+Override default format via `XF_FORMAT`, `XF_OUTPUT_FORMAT`, `TOON_DEFAULT_FORMAT`, or `output.format` in `config.toml`.
 
 ## Data Types
 
@@ -614,6 +731,7 @@ xf completions fish > ~/.config/fish/completions/xf.fish
 | `like` | Tweets you've liked |
 | `dm` | Direct messages |
 | `grok` | Grok AI conversations |
+| `bookmark` | Saved bookmarks (hydrated with local tweet text when available) |
 | `follower` | Your followers |
 | `following` | Accounts you follow |
 | `block` | Blocked accounts |
