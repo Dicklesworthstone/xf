@@ -1101,7 +1101,7 @@ mod edge_cases {
                 Ok(emb) => {
                     let norm = vector_norm(&emb);
                     println!("  ✓ \"{}\" | norm={:.4}", text, norm);
-                    assert!(!emb.is_empty());
+                    assert_ne!(emb, Vec::<f32>::new());
                     assert!(
                         is_normalized(&emb, 0.05),
                         "Unicode text should be normalized"

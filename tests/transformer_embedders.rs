@@ -402,7 +402,7 @@ mod batching {
     fn test_empty_batch_returns_empty() {
         let embedder = create_embedder(EMBEDDER_MINILM_L6_V2).unwrap();
         let result = embedder.embed_batch(&[]).unwrap();
-        assert!(result.is_empty());
+        assert_eq!(result, Vec::<Vec<f32>>::new());
     }
 
     #[test]

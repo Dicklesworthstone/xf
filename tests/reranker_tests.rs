@@ -389,7 +389,7 @@ mod edge_cases {
         let reranker = try_flashrank().expect("FlashRank required");
         let result = reranker.rerank("query", &[]);
         assert!(result.is_ok(), "Empty docs vec should not panic");
-        assert!(result.unwrap().is_empty(), "Should return empty scores");
+        assert_eq!(result.unwrap().len(), 0, "Should return empty scores");
     }
 
     #[test]

@@ -206,7 +206,7 @@ mod protocol_tests {
         let bytes = rmp_serde::to_vec(&req).expect("serialize");
         let decoded: Request = rmp_serde::from_slice(&bytes).expect("deserialize");
         match decoded {
-            Request::Embed { texts, .. } => assert!(texts.is_empty()),
+            Request::Embed { texts, .. } => assert_eq!(texts, Vec::<String>::new()),
             _ => panic!("expected Embed"),
         }
     }

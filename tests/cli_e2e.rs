@@ -1738,3 +1738,293 @@ fn test_shell_history_file_parsing() {
         start.elapsed()
     );
 }
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn test_machine_formats_never_suppressed_by_effective_quiet() {
+    let (_archive_temp, _output_dir, db_path, index_path) = create_indexed_archive();
+
+    // 1. Empty lexical search with --format json emits "[]"
+    let out = xf_cmd()
+        .args([
+            "search",
+            "xyznonexistent123",
+            "--mode",
+            "lexical",
+            "--format",
+            "json",
+            "--db",
+            db_path.to_str().unwrap(),
+            "--index",
+            index_path.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    assert_eq!(String::from_utf8_lossy(&out.stdout).trim(), "[]");
+
+    // 2. Non-empty search with --format csv emits header + rows
+    let out = xf_cmd()
+        .args([
+            "search",
+            "rust",
+            "--format",
+            "csv",
+            "--db",
+            db_path.to_str().unwrap(),
+            "--index",
+            index_path.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    let csv_stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(csv_stdout.starts_with("type,id,created_at,score,text\n"));
+    assert!(csv_stdout.lines().count() >= 2);
+
+    // 3. Compact search preserves [tweet] bracket prefix
+    let out = xf_cmd()
+        .args([
+            "search",
+            "rust",
+            "--format",
+            "compact",
+            "--db",
+            db_path.to_str().unwrap(),
+            "--index",
+            index_path.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    let compact_stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(compact_stdout.contains("[tweet]"));
+
+    // 4. xf list tweets --format json emits valid JSON array
+    let out = xf_cmd()
+        .args([
+            "list",
+            "tweets",
+            "--format",
+            "json",
+            "--db",
+            db_path.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    let list_json: Value = serde_json::from_slice(&out.stdout)
+        .expect("xf list tweets --format json must be valid JSON");
+    assert!(list_json.is_array());
+    assert_ne!(list_json.as_array().unwrap().len(), 0);
+
+    // 5. xf export tweets --format json and --format toon emit non-empty stdout
+    let out = xf_cmd()
+        .args([
+            "export",
+            "tweets",
+            "--format",
+            "json",
+            "--db",
+            db_path.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    let export_json: Value = serde_json::from_slice(&out.stdout)
+        .expect("xf export tweets --format json must be valid JSON");
+    assert!(export_json.is_array());
+
+    let out = xf_cmd()
+        .args([
+            "export",
+            "tweets",
+            "--format",
+            "toon",
+            "--db",
+            db_path.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    assert_ne!(String::from_utf8_lossy(&out.stdout).trim(), "");
+
+    // 6. xf config --show --format json emits valid JSON object
+    let out = xf_cmd()
+        .args([
+            "config",
+            "--show",
+            "--format",
+            "json",
+            "--db",
+            db_path.to_str().unwrap(),
+            "--index",
+            index_path.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    let cfg_json: Value = serde_json::from_slice(&out.stdout)
+        .expect("xf config --show --format json must be valid JSON");
+    assert!(cfg_json.is_object());
+
+    // 7. xf models list --format json emits valid JSON array
+    let out = xf_cmd()
+        .args(["models", "list", "--format", "json"])
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    let models_json: Value = serde_json::from_slice(&out.stdout)
+        .expect("xf models list --format json must be valid JSON");
+    assert!(models_json.is_array());
+}
+
+#[test]
+fn test_search_fts5_fallback_when_tantivy_index_absent() {
+    let (_archive_temp, output_dir, db_path, _index_path) = create_indexed_archive();
+    let absent_index_path = output_dir.path().join("absent_tantivy_index");
+
+    let output = xf_cmd()
+        .args([
+            "search",
+            "rust",
+            "--mode",
+            "lexical",
+            "--format",
+            "json",
+            "--quiet",
+            "--db",
+            db_path.to_str().unwrap(),
+            "--index",
+            absent_index_path.to_str().unwrap(),
+        ])
+        .output()
+        .expect("Failed to run FTS5 fallback search");
+
+    let results = parse_search_results(&output);
+    assert!(
+        !results.is_empty(),
+        "SQLite FTS5 fallback should return results when Tantivy index is absent"
+    );
+    assert!(
+        results
+            .iter()
+            .any(|r| r.text.to_lowercase().contains("rust"))
+    );
+}
+
+#[test]
+fn test_search_rerank_hash_reranker_and_date_sort() {
+    let (_archive_temp, _output_dir, db_path, index_path) = create_indexed_archive();
+
+    let output = xf_cmd()
+        .args([
+            "search",
+            "rust",
+            "--rerank",
+            "--reranker",
+            "hash-reranker",
+            "--format",
+            "json",
+            "--quiet",
+            "--db",
+            db_path.to_str().unwrap(),
+            "--index",
+            index_path.to_str().unwrap(),
+        ])
+        .output()
+        .expect("Failed to run reranked search");
+
+    let results = parse_search_results(&output);
+    assert!(!results.is_empty());
+    assert!(
+        results.iter().all(|r| r.rerank_score.is_some()),
+        "Expected rerank_score to be populated when --rerank is set"
+    );
+
+    // Verify --sort date orders ascending by created_at
+    let asc_out = xf_cmd()
+        .args([
+            "search",
+            "tweet OR search OR database",
+            "--mode",
+            "lexical",
+            "--types",
+            "tweet",
+            "--sort",
+            "date",
+            "--format",
+            "json",
+            "--quiet",
+            "--db",
+            db_path.to_str().unwrap(),
+            "--index",
+            index_path.to_str().unwrap(),
+        ])
+        .output()
+        .expect("Failed to run date-sorted search");
+    let asc_results = parse_search_results(&asc_out);
+    assert!(asc_results.len() >= 2);
+    for pair in asc_results.windows(2) {
+        assert!(pair[0].created_at <= pair[1].created_at);
+    }
+}
+
+#[test]
+fn test_env_limit_and_format_overrides() {
+    let (_archive_temp, _output_dir, db_path, index_path) = create_indexed_archive();
+
+    let output = xf_cmd()
+        .env("XF_LIMIT", "1")
+        .env("XF_FORMAT", "json")
+        .args([
+            "search",
+            "rust",
+            "--quiet",
+            "--db",
+            db_path.to_str().unwrap(),
+            "--index",
+            index_path.to_str().unwrap(),
+        ])
+        .output()
+        .expect("Failed to run search with XF_LIMIT and XF_FORMAT");
+
+    let results = parse_search_results(&output);
+    assert_eq!(results.len(), 1, "XF_LIMIT=1 should cap default limit to 1");
+}
+
+#[test]
+fn test_doctor_fix_rebuilds_corrupted_vector_index() {
+    let (archive_temp, _output_dir, db_path, index_path) = create_indexed_archive();
+    let vector_file = index_path.join("vector.idx");
+    fs::write(&vector_file, b"").expect("truncate vector.idx");
+
+    let output = xf_cmd()
+        .args([
+            "doctor",
+            "--fix",
+            "--archive",
+            archive_temp.path().to_str().unwrap(),
+            "--format",
+            "json",
+            "--quiet",
+            "--db",
+            db_path.to_str().unwrap(),
+            "--index",
+            index_path.to_str().unwrap(),
+        ])
+        .output()
+        .expect("Failed to run xf doctor --fix");
+
+    assert!(
+        output.status.success(),
+        "xf doctor --fix failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let meta = fs::metadata(&vector_file).expect("vector.idx metadata");
+    assert!(
+        meta.len() >= 32,
+        "Expected xf doctor --fix to rebuild vector.idx, got {} bytes",
+        meta.len()
+    );
+}

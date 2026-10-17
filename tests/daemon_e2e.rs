@@ -2329,7 +2329,7 @@ async fn test_daemon_healthy_after_reranker_errors() {
         .embed(&["still works"], Some("hash"), None)
         .await
         .expect("embed after reranker errors");
-    assert!(!embed.is_empty());
+    assert_ne!(embed, Vec::<Vec<f32>>::new());
 
     tracing::info!(
         uptime = health.uptime_secs,

@@ -581,7 +581,7 @@ mod batch {
     fn test_empty_batch() {
         let embedder = StaticMrlEmbedder::try_load().unwrap();
         let results = embedder.embed_batch(&[]).unwrap();
-        assert!(results.is_empty());
+        assert_eq!(results.len(), 0);
     }
 
     #[test]
