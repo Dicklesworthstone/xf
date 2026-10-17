@@ -102,7 +102,7 @@ resolve_version() {
   info "Resolving latest version..."
   local latest_url="https://api.github.com/repos/${OWNER}/${REPO}/releases/latest"
   local tag
-  if ! tag=$(curl -fsSL -H "Accept: application/vnd.github.v3+json" "$latest_url" 2>/dev/null | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'); then
+  if ! tag=$(curl -fsSL -H "Accept: application/vnd.github.v3+json" -H "User-Agent: xf-installer/1.0" "$latest_url" 2>/dev/null | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'); then
     tag=""
   fi
 
@@ -112,7 +112,7 @@ resolve_version() {
   else
     # Try redirect-based resolution as fallback
     local redirect_url="https://github.com/${OWNER}/${REPO}/releases/latest"
-    if tag=$(curl -fsSL -o /dev/null -w '%{url_effective}' "$redirect_url" 2>/dev/null | sed -E 's|.*/tag/||'); then
+    if tag=$(curl -fsSL -H "User-Agent: xf-installer/1.0" -o /dev/null -w '%{url_effective}' "$redirect_url" 2>/dev/null | sed -E 's|.*/tag/||'); then
       # Validate: tag must be non-empty, start with 'v' + digit, and not contain URL chars
       if [ -n "$tag" ] && [[ "$tag" =~ ^v[0-9] ]] && [[ "$tag" != *"/"* ]]; then
         VERSION="$tag"
@@ -122,7 +122,7 @@ resolve_version() {
     fi
     err "Could not resolve the latest release version (GitHub API and redirect lookup both failed)."
     err "This is usually a transient network issue or GitHub API rate limiting."
-    err "Retry later, or pin a version explicitly, e.g.: install.sh --version v0.4.0"
+    err "Retry later, or pin a version explicitly, e.g.: install.sh --version v0.4.3"
     err "Releases: https://github.com/${OWNER}/${REPO}/releases"
     exit 1
   fi
@@ -299,19 +299,42 @@ trap cleanup EXIT
 
 if [ "$FROM_SOURCE" -eq 0 ]; then
   info "Downloading $URL"
-  if ! curl -fsSL "$URL" -o "$TMP/$TAR"; then
-    warn "Artifact download failed; falling back to build-from-source"
-    FROM_SOURCE=1
+  if ! curl -fsSL -H "User-Agent: xf-installer/1.0" "$URL" -o "$TMP/$TAR"; then
+    if [ "$EASY" -eq 1 ]; then
+      warn "Artifact download failed; --easy-mode enabled, falling back to build-from-source"
+      FROM_SOURCE=1
+    elif [ -t 0 ]; then
+      warn "Artifact download failed for $URL"
+      echo -n "Build from source instead? (y/N): "
+      read -r ans
+      case "$ans" in
+        y|Y) FROM_SOURCE=1 ;;
+        *) err "Aborted. Retry later or pass --from-source to build from source."; exit 1 ;;
+      esac
+    else
+      err "Artifact download failed for $URL"
+      err "Refusing to silently compile from source in non-interactive mode (pass --from-source or --easy-mode to opt in)."
+      exit 1
+    fi
   fi
 fi
 
 if [ "$FROM_SOURCE" -eq 1 ]; then
   info "Building from source (requires git, rust nightly)"
   ensure_rust
-  git clone --depth 1 "https://github.com/${OWNER}/${REPO}.git" "$TMP/src"
-  (cd "$TMP/src" && cargo build --release)
+  if [ -n "$VERSION" ]; then
+    git clone --depth 1 --branch "$VERSION" "https://github.com/${OWNER}/${REPO}.git" "$TMP/src" 2>/dev/null \
+      || git clone --depth 1 "https://github.com/${OWNER}/${REPO}.git" "$TMP/src"
+  else
+    git clone --depth 1 "https://github.com/${OWNER}/${REPO}.git" "$TMP/src"
+  fi
+  (cd "$TMP/src" && cargo build --release --features full)
   BIN="$TMP/src/target/release/xf"
   [ -x "$BIN" ] || { err "Build failed"; exit 1; }
+  if ! "$BIN" --version >/dev/null 2>&1; then
+    err "Built binary failed smoke test ('$BIN --version'); refusing to overwrite $DEST/xf"
+    exit 1
+  fi
   install -m 0755 "$BIN" "$DEST/xf"
   ok "Installed to $DEST/xf (source build)"
   maybe_add_path
@@ -333,7 +356,7 @@ else
     fi
     info "Fetching checksum from ${CHECKSUM_URL}"
     CHECKSUM_FILE="$TMP/SHA256SUMS"
-    if ! curl -fsSL "$CHECKSUM_URL" -o "$CHECKSUM_FILE"; then
+    if ! curl -fsSL -H "User-Agent: xf-installer/1.0" "$CHECKSUM_URL" -o "$CHECKSUM_FILE"; then
       err "Could not fetch checksums from ${CHECKSUM_URL}"
       err "Refusing to install an unverified binary."
       err "Retry later, supply one via --checksum HEX / --checksum-url URL,"
@@ -356,7 +379,14 @@ else
       exit 1
     fi
   fi
-  echo "$CHECKSUM  $TMP/$TAR" | sha256sum -c - || { err "Checksum mismatch"; exit 1; }
+  if command -v sha256sum >/dev/null 2>&1; then
+    echo "$CHECKSUM  $TMP/$TAR" | sha256sum -c - || { err "Checksum mismatch"; exit 1; }
+  elif command -v shasum >/dev/null 2>&1; then
+    echo "$CHECKSUM  $TMP/$TAR" | shasum -a 256 -c - || { err "Checksum mismatch"; exit 1; }
+  else
+    err "Neither sha256sum nor shasum found to verify checksum"
+    exit 1
+  fi
   ok "Checksum verified"
 fi
 
@@ -367,10 +397,17 @@ if [ ! -x "$BIN" ] && [ -n "$TARGET" ]; then
   BIN="$TMP/xf-${TARGET}/xf"
 fi
 if [ ! -x "$BIN" ]; then
-  BIN=$(find "$TMP" -maxdepth 3 -type f -name "xf" -perm -111 | head -n 1)
+  BIN=$(find "$TMP" -maxdepth 3 -type f -name "xf" | head -n 1)
 fi
 
 [ -x "$BIN" ] || { err "Binary not found in tar"; exit 1; }
+chmod 0755 "$BIN"
+if ! "$BIN" --version >/dev/null 2>&1; then
+  err "Downloaded binary failed pre-install smoke test ('$BIN --version')."
+  err "This may indicate a glibc/ABI mismatch on your system; existing $DEST/xf was NOT modified."
+  err "Re-run with --from-source to build a native binary for your host."
+  exit 1
+fi
 install -m 0755 "$BIN" "$DEST/xf"
 ok "Installed to $DEST/xf"
 maybe_add_path

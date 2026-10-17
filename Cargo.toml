@@ -134,7 +134,7 @@ tokio-test = "0.4"
 serial_test = "3.2"
 
 [features]
-default = []
+default = ["rich"]
 
 # Enable rich_rust styled output
 rich = ["dep:rich_rust"]
