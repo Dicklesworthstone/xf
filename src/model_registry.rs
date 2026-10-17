@@ -15,7 +15,7 @@ use crate::hash_embedder::{DEFAULT_DIMENSION as HASH_DEFAULT_DIM, HashEmbedder};
 use crate::model2vec_embedder::Model2VecEmbedder;
 use crate::mxbai_reranker::MxbaiReranker;
 use crate::reranker::FrankensearchRerankerAdapter;
-use crate::reranker::{Reranker, RerankerError, RerankerResult};
+use crate::reranker::{HashReranker, Reranker, RerankerError, RerankerResult};
 use crate::static_mrl_embedder::StaticMrlEmbedder;
 
 use fastembed::EmbeddingModel;
@@ -33,6 +33,7 @@ pub const EMBEDDER_EMBEDDINGGEMMA_300M: &str = "embeddinggemma-300m";
 
 /// Canonical reranker model keys.
 pub const RERANKER_NONE: &str = "none";
+pub const RERANKER_HASH: &str = "hash-reranker";
 pub const RERANKER_FLASHRANK_NANO: &str = "flashrank-nano";
 pub const RERANKER_MXBAI_XSMALL_V1: &str = "mxbai-rerank-xsmall-v1";
 
@@ -128,6 +129,7 @@ impl ModelRegistry {
     pub fn reranker_names(&self) -> Vec<&'static str> {
         vec![
             RERANKER_NONE,
+            RERANKER_HASH,
             RERANKER_FLASHRANK_NANO,
             RERANKER_MXBAI_XSMALL_V1,
         ]
@@ -191,6 +193,9 @@ impl ModelRegistry {
     #[must_use]
     pub fn list_models(&self) -> Vec<ModelInfo> {
         use crate::fastembed_embedder::fastembed_model_downloaded;
+        let static_mrl_avail = StaticMrlEmbedder::is_available();
+        let potion_32m_avail = Model2VecEmbedder::is_available(EMBEDDER_POTION_RETRIEVAL_32M);
+        let potion_128m_avail = Model2VecEmbedder::is_available(EMBEDDER_POTION_MULTI_128M);
         vec![
             ModelInfo {
                 name: EMBEDDER_HASH_FNV1A_384.to_string(),
@@ -249,8 +254,8 @@ impl ModelRegistry {
                 supports_mrl: true,
                 native_dims: 1024,
                 size_mb: Some(100.0),
-                downloaded: StaticMrlEmbedder::is_available(),
-                available: StaticMrlEmbedder::is_available(),
+                downloaded: static_mrl_avail,
+                available: static_mrl_avail,
             },
             ModelInfo {
                 name: EMBEDDER_POTION_RETRIEVAL_32M.to_string(),
@@ -259,8 +264,8 @@ impl ModelRegistry {
                 supports_mrl: false,
                 native_dims: 256,
                 size_mb: Some(32.0),
-                downloaded: Model2VecEmbedder::is_available(EMBEDDER_POTION_RETRIEVAL_32M),
-                available: Model2VecEmbedder::is_available(EMBEDDER_POTION_RETRIEVAL_32M),
+                downloaded: potion_32m_avail,
+                available: potion_32m_avail,
             },
             ModelInfo {
                 name: EMBEDDER_POTION_MULTI_128M.to_string(),
@@ -269,8 +274,8 @@ impl ModelRegistry {
                 supports_mrl: false,
                 native_dims: 256,
                 size_mb: Some(128.0),
-                downloaded: Model2VecEmbedder::is_available(EMBEDDER_POTION_MULTI_128M),
-                available: Model2VecEmbedder::is_available(EMBEDDER_POTION_MULTI_128M),
+                downloaded: potion_128m_avail,
+                available: potion_128m_avail,
             },
             ModelInfo {
                 name: EMBEDDER_EMBEDDINGGEMMA_300M.to_string(),
@@ -387,6 +392,7 @@ impl ModelRegistry {
 
         match name {
             RERANKER_NONE => Ok(None),
+            RERANKER_HASH => Ok(Some(Box::new(HashReranker::new()))),
             RERANKER_FLASHRANK_NANO => {
                 let reranker = FlashRankReranker::load()?;
                 Ok(Some(Box::new(reranker)))
@@ -401,7 +407,8 @@ impl ModelRegistry {
         }
     }
 
-    fn canonical_embedder_name(name: &str) -> Option<&'static str> {
+    #[must_use]
+    pub fn canonical_embedder_name(name: &str) -> Option<&'static str> {
         let lower = name.to_lowercase();
         match lower.as_str() {
             "hash" | "fnv1a" | "fnv1a-384" | "hash-fnv1a-384" => Some(EMBEDDER_HASH_FNV1A_384),
@@ -431,12 +438,13 @@ impl ModelRegistry {
         let lower = name.to_lowercase();
         match lower.as_str() {
             "none" | "off" => Some(RERANKER_NONE),
+            "hash" | "hash-reranker" | "lexical" => Some(RERANKER_HASH),
             "flashrank" | "flashrank-nano" | "flashrank/ms-marco-nano" => {
                 Some(RERANKER_FLASHRANK_NANO)
             }
-            "mxbai-rerank-xsmall-v1" | "mixedbread-ai/mxbai-rerank-xsmall-v1" => {
-                Some(RERANKER_MXBAI_XSMALL_V1)
-            }
+            "mxbai-rerank-xsmall"
+            | "mxbai-rerank-xsmall-v1"
+            | "mixedbread-ai/mxbai-rerank-xsmall-v1" => Some(RERANKER_MXBAI_XSMALL_V1),
             _ => None,
         }
     }

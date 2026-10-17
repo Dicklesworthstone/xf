@@ -9,6 +9,8 @@ use frankensearch_core::{
 };
 use thiserror::Error;
 
+use crate::embedder::Embedder;
+
 /// Errors that can occur during reranking operations.
 #[derive(Debug, Error)]
 pub enum RerankerError {
@@ -152,6 +154,106 @@ impl FrankensearchReranker for FrankensearchRerankerAdapter {
     }
 }
 
+/// Deterministic zero-dependency lexical + FNV-1a hash reranker.
+///
+/// Always available without external ONNX model files. Scores documents in `[0.0, 1.0]`
+/// by combining query term coverage, exact phrase match bonus, and hash embedding
+/// cosine similarity.
+#[derive(Debug, Clone, Default)]
+pub struct HashReranker {
+    embedder: crate::hash_embedder::HashEmbedder,
+}
+
+impl HashReranker {
+    /// Canonical model name for the hash reranker.
+    pub const MODEL_NAME: &'static str = "hash-reranker";
+
+    /// Create a new deterministic hash reranker.
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            embedder: crate::hash_embedder::HashEmbedder::default(),
+        }
+    }
+
+    fn tokenize_terms(text: &str) -> Vec<String> {
+        text.split(|c: char| !c.is_alphanumeric())
+            .filter(|t| t.len() >= 2)
+            .map(str::to_lowercase)
+            .collect()
+    }
+}
+
+impl Reranker for HashReranker {
+    fn rerank(&self, query: &str, documents: &[&str]) -> RerankerResult<Vec<f32>> {
+        if documents.is_empty() {
+            return Ok(Vec::new());
+        }
+        let query_trimmed = query.trim().to_lowercase();
+        if query_trimmed.is_empty() {
+            return Ok(vec![0.0; documents.len()]);
+        }
+
+        let query_terms = Self::tokenize_terms(&query_trimmed);
+        let query_vec = self.embedder.embed(&query_trimmed).unwrap_or_default();
+
+        let mut scores = Vec::with_capacity(documents.len());
+        for doc in documents {
+            let doc_lower = doc.to_lowercase();
+            let doc_terms = Self::tokenize_terms(&doc_lower);
+
+            let term_coverage = if query_terms.is_empty() {
+                0.0
+            } else {
+                let matched = query_terms
+                    .iter()
+                    .filter(|qt| {
+                        doc_terms
+                            .iter()
+                            .any(|dt| dt == *qt || dt.starts_with(qt.as_str()))
+                    })
+                    .count();
+                #[allow(clippy::cast_precision_loss)]
+                {
+                    matched as f32 / query_terms.len() as f32
+                }
+            };
+
+            let phrase_bonus = if doc_lower.contains(&query_trimmed) {
+                0.15
+            } else {
+                0.0
+            };
+
+            let hash_sim = if query_vec.is_empty() {
+                0.0
+            } else {
+                let doc_vec = self.embedder.embed(&doc_lower).unwrap_or_default();
+                let dot: f32 = query_vec
+                    .iter()
+                    .zip(doc_vec.iter())
+                    .map(|(a, b)| a * b)
+                    .sum();
+                f32::midpoint(dot.clamp(-1.0, 1.0), 1.0)
+            };
+
+            let combined = 0.30f32.mul_add(hash_sim, 0.55f32.mul_add(term_coverage, phrase_bonus));
+            scores.push(combined.clamp(0.0, 1.0));
+        }
+
+        Ok(scores)
+    }
+
+    #[allow(clippy::unnecessary_literal_bound)]
+    fn model_name(&self) -> &str {
+        Self::MODEL_NAME
+    }
+
+    fn max_length(&self) -> usize {
+        512
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -179,5 +281,17 @@ mod tests {
         let info = rr.info();
         assert_eq!(info.model_name, "dummy");
         assert_eq!(info.max_length, 128);
+    }
+
+    #[test]
+    fn test_hash_reranker_orders_relevant_higher() {
+        let rr = HashReranker::new();
+        let docs = [
+            "Weather forecast today is sunny and warm",
+            "Rust systems programming language memory safety",
+        ];
+        let scores = rr.rerank("rust systems programming", &docs).unwrap();
+        assert_eq!(scores.len(), 2);
+        assert!(scores[1] > scores[0]);
     }
 }

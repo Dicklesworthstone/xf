@@ -845,7 +845,7 @@ mod tests {
         match response {
             Response::Embeddings { vectors } => {
                 assert_eq!(vectors.len(), 1);
-                assert!(!vectors[0].is_empty());
+                assert_ne!(vectors[0], Vec::<f32>::new());
             }
             Response::Error { message, .. } => {
                 panic!("unexpected error: {message}");

@@ -191,6 +191,14 @@ pub struct IndexArgs {
     /// Use this flag to wait for embedding completion before returning.
     #[arg(long)]
     pub sync_embeddings: bool,
+
+    /// Embedder model override (e.g., all-MiniLM-L6-v2, bge-small-en-v1.5, potion-multilingual-128M, hash-fnv1a-384)
+    #[arg(long)]
+    pub model: Option<String>,
+
+    /// MRL dimension override (256, 512, 768, or 1024)
+    #[arg(long, value_parser = validate_mrl_dims)]
+    pub dimensions: Option<usize>,
 }
 
 #[derive(Args, Debug)]
@@ -466,8 +474,12 @@ pub struct BenchmarkArgs {
     #[arg(long, default_value = "100")]
     pub measure_iters: usize,
 
+    /// Reranker model to benchmark for lift over embedder baseline ("none" to skip)
+    #[arg(long, default_value = "none")]
+    pub reranker: String,
+
     /// Output directory for reports
-    #[arg(long, default_value = "results")]
+    #[arg(long, short = 'o', visible_alias = "output", default_value = "results")]
     pub output_dir: PathBuf,
 }
 
@@ -653,16 +665,25 @@ pub enum OutputFormat {
 
 impl OutputFormat {
     /// Get format from environment variables.
-    /// Precedence: XF_OUTPUT_FORMAT > TOON_DEFAULT_FORMAT
+    /// Precedence: XF_OUTPUT_FORMAT > XF_FORMAT > TOON_DEFAULT_FORMAT
     #[must_use]
     pub fn from_env() -> Option<Self> {
         if let Ok(val) = std::env::var("XF_OUTPUT_FORMAT") {
+            return Self::from_str(&val);
+        }
+        if let Ok(val) = std::env::var("XF_FORMAT") {
             return Self::from_str(&val);
         }
         if let Ok(val) = std::env::var("TOON_DEFAULT_FORMAT") {
             return Self::from_str(&val);
         }
         None
+    }
+
+    /// Parse an output format name from configuration.
+    #[must_use]
+    pub fn from_config_str(s: &str) -> Option<Self> {
+        Self::from_str(s)
     }
 
     fn from_str(s: &str) -> Option<Self> {
@@ -703,24 +724,47 @@ pub enum SortOrder {
 pub enum ListTarget {
     #[default]
     Files,
+    #[value(alias = "tweet")]
     Tweets,
+    #[value(alias = "like")]
     Likes,
+    #[value(alias = "dm")]
     Dms,
+    #[value(alias = "conversation")]
     Conversations,
+    #[value(alias = "follower")]
     Followers,
     Following,
+    #[value(alias = "block")]
     Blocks,
+    #[value(alias = "mute")]
     Mutes,
+    #[value(alias = "bookmark")]
+    Bookmarks,
+    Grok,
+    #[value(alias = "profile")]
+    Account,
 }
 
 #[derive(ValueEnum, Clone, Debug, Default)]
 pub enum ExportTarget {
     #[default]
+    #[value(alias = "tweet")]
     Tweets,
+    #[value(alias = "like")]
     Likes,
+    #[value(alias = "dm")]
     Dms,
+    #[value(alias = "bookmark")]
+    Bookmarks,
+    Grok,
+    #[value(alias = "follower")]
     Followers,
     Following,
+    #[value(alias = "block")]
+    Blocks,
+    #[value(alias = "mute")]
+    Mutes,
     All,
 }
 
@@ -730,6 +774,7 @@ pub enum ExportFormat {
     Json,
     Jsonl,
     Csv,
+    Toon,
 }
 
 impl ExportFormat {
@@ -740,11 +785,11 @@ impl ExportFormat {
         match format {
             OutputFormat::Jsonl => Self::Jsonl,
             OutputFormat::Csv => Self::Csv,
+            OutputFormat::Toon => Self::Toon,
             OutputFormat::Text
             | OutputFormat::Json
             | OutputFormat::JsonPretty
-            | OutputFormat::Compact
-            | OutputFormat::Toon => Self::Json,
+            | OutputFormat::Compact => Self::Json,
         }
     }
 }
@@ -774,6 +819,10 @@ mod tests {
             (
                 vec!["xf", "--format", "json-pretty", "export", "all"],
                 ExportFormat::Json,
+            ),
+            (
+                vec!["xf", "--format", "toon", "export", "tweets"],
+                ExportFormat::Toon,
             ),
         ] {
             let cli = Cli::try_parse_from(&args).expect("export args should parse");

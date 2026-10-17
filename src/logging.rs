@@ -130,8 +130,8 @@ impl LogConfig {
 
 impl LogLevel {
     /// Convert to tracing Level.
-    #[allow(dead_code)]
-    const fn to_tracing_level(self) -> Option<Level> {
+    #[must_use]
+    pub const fn to_tracing_level(self) -> Option<Level> {
         match self {
             Self::Error => Some(Level::ERROR),
             Self::Warn => Some(Level::WARN),

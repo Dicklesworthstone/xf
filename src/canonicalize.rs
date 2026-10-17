@@ -410,7 +410,7 @@ mod tests {
 
         // Non-low-signal should pass through
         let result = canonicalize_for_embedding("This is actual content");
-        assert!(!result.is_empty());
+        assert_ne!(result, "");
     }
 
     #[test]
@@ -476,12 +476,12 @@ Thanks for reading!
     #[test]
     fn test_empty_input() {
         let result = canonicalize_for_embedding("");
-        assert!(result.is_empty());
+        assert_eq!(result, "");
     }
 
     #[test]
     fn test_whitespace_only_input() {
         let result = canonicalize_for_embedding("   \n\t  ");
-        assert!(result.is_empty());
+        assert_eq!(result, "");
     }
 }

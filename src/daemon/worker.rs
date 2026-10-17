@@ -170,6 +170,12 @@ impl EmbeddingWorker {
         }
 
         // Determine which passes to run
+        let is_semantic_model = |m: &str| {
+            !matches!(
+                m.to_ascii_lowercase().as_str(),
+                "hash" | "fnv1a" | "fnv1a-384" | "hash-fnv1a-384"
+            )
+        };
         let passes: Vec<(&str, String, bool)> = if config.two_tier {
             let fast = config
                 .fast_model
@@ -179,10 +185,17 @@ impl EmbeddingWorker {
                 .quality_model
                 .clone()
                 .unwrap_or_else(|| "all-MiniLM-L6-v2".to_string());
-            vec![("fast", fast, false), ("quality", quality, true)]
+            let fast_sem = is_semantic_model(&fast);
+            let qual_sem = is_semantic_model(&quality);
+            vec![("fast", fast, fast_sem), ("quality", quality, qual_sem)]
         } else {
-            // Single-pass with default hash embedder
-            vec![("default", "hash-fnv1a-384".to_string(), false)]
+            let model = config
+                .quality_model
+                .clone()
+                .or_else(|| config.fast_model.clone())
+                .unwrap_or_else(|| "hash-fnv1a-384".to_string());
+            let use_sem = is_semantic_model(&model);
+            vec![("default", model, use_sem)]
         };
 
         for (model_id, model_name, use_semantic) in passes {
@@ -206,7 +219,7 @@ impl EmbeddingWorker {
             // Generate embeddings (sync operation)
             let db_path = config.db_path.clone();
             let model_id_owned = model_id.to_string();
-            let model_name_owned = model_name.clone();
+            let model_name_owned = model_name;
 
             match self.generate_embeddings_with_progress_sync(
                 &db_path,
@@ -265,9 +278,14 @@ impl EmbeddingWorker {
             .iter()
             .filter(|m| !m.message.is_empty())
             .count();
+        let bookmarks = storage
+            .get_all_bookmarks(None)?
+            .iter()
+            .filter(|b| b.full_text.as_ref().is_some_and(|t| !t.is_empty()))
+            .count();
 
         #[allow(clippy::cast_possible_wrap)]
-        Ok((tweets + likes + dms + grok) as i64)
+        Ok((tweets + likes + dms + grok + bookmarks) as i64)
     }
 
     /// Generate embeddings with progress tracking.
@@ -316,8 +334,9 @@ impl EmbeddingWorker {
         let likes = storage.get_all_likes(None)?;
         let dms = storage.get_all_dms(None)?;
         let grok_msgs = storage.get_all_grok_messages(None)?;
+        let bookmarks = storage.get_all_bookmarks(None)?;
 
-        let capacity = tweets.len() + likes.len() + dms.len() + grok_msgs.len();
+        let capacity = tweets.len() + likes.len() + dms.len() + grok_msgs.len() + bookmarks.len();
         let mut docs: Vec<(String, String, &'static str)> = Vec::with_capacity(capacity);
 
         for tweet in &tweets {
@@ -347,13 +366,37 @@ impl EmbeddingWorker {
                 docs.push((doc_id, msg.message.clone(), "grok"));
             }
         }
+        for bm in &bookmarks {
+            if let Some(ref text) = bm.full_text {
+                if !text.is_empty() {
+                    docs.push((format!("bm_{}", bm.tweet_id), text.clone(), "bookmark"));
+                }
+            }
+        }
 
         if docs.is_empty() {
             return Ok(());
         }
 
-        // Load existing hashes for this model
-        let existing_hashes_by_doc = storage.load_embedding_hashes_by_doc_for_model(model_id)?;
+        let embed_cfg = crate::EmbeddingConfig {
+            show_progress: false,
+            use_semantic,
+            model: Some(model_name.to_string()),
+            dimensions: None,
+            two_tier: false,
+            fast_model: None,
+            quality_model: None,
+        };
+        let target_model_name = crate::target_embedding_model_name(&embed_cfg);
+        let model_matches_existing =
+            crate::stored_model_matches_target(&storage, model_id, &embed_cfg, embedder)?;
+
+        // Load existing hashes for this model only if the stored model matches
+        let existing_hashes_by_doc = if model_matches_existing {
+            storage.load_embedding_hashes_by_doc_for_model(model_id)?
+        } else {
+            HashMap::new()
+        };
         let mut existing_hashes: HashSet<[u8; 32]> = HashSet::new();
         for by_type in existing_hashes_by_doc.values() {
             for hash_val in by_type.values() {
@@ -484,6 +527,10 @@ impl EmbeddingWorker {
 
         // Final progress update
         storage.update_job_progress(job_id, completed_docs)?;
+        storage.set_embedding_model(model_id, &target_model_name)?;
+        if model_id == "quality" {
+            storage.set_embedding_model("", &target_model_name)?;
+        }
 
         Ok(())
     }
@@ -492,20 +539,15 @@ impl EmbeddingWorker {
     #[allow(clippy::unused_self)]
     fn write_vector_indices_sync(&self, config: &EmbeddingJobConfig) -> anyhow::Result<()> {
         use crate::vector::{
-            VECTOR_INDEX_FAST_FILENAME, VECTOR_INDEX_QUALITY_FILENAME, write_vector_index,
+            VECTOR_INDEX_FAST_FILENAME, VECTOR_INDEX_FILENAME, VECTOR_INDEX_QUALITY_FILENAME,
             write_vector_index_named,
         };
 
         let index_path = &config.index_path;
         let storage = Storage::open(&config.db_path)?;
 
-        // Always write the default vector index (all embeddings)
-        write_vector_index(index_path, &storage)?;
-        info!("Wrote vector index to {}", index_path.display());
-
         if config.two_tier {
-            // Also write named tier indices for two-tier search
-            write_vector_index_named(
+            let fast_stats = write_vector_index_named(
                 index_path,
                 &storage,
                 VECTOR_INDEX_FAST_FILENAME,
@@ -516,7 +558,7 @@ impl EmbeddingWorker {
                 index_path.join(VECTOR_INDEX_FAST_FILENAME).display()
             );
 
-            write_vector_index_named(
+            let quality_stats = write_vector_index_named(
                 index_path,
                 &storage,
                 VECTOR_INDEX_QUALITY_FILENAME,
@@ -526,6 +568,24 @@ impl EmbeddingWorker {
                 "Wrote quality vector index to {}",
                 index_path.join(VECTOR_INDEX_QUALITY_FILENAME).display()
             );
+
+            let primary_model_id = if quality_stats.record_count > 0 {
+                "quality"
+            } else if fast_stats.record_count > 0 {
+                "fast"
+            } else {
+                "default"
+            };
+            write_vector_index_named(
+                index_path,
+                &storage,
+                VECTOR_INDEX_FILENAME,
+                Some(primary_model_id),
+            )?;
+            info!("Wrote vector index to {}", index_path.display());
+        } else {
+            write_vector_index_named(index_path, &storage, VECTOR_INDEX_FILENAME, Some("default"))?;
+            info!("Wrote vector index to {}", index_path.display());
         }
 
         Ok(())

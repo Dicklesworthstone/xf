@@ -18,7 +18,7 @@
 //! | Slow | <1s | 5s | 30s | Full indexing |
 
 use std::time::{Duration, Instant};
-use tracing::{debug, warn};
+use tracing::{debug, info};
 
 /// Performance budget for an operation.
 #[derive(Debug, Clone, Copy)]
@@ -227,7 +227,7 @@ impl Timer {
                 );
             }
             BudgetStatus::Warning => {
-                warn!(
+                info!(
                     operation = self.budget.name,
                     duration_ms = duration.as_millis(),
                     warning_ms = self.budget.warning.as_millis(),
@@ -235,7 +235,7 @@ impl Timer {
                 );
             }
             BudgetStatus::Exceeded => {
-                warn!(
+                info!(
                     operation = self.budget.name,
                     duration_ms = duration.as_millis(),
                     panic_ms = self.budget.panic.as_millis(),

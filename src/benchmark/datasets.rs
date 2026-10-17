@@ -732,7 +732,7 @@ mod tests {
     #[test]
     fn test_extract_entities_empty() {
         let text = "No entities here";
-        assert!(extract_entities(text).is_empty());
+        assert_eq!(extract_entities(text), Vec::<String>::new());
     }
 
     // === Keyphrase extraction tests ===
@@ -741,7 +741,7 @@ mod tests {
     fn test_extract_keyphrases() {
         let text = "The quick brown fox jumps over the lazy dog";
         let phrases = extract_keyphrases(text, 3);
-        assert!(!phrases.is_empty());
+        assert_ne!(phrases, Vec::<String>::new());
         assert!(phrases.len() <= 3);
     }
 

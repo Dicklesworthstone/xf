@@ -452,7 +452,7 @@ pub fn format_unknown_value_error(kind: &str, input: &str, valid_options: &[&str
 }
 
 /// Standard valid data types for type filtering.
-pub const VALID_DATA_TYPES: &[&str] = &["tweet", "like", "dm", "grok"];
+pub const VALID_DATA_TYPES: &[&str] = &["tweet", "like", "dm", "grok", "bookmark"];
 
 /// Standard valid output fields for --fields.
 pub const VALID_OUTPUT_FIELDS: &[&str] = &[
@@ -463,6 +463,7 @@ pub const VALID_OUTPUT_FIELDS: &[&str] = &[
     "score",
     "highlights",
     "metadata",
+    "rerank_score",
 ];
 
 /// Standard valid config keys.
@@ -486,6 +487,16 @@ pub const VALID_CONFIG_KEYS: &[&str] = &[
     "output.colors",
     "output.quiet",
     "output.timings",
+    "semantic.model",
+    "semantic.dimensions",
+    "semantic.reranker",
+    "semantic.rerank",
+    "semantic.daemon",
+    "semantic.rerank_top",
+    "semantic.two_tier.fast_model",
+    "semantic.two_tier.quality_model",
+    "semantic.two_tier.blend_factor",
+    "semantic.two_tier.quality_timeout_ms",
 ];
 
 #[cfg(test)]

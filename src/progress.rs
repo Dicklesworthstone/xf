@@ -246,6 +246,15 @@ impl ProgressIndicator {
             pb.abandon_with_message(message.to_string());
         }
     }
+
+    /// Print a styled line while suspending the progress indicator if visible.
+    pub fn print_line(&self, line: &str, output: &Output) {
+        if let Some(ref pb) = self.inner {
+            pb.suspend(|| output.print(line));
+        } else {
+            output.print(line);
+        }
+    }
 }
 
 /// Tracker for multiple parallel progress bars.

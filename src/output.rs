@@ -31,9 +31,80 @@ pub use rich_rust::prelude::*;
 #[cfg(feature = "rich")]
 use rich_rust::renderables::Renderable;
 
-/// Regex for stripping markup tags - compiled once at startup
+/// Regex for candidate bracketed spans - compiled once at startup.
+/// Matches innermost `[...]` spans (containing no nested `[` or `]`).
 static MARKUP_REGEX: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"\[/?[^\]]*\]").expect("Invalid markup regex"));
+    LazyLock::new(|| Regex::new(r"\[([^\[\]]*)\]").expect("Invalid markup regex"));
+
+fn is_style_token(tok: &str) -> bool {
+    if matches!(
+        tok,
+        "bold"
+            | "b"
+            | "dim"
+            | "d"
+            | "italic"
+            | "i"
+            | "underline"
+            | "u"
+            | "blink"
+            | "reverse"
+            | "r"
+            | "conceal"
+            | "strike"
+            | "s"
+            | "strikethrough"
+            | "not"
+            | "on"
+            | "default"
+            | "a"
+            | "black"
+            | "red"
+            | "green"
+            | "yellow"
+            | "blue"
+            | "magenta"
+            | "cyan"
+            | "white"
+            | "grey"
+            | "gray"
+            | "bright_black"
+            | "bright_red"
+            | "bright_green"
+            | "bright_yellow"
+            | "bright_blue"
+            | "bright_magenta"
+            | "bright_cyan"
+            | "bright_white"
+            | "dark_red"
+            | "dark_green"
+            | "dark_yellow"
+            | "dark_blue"
+            | "dark_magenta"
+            | "dark_cyan"
+    ) {
+        return true;
+    }
+
+    if let Some(hex) = tok.strip_prefix('#') {
+        if matches!(hex.len(), 3 | 6 | 8) && hex.chars().all(|c| c.is_ascii_hexdigit()) {
+            return true;
+        }
+    }
+
+    (tok.starts_with("color(") || tok.starts_with("rgb(")) && tok.ends_with(')')
+}
+
+fn is_markup_tag(inner: &str) -> bool {
+    if inner.is_empty() {
+        return true;
+    }
+    let body = inner.strip_prefix('/').unwrap_or(inner).trim();
+    if body.is_empty() {
+        return inner.starts_with('/');
+    }
+    body.split_whitespace().all(is_style_token)
+}
 
 /// Returns true if the rich_rust feature is enabled.
 ///
@@ -175,6 +246,29 @@ pub struct Output {
 }
 
 impl Output {
+    fn write_stdout_line(text: &str) {
+        let mut stdout = io::stdout().lock();
+        if let Err(err) = writeln!(stdout, "{text}") {
+            if err.kind() == io::ErrorKind::BrokenPipe {
+                std::process::exit(0);
+            }
+        }
+    }
+
+    fn write_stdout_str(text: &str) {
+        let mut stdout = io::stdout().lock();
+        if let Err(err) = write!(stdout, "{text}") {
+            if err.kind() == io::ErrorKind::BrokenPipe {
+                std::process::exit(0);
+            }
+        }
+    }
+
+    fn write_stderr_line(text: &str) {
+        let mut stderr = io::stderr().lock();
+        let _ = writeln!(stderr, "{text}");
+    }
+
     /// Create new Output with TTY auto-detection
     #[must_use]
     pub fn new(format: OutputFormat) -> Self {
@@ -202,7 +296,7 @@ impl Output {
         };
 
         #[cfg(feature = "rich")]
-        let console = if stdout_tty && format == OutputFormat::Text {
+        let console = if (stdout_tty || force_color) && format == OutputFormat::Text {
             Some(Console::new())
         } else {
             None
@@ -252,6 +346,9 @@ impl Output {
     /// Check if styled output should be used
     #[must_use]
     pub fn is_styled(&self) -> bool {
+        if !cfg!(feature = "rich") {
+            return false;
+        }
         if self.format != OutputFormat::Text {
             return false;
         }
@@ -339,7 +436,7 @@ impl Output {
         }
 
         // Plain output - strip any markup
-        println!("{}", Self::strip_markup(text));
+        Self::write_stdout_line(&Self::strip_markup(text));
     }
 
     /// Print text without newline
@@ -356,13 +453,13 @@ impl Output {
             }
         }
 
-        print!("{}", Self::strip_markup(text));
+        Self::write_stdout_str(&Self::strip_markup(text));
     }
 
     /// Print to stderr (styled if stderr TTY)
     pub fn eprint(&self, text: &str) {
         // rich_rust Console doesn't support stderr, so we always strip markup for stderr
-        eprintln!("{}", Self::strip_markup(text));
+        Self::write_stderr_line(&Self::strip_markup(text));
     }
 
     /// Print only in verbose mode
@@ -407,13 +504,13 @@ impl Output {
     /// Note: This does NOT call strip_markup() because data formats (JSON, TOON)
     /// contain valid brackets that would be incorrectly stripped by the markup regex.
     pub fn print_data(&self, text: &str) {
-        println!("{text}");
+        Self::write_stdout_line(text);
     }
 
     /// Print JSON (always unformatted, no styling)
     pub fn print_json<T: serde::Serialize>(&self, value: &T) -> Result<(), serde_json::Error> {
         let json = serde_json::to_string(value)?;
-        println!("{json}");
+        Self::write_stdout_line(&json);
         Ok(())
     }
 
@@ -423,7 +520,7 @@ impl Output {
         value: &T,
     ) -> Result<(), serde_json::Error> {
         let json = serde_json::to_string_pretty(value)?;
-        println!("{json}");
+        Self::write_stdout_line(&json);
         Ok(())
     }
 
@@ -439,13 +536,22 @@ impl Output {
                 }
             })
             .collect();
-        println!("{}", escaped.join(","));
+        Self::write_stdout_line(&escaped.join(","));
     }
 
-    /// Strip markup tags for plain output - uses pre-compiled regex
+    /// Strip markup tags for plain output - only removes valid rich_rust style tags,
+    /// preserving non-markup brackets like `[tweet]`, `[No text]`, `[1/5]`, and `[[bold]10[/]]`.
     #[must_use]
     pub fn strip_markup(text: &str) -> String {
-        MARKUP_REGEX.replace_all(text, "").into_owned()
+        MARKUP_REGEX
+            .replace_all(text, |caps: &regex::Captures<'_>| {
+                if is_markup_tag(&caps[1]) {
+                    String::new()
+                } else {
+                    caps[0].to_string()
+                }
+            })
+            .into_owned()
     }
 
     /// Flush stdout
@@ -479,7 +585,7 @@ mod tests {
     #[test]
     fn test_tty_detection_returns_styled() {
         let output = Output::new_tty();
-        assert!(output.is_styled());
+        assert_eq!(output.is_styled(), cfg!(feature = "rich"));
     }
 
     #[test]
@@ -512,6 +618,26 @@ mod tests {
     fn test_strip_markup_handles_empty_tags() {
         assert_eq!(Output::strip_markup("[]empty[]"), "empty");
         assert_eq!(Output::strip_markup("[/]close only"), "close only");
+    }
+
+    #[test]
+    fn test_strip_markup_preserves_non_markup_brackets() {
+        assert_eq!(
+            Output::strip_markup("[tweet] 12345 | Hello [world] [1/5]"),
+            "[tweet] 12345 | Hello [world] [1/5]"
+        );
+        assert_eq!(
+            Output::strip_markup("[[bold]10[/] [dim]♥[/] [bold]5[/]]"),
+            "[10 ♥ 5]"
+        );
+        assert_eq!(
+            Output::strip_markup("[No text] [unknown] [no link] [MRL]"),
+            "[No text] [unknown] [no link] [MRL]"
+        );
+        assert_eq!(
+            Output::strip_markup(r#"[{"id": "123", "tags": ["rust"]}]"#),
+            r#"[{"id": "123", "tags": ["rust"]}]"#
+        );
     }
 
     #[test]

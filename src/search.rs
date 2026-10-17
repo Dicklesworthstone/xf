@@ -203,7 +203,7 @@ impl DocType {
         }
     }
 
-    #[allow(dead_code)]
+    #[cfg(test)]
     fn from_str(s: &str) -> Option<Self> {
         match s {
             "tweet" => Some(Self::Tweet),
@@ -355,6 +355,40 @@ impl SearchEngine {
         )
     }
 
+    /// Delete all indexed documents of a given [`DocType`].
+    pub fn clear_doc_type(&self, writer: &IndexWriter, doc_type: DocType) {
+        let (_, _, _, type_field, _, _) = self.get_fields();
+        writer.delete_term(Term::from_field_text(type_field, doc_type.as_str()));
+    }
+
+    /// Delete any existing documents matching `(doc_type, id)` before re-inserting.
+    fn delete_existing_docs<'a>(
+        writer: &IndexWriter,
+        id_field: Field,
+        type_field: Field,
+        doc_type: DocType,
+        ids: impl IntoIterator<Item = &'a str>,
+    ) -> Result<()> {
+        let terms: Vec<Term> = ids
+            .into_iter()
+            .map(|id| Term::from_field_text(id_field, id))
+            .collect();
+        if terms.is_empty() {
+            return Ok(());
+        }
+        let type_query = TermQuery::new(
+            Term::from_field_text(type_field, doc_type.as_str()),
+            IndexRecordOption::Basic,
+        );
+        let id_query = TermSetQuery::new(terms);
+        let delete_query = BooleanQuery::new(vec![
+            (Occur::Must, Box::new(type_query)),
+            (Occur::Must, Box::new(id_query)),
+        ]);
+        writer.delete_query(Box::new(delete_query))?;
+        Ok(())
+    }
+
     /// Index tweets.
     ///
     /// # Errors
@@ -364,15 +398,30 @@ impl SearchEngine {
         let (id_field, text_field, prefix_field, type_field, created_at_field, metadata_field) =
             self.get_fields();
 
+        Self::delete_existing_docs(
+            writer,
+            id_field,
+            type_field,
+            DocType::Tweet,
+            tweets.iter().map(|t| t.id.as_str()),
+        )?;
+
         let mut count = 0;
         for tweet in tweets {
             // Generate prefix terms
             let prefixes = generate_prefixes(&tweet.full_text);
 
+            let in_reply_to = tweet
+                .in_reply_to_screen_name
+                .as_deref()
+                .or(tweet.in_reply_to_status_id.as_deref())
+                .or(tweet.in_reply_to_user_id.as_deref());
             let metadata = serde_json::json!({
                 "favorite_count": tweet.favorite_count,
                 "retweet_count": tweet.retweet_count,
-                "in_reply_to": tweet.in_reply_to_screen_name,
+                "in_reply_to": in_reply_to,
+                "in_reply_to_status_id": tweet.in_reply_to_status_id,
+                "in_reply_to_user_id": tweet.in_reply_to_user_id,
                 "hashtags": tweet.hashtags,
                 "source": tweet.source,
             });
@@ -400,6 +449,14 @@ impl SearchEngine {
     pub fn index_likes(&self, writer: &mut IndexWriter, likes: &[Like]) -> Result<usize> {
         let (id_field, text_field, prefix_field, type_field, created_at_field, metadata_field) =
             self.get_fields();
+
+        Self::delete_existing_docs(
+            writer,
+            id_field,
+            type_field,
+            DocType::Like,
+            likes.iter().map(|l| l.tweet_id.as_str()),
+        )?;
 
         let mut count = 0;
         for like in likes {
@@ -443,6 +500,16 @@ impl SearchEngine {
         let (id_field, text_field, prefix_field, type_field, created_at_field, metadata_field) =
             self.get_fields();
 
+        Self::delete_existing_docs(
+            writer,
+            id_field,
+            type_field,
+            DocType::DirectMessage,
+            conversations
+                .iter()
+                .flat_map(|c| c.messages.iter().map(|m| m.id.as_str())),
+        )?;
+
         let mut count = 0;
         for conv in conversations {
             for msg in &conv.messages {
@@ -483,8 +550,28 @@ impl SearchEngine {
         let (id_field, text_field, prefix_field, type_field, created_at_field, metadata_field) =
             self.get_fields();
 
+        let doc_ids: Vec<String> = messages
+            .iter()
+            .map(|msg| {
+                format!(
+                    "{}_{}_{}_{}",
+                    msg.chat_id,
+                    msg.created_at.timestamp(),
+                    msg.created_at.timestamp_subsec_nanos(),
+                    msg.sender
+                )
+            })
+            .collect();
+        Self::delete_existing_docs(
+            writer,
+            id_field,
+            type_field,
+            DocType::GrokMessage,
+            doc_ids.iter().map(String::as_str),
+        )?;
+
         let mut count = 0;
-        for msg in messages {
+        for (msg, doc_id) in messages.iter().zip(doc_ids) {
             let prefixes = generate_prefixes(&msg.message);
 
             let metadata = serde_json::json!({
@@ -492,15 +579,6 @@ impl SearchEngine {
                 "sender": msg.sender,
                 "grok_mode": msg.grok_mode,
             });
-
-            // Use chat_id + timestamp_nanos + sender for better uniqueness
-            let doc_id = format!(
-                "{}_{}_{}_{}",
-                msg.chat_id,
-                msg.created_at.timestamp(),
-                msg.created_at.timestamp_subsec_nanos(),
-                msg.sender
-            );
 
             writer.add_document(doc!(
                 id_field => doc_id,
@@ -530,8 +608,20 @@ impl SearchEngine {
         let (id_field, text_field, prefix_field, type_field, created_at_field, metadata_field) =
             self.get_fields();
 
+        let doc_ids: Vec<String> = bookmarks
+            .iter()
+            .map(|b| format!("bm_{}", b.tweet_id))
+            .collect();
+        Self::delete_existing_docs(
+            writer,
+            id_field,
+            type_field,
+            DocType::Bookmark,
+            doc_ids.iter().map(String::as_str),
+        )?;
+
         let mut count = 0;
-        for bookmark in bookmarks {
+        for (bookmark, doc_id) in bookmarks.iter().zip(doc_ids) {
             if let Some(text) = &bookmark.full_text {
                 if text.is_empty() {
                     continue;
@@ -544,7 +634,7 @@ impl SearchEngine {
                 });
 
                 writer.add_document(doc!(
-                    id_field => format!("bm_{}", bookmark.tweet_id),
+                    id_field => doc_id,
                     text_field => text.clone(),
                     prefix_field => prefixes,
                     type_field => DocType::Bookmark.as_str(),
@@ -564,12 +654,32 @@ impl SearchEngine {
     /// # Errors
     ///
     /// Returns an error if the query cannot be parsed or the search fails.
-    #[allow(clippy::too_many_lines)]
     pub fn search(
         &self,
         query_str: &str,
         doc_types: Option<&[DocType]>,
         limit: usize,
+    ) -> Result<Vec<SearchResult>> {
+        self.search_ordered(query_str, doc_types, limit, None)
+    }
+
+    /// Search the index with optional fast-field date ordering (`created_at`).
+    ///
+    /// When `date_order` is `Some(tantivy::Order::Asc | tantivy::Order::Desc)`,
+    /// Tantivy's `TopDocs::order_by_fast_field::<i64>` collector is used so
+    /// top-`limit` documents are selected by timestamp across the entire matching
+    /// corpus rather than sorting only the top-BM25 slice.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the query cannot be parsed or the search fails.
+    #[allow(clippy::too_many_lines)]
+    pub fn search_ordered(
+        &self,
+        query_str: &str,
+        doc_types: Option<&[DocType]>,
+        limit: usize,
+        date_order: Option<tantivy::Order>,
     ) -> Result<Vec<SearchResult>> {
         if limit == 0 {
             return Ok(Vec::new());
@@ -626,7 +736,18 @@ impl SearchEngine {
         };
 
         // Execute search
-        let top_docs = searcher.search(&query, &TopDocs::with_limit(limit).order_by_score())?;
+        let top_docs: Vec<(f32, tantivy::DocAddress)> = if let Some(order) = date_order {
+            searcher
+                .search(
+                    &query,
+                    &TopDocs::with_limit(limit).order_by_fast_field::<i64>(FIELD_CREATED_AT, order),
+                )?
+                .into_iter()
+                .map(|(_ts, addr)| (1.0f32, addr))
+                .collect()
+        } else {
+            searcher.search(&query, &TopDocs::with_limit(limit).order_by_score())?
+        };
 
         // Create snippet generator for highlighting when query has terms
         let snippet_generator = if enable_highlights {
@@ -1269,7 +1390,7 @@ mod tests {
     fn test_generate_prefixes_empty() {
         let text = "";
         let prefixes = generate_prefixes(text);
-        assert!(prefixes.is_empty());
+        assert_eq!(prefixes, "");
     }
 
     #[test]
@@ -1803,11 +1924,87 @@ mod tests {
         assert_eq!(results.len(), 1);
 
         // Highlights should contain the search term wrapped in <b> tags
-        assert!(!results[0].highlights.is_empty());
+        assert_ne!(results[0].highlights, Vec::<String>::new());
         let highlight = &results[0].highlights[0];
         assert!(highlight.contains("<b>"));
         assert!(highlight.contains("</b>"));
         // The highlight should contain "Rust" (case-insensitive match)
         assert!(highlight.to_lowercase().contains("rust"));
+    }
+
+    #[test]
+    fn test_reindex_does_not_duplicate_documents() {
+        let engine = SearchEngine::open_memory().unwrap();
+        let mut writer = engine.writer(15_000_000).unwrap();
+
+        let tweets = vec![
+            create_test_tweet("t1", "Rust systems programming"),
+            create_test_tweet("t2", "Zero cost abstractions in Rust"),
+        ];
+        let likes = vec![create_test_like("t1", Some("Liked Rust tweet"))];
+        let grok = vec![create_test_grok_message("chat1", "Explain Rust lifetimes")];
+        let bookmarks = vec![Bookmark {
+            tweet_id: "t1".to_string(),
+            full_text: Some("Rust systems programming".to_string()),
+        }];
+
+        // Pass 1
+        engine.index_tweets(&mut writer, &tweets).unwrap();
+        engine.index_likes(&mut writer, &likes).unwrap();
+        engine.index_grok_messages(&mut writer, &grok).unwrap();
+        engine.index_bookmarks(&mut writer, &bookmarks).unwrap();
+        writer.commit().unwrap();
+        engine.reload().unwrap();
+        assert_eq!(engine.doc_count(), 5);
+
+        // Pass 2: re-indexing identical documents without clearing index
+        engine.index_tweets(&mut writer, &tweets).unwrap();
+        engine.index_likes(&mut writer, &likes).unwrap();
+        engine.index_grok_messages(&mut writer, &grok).unwrap();
+        engine.index_bookmarks(&mut writer, &bookmarks).unwrap();
+        writer.commit().unwrap();
+        engine.reload().unwrap();
+        assert_eq!(engine.doc_count(), 5);
+
+        let results = engine.search("rust", None, 20).unwrap();
+        assert_eq!(results.len(), 5);
+    }
+
+    #[test]
+    fn test_search_ordered_by_date_and_reply_metadata_fallback() {
+        let engine = SearchEngine::open_memory().unwrap();
+        let mut writer = engine.writer(15_000_000).unwrap();
+
+        let mut old_tweet = create_test_tweet("old", "rust once in a long unrelated sentence");
+        old_tweet.created_at = DateTime::from_timestamp(1_700_000_000, 0).unwrap();
+        old_tweet.in_reply_to_screen_name = None;
+        old_tweet.in_reply_to_status_id = Some("99999".to_string());
+
+        let mut new_tweet = create_test_tweet("new", "rust rust rust");
+        new_tweet.created_at = DateTime::from_timestamp(1_710_000_000, 0).unwrap();
+
+        engine
+            .index_tweets(&mut writer, &[old_tweet, new_tweet])
+            .unwrap();
+        writer.commit().unwrap();
+        engine.reload().unwrap();
+
+        // With limit=1 and Order::Asc, fast-field sorting must return the older tweet
+        // even though new_tweet has higher BM25 score.
+        let asc = engine
+            .search_ordered("rust", None, 1, Some(tantivy::Order::Asc))
+            .unwrap();
+        assert_eq!(asc.len(), 1);
+        assert_eq!(asc[0].id, "old");
+        assert_eq!(
+            asc[0].metadata.get("in_reply_to").and_then(|v| v.as_str()),
+            Some("99999")
+        );
+
+        let desc = engine
+            .search_ordered("rust", None, 1, Some(tantivy::Order::Desc))
+            .unwrap();
+        assert_eq!(desc.len(), 1);
+        assert_eq!(desc[0].id, "new");
     }
 }

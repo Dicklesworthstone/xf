@@ -39,6 +39,22 @@ static TERM_REGEX: LazyLock<Regex> =
 static HIGHLIGHT_REGEX_CACHE: LazyLock<Mutex<HashMap<String, Regex>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
 
+/// Retrieve or compile a cached case-insensitive word-boundary regex for `term`.
+#[must_use]
+pub(crate) fn cached_highlight_regex(term: &str) -> Option<Regex> {
+    let pattern_key = format!(r"(?i)\b{}\b", regex::escape(term));
+    let mut cache = HIGHLIGHT_REGEX_CACHE
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    if let Some(existing) = cache.get(&pattern_key) {
+        return Some(existing.clone());
+    }
+    let new_regex = Regex::new(&pattern_key).ok()?;
+    cache.insert(pattern_key, new_regex.clone());
+    drop(cache);
+    Some(new_regex)
+}
+
 /// Extract search terms from a query string.
 ///
 /// Handles both individual words and quoted phrases. Filters out common
@@ -186,22 +202,8 @@ impl SearchResultCard {
         let mut result = content.to_string();
 
         for term in &self.highlight_terms {
-            // Get or create regex for this term
-            let pattern_key = format!(r"(?i)\b{}\b", regex::escape(term));
-            let regex = {
-                let mut cache = HIGHLIGHT_REGEX_CACHE.lock().unwrap();
-                if let Some(existing) = cache.get(&pattern_key) {
-                    let result = existing.clone();
-                    drop(cache);
-                    result
-                } else if let Ok(new_regex) = Regex::new(&pattern_key) {
-                    cache.insert(pattern_key.clone(), new_regex.clone());
-                    drop(cache);
-                    new_regex
-                } else {
-                    // Skip terms that can't be compiled to regex
-                    continue;
-                }
+            let Some(regex) = cached_highlight_regex(term) else {
+                continue;
             };
 
             // Replace with highlighted version
@@ -240,6 +242,7 @@ impl SearchResultCard {
             "like" => theme.error,   // Red for hearts
             "dm" => theme.secondary, // Purple for DMs
             "grok" => theme.accent,  // Yellow for Grok
+            "bookmark" => theme.info,
             _ => theme.muted,
         };
         let type_badge = format!("[{type_color} bold]{}[/]", self.doc_type.to_uppercase());
@@ -487,13 +490,13 @@ mod tests {
     #[test]
     fn test_extract_terms_empty_query() {
         let terms = extract_terms("");
-        assert!(terms.is_empty());
+        assert_eq!(terms, Vec::<String>::new());
     }
 
     #[test]
     fn test_search_card_default() {
         let card = SearchResultCard::default();
-        assert!(card.doc_id.is_empty());
+        assert_eq!(card.doc_id, "");
         assert!(card.score.abs() < f32::EPSILON);
         assert_eq!(card.max_content_length, 280);
     }
@@ -656,8 +659,8 @@ mod tests {
     #[test]
     fn test_search_result_data_default() {
         let data = SearchResultData::default();
-        assert!(data.doc_id.is_empty());
-        assert!(data.content.is_empty());
+        assert_eq!(data.doc_id, "");
+        assert_eq!(data.content, "");
         assert!(data.score.abs() < f32::EPSILON);
         assert!(data.timestamp.is_none());
     }

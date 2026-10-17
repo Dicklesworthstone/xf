@@ -184,7 +184,7 @@ impl<'a> TweetCard<'a> {
 
         // Apply search term highlighting first (takes precedence)
         for term in &self.highlight_terms {
-            if let Ok(pattern) = Regex::new(&format!(r"(?i)\b{}\b", regex::escape(term))) {
+            if let Some(pattern) = crate::search_results::cached_highlight_regex(term) {
                 let highlight_style = theme.highlight;
                 text = pattern
                     .replace_all(&text, format!("[{highlight_style}]$0[/]"))

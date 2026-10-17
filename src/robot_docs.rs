@@ -173,6 +173,17 @@ fn quickstart() -> Quickstart {
 
 #[allow(clippy::too_many_lines)]
 fn commands() -> Vec<CommandDoc> {
+    let all_formats = || {
+        Some(vec![
+            "text".into(),
+            "json".into(),
+            "json-pretty".into(),
+            "compact".into(),
+            "csv".into(),
+            "toon".into(),
+            "jsonl".into(),
+        ])
+    };
     vec![
         CommandDoc {
             name: "import".into(),
@@ -205,8 +216,8 @@ fn commands() -> Vec<CommandDoc> {
         },
         CommandDoc {
             name: "index".into(),
-            description: "Index an extracted X data archive for search".into(),
-            usage: "xf index <ARCHIVE_PATH> [OPTIONS]".into(),
+            description: "Index an extracted X data archive or .zip file for search".into(),
+            usage: "xf index [ARCHIVE_PATH] [OPTIONS]".into(),
             flags: vec![
                 FlagDoc {
                     name: "--force".into(),
@@ -216,16 +227,72 @@ fn commands() -> Vec<CommandDoc> {
                     required: false,
                 },
                 FlagDoc {
-                    name: "--db".into(),
+                    name: "--only".into(),
                     short: None,
-                    description: "Path to SQLite database".into(),
+                    description: "Only index specific data types (tweet,like,dm,grok,bookmark,follower,following,block,mute)".into(),
                     default: None,
                     required: false,
                 },
                 FlagDoc {
-                    name: "--index-dir".into(),
+                    name: "--skip".into(),
                     short: None,
-                    description: "Path to search index directory".into(),
+                    description: "Skip specific data types".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--jobs".into(),
+                    short: Some("-j".into()),
+                    description: "Number of parallel worker threads".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--semantic".into(),
+                    short: Some("-s".into()),
+                    description: "Generate embeddings for semantic search".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--two-tier".into(),
+                    short: None,
+                    description: "Generate both fast and quality embeddings for progressive two-tier search".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--sync-embeddings".into(),
+                    short: None,
+                    description: "Generate embeddings synchronously instead of backgrounding to daemon".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--model".into(),
+                    short: None,
+                    description: "Embedding model override (default, minilm, potion-128M, mrl, bge-small, nomic, hash)".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--dimensions".into(),
+                    short: None,
+                    description: "MRL embedding dimension override".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--db".into(),
+                    short: None,
+                    description: "Path to SQLite database (global flag)".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--index".into(),
+                    short: None,
+                    description: "Path to search index directory (global flag)".into(),
                     default: None,
                     required: false,
                 },
@@ -234,103 +301,364 @@ fn commands() -> Vec<CommandDoc> {
         },
         CommandDoc {
             name: "search".into(),
-            description: "Full-text search over indexed archive".into(),
+            description: "Full-text, semantic, and hybrid search over indexed archive".into(),
             usage: "xf search <QUERY> [OPTIONS]".into(),
             flags: vec![
                 FlagDoc {
                     name: "--limit".into(),
                     short: Some("-n".into()),
-                    description: "Maximum results to return".into(),
+                    description: "Maximum results to return (env: XF_LIMIT)".into(),
                     default: Some("20".into()),
                     required: false,
                 },
                 FlagDoc {
-                    name: "--type".into(),
+                    name: "--types".into(),
                     short: Some("-t".into()),
-                    description: "Filter by document type (tweet, like, dm, grok)".into(),
+                    description: "Filter by document type (tweet, like, dm, grok, bookmark, all)".into(),
                     default: None,
                     required: false,
                 },
                 FlagDoc {
                     name: "--since".into(),
                     short: None,
-                    description: "Filter results after date (YYYY-MM-DD)".into(),
+                    description: "Filter results after date (YYYY-MM-DD or natural language)".into(),
                     default: None,
                     required: false,
                 },
                 FlagDoc {
                     name: "--until".into(),
                     short: None,
-                    description: "Filter results before date (YYYY-MM-DD)".into(),
+                    description: "Filter results before date (YYYY-MM-DD or natural language)".into(),
                     default: None,
                     required: false,
                 },
                 FlagDoc {
                     name: "--mode".into(),
+                    short: Some("-m".into()),
+                    description: "Search mode: hybrid, lexical, or semantic".into(),
+                    default: Some("hybrid".into()),
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--replies-only".into(),
                     short: None,
-                    description: "Search mode: lexical, semantic, or hybrid".into(),
-                    default: Some("lexical".into()),
+                    description: "Only show replies".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--no-replies".into(),
+                    short: None,
+                    description: "Exclude replies".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--sort".into(),
+                    short: None,
+                    description: "Sort order (relevance, date, date-asc, engagement)".into(),
+                    default: Some("relevance".into()),
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--offset".into(),
+                    short: None,
+                    description: "Skip first N results (pagination)".into(),
+                    default: Some("0".into()),
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--context".into(),
+                    short: Some("-C".into()),
+                    description: "Return full DM conversation context for matching messages".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--rerank".into(),
+                    short: None,
+                    description: "Enable cross-encoder reranking of top candidates".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--reranker".into(),
+                    short: None,
+                    description: "Reranker model override (flashrank-nano, mxbai-xsmall, hash-reranker, none)".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--rerank-top".into(),
+                    short: None,
+                    description: "Number of top candidates to rerank".into(),
+                    default: Some("20".into()),
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--model".into(),
+                    short: None,
+                    description: "Embedding model override for query embedding".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--dimensions".into(),
+                    short: None,
+                    description: "MRL embedding dimension override".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--daemon".into(),
+                    short: None,
+                    description: "Route model inference through warm daemon".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--no-daemon".into(),
+                    short: None,
+                    description: "Disable daemon usage, force direct inference".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--fields".into(),
+                    short: None,
+                    description: "Select specific output fields (id,text,created_at,type,score,rerank_score,highlights,metadata)".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--fast-only".into(),
+                    short: None,
+                    description: "Only use fast tier in two-tier search".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--quality-only".into(),
+                    short: None,
+                    description: "Only use quality tier in two-tier search".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--blend-factor".into(),
+                    short: None,
+                    description: "Two-tier score blend factor (0.0=fast, 1.0=quality)".into(),
+                    default: None,
                     required: false,
                 },
             ],
-            output_formats: Some(vec![
-                "text".into(),
-                "json".into(),
-                "json-pretty".into(),
-                "csv".into(),
-                "toon".into(),
-            ]),
+            output_formats: all_formats(),
         },
         CommandDoc {
             name: "stats".into(),
             description: "Show archive statistics and analytics".into(),
             usage: "xf stats [OPTIONS]".into(),
-            flags: vec![FlagDoc {
-                name: "--section".into(),
-                short: Some("-s".into()),
-                description:
-                    "Show specific section (overview, timeline, hashtags, mentions, engagement)"
-                        .into(),
-                default: None,
-                required: false,
-            }],
-            output_formats: Some(vec![
-                "text".into(),
-                "json".into(),
-                "json-pretty".into(),
-                "toon".into(),
-            ]),
+            flags: vec![
+                FlagDoc {
+                    name: "--detailed".into(),
+                    short: Some("-d".into()),
+                    description: "Show detailed breakdown by time period and all analytics".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--temporal".into(),
+                    short: None,
+                    description: "Include temporal patterns".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--engagement".into(),
+                    short: None,
+                    description: "Include engagement analytics".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--content".into(),
+                    short: None,
+                    description: "Include content analysis".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--hashtags".into(),
+                    short: None,
+                    description: "Show top hashtags".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--mentions".into(),
+                    short: None,
+                    description: "Show top mentioned users".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--top".into(),
+                    short: None,
+                    description: "Limit for top lists".into(),
+                    default: Some("10".into()),
+                    required: false,
+                },
+            ],
+            output_formats: all_formats(),
         },
         CommandDoc {
             name: "tweet".into(),
             description: "Show detailed information about a specific tweet".into(),
             usage: "xf tweet <ID> [OPTIONS]".into(),
-            flags: vec![],
+            flags: vec![
+                FlagDoc {
+                    name: "--replies".into(),
+                    short: Some("-r".into()),
+                    description: "Include replies to this tweet".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--thread".into(),
+                    short: Some("-t".into()),
+                    description: "Show full conversation thread".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--engagement".into(),
+                    short: Some("-e".into()),
+                    description: "Include engagement details".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--raw".into(),
+                    short: None,
+                    description: "Show raw JSON from archive".into(),
+                    default: None,
+                    required: false,
+                },
+            ],
+            output_formats: all_formats(),
+        },
+        CommandDoc {
+            name: "list".into(),
+            description: "List data from the archive (tweets, likes, bookmarks, dms, grok, conversations, followers, following, blocks, mutes, account, files, stats)".into(),
+            usage: "xf list [TARGET] [OPTIONS]".into(),
+            flags: vec![
+                FlagDoc {
+                    name: "--limit".into(),
+                    short: Some("-n".into()),
+                    description: "Maximum items to list".into(),
+                    default: Some("20".into()),
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--count".into(),
+                    short: Some("-c".into()),
+                    description: "Show counts only".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--files".into(),
+                    short: None,
+                    description: "Show archive files".into(),
+                    default: None,
+                    required: false,
+                },
+            ],
+            output_formats: all_formats(),
+        },
+        CommandDoc {
+            name: "export".into(),
+            description: "Export data in various formats (tweets, likes, dms, bookmarks, grok, followers, following, blocks, mutes, all)".into(),
+            usage: "xf export <TARGET> [OPTIONS]".into(),
+            flags: vec![
+                FlagDoc {
+                    name: "--output".into(),
+                    short: Some("-o".into()),
+                    description: "Output file (stdout if not specified)".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--limit".into(),
+                    short: Some("-n".into()),
+                    description: "Maximum items to export".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--format".into(),
+                    short: Some("-f".into()),
+                    description: "Global output format; export writes json, jsonl, csv, or toon".into(),
+                    default: Some("json".into()),
+                    required: false,
+                },
+            ],
             output_formats: Some(vec![
-                "text".into(),
                 "json".into(),
-                "json-pretty".into(),
+                "jsonl".into(),
+                "csv".into(),
                 "toon".into(),
             ]),
         },
         CommandDoc {
-            name: "list".into(),
-            description: "List data from the archive (tweets, likes, dms, etc.)".into(),
-            usage: "xf list <TARGET> [OPTIONS]".into(),
-            flags: vec![FlagDoc {
-                name: "--limit".into(),
-                short: Some("-n".into()),
-                description: "Maximum items to list".into(),
-                default: Some("20".into()),
-                required: false,
-            }],
-            output_formats: Some(vec![
-                "text".into(),
-                "json".into(),
-                "json-pretty".into(),
-                "csv".into(),
-                "toon".into(),
-            ]),
+            name: "config".into(),
+            description: "Show or manage configuration".into(),
+            usage: "xf config [OPTIONS]".into(),
+            flags: vec![
+                FlagDoc {
+                    name: "--show".into(),
+                    short: None,
+                    description: "Show current configuration".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--path".into(),
+                    short: None,
+                    description: "Show config file path".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--archive".into(),
+                    short: None,
+                    description: "Set default archive path".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--set".into(),
+                    short: None,
+                    description: "Set a configuration value (KEY=VALUE)".into(),
+                    default: None,
+                    required: false,
+                },
+            ],
+            output_formats: all_formats(),
+        },
+        CommandDoc {
+            name: "update".into(),
+            description: "Check for updates and show upgrade instructions".into(),
+            usage: "xf update".into(),
+            flags: vec![],
+            output_formats: all_formats(),
+        },
+        CommandDoc {
+            name: "completions".into(),
+            description: "Generate shell completions (bash, zsh, fish, powershell, elvish)".into(),
+            usage: "xf completions <SHELL>".into(),
+            flags: vec![],
+            output_formats: None,
         },
         CommandDoc {
             name: "doctor".into(),
@@ -352,12 +680,7 @@ fn commands() -> Vec<CommandDoc> {
                     required: false,
                 },
             ],
-            output_formats: Some(vec![
-                "text".into(),
-                "json".into(),
-                "json-pretty".into(),
-                "toon".into(),
-            ]),
+            output_formats: all_formats(),
         },
         CommandDoc {
             name: "shell".into(),
@@ -378,30 +701,107 @@ fn commands() -> Vec<CommandDoc> {
                     default: Some("10".into()),
                     required: false,
                 },
+                FlagDoc {
+                    name: "--no-history".into(),
+                    short: None,
+                    description: "Disable history persistence".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--history-file".into(),
+                    short: None,
+                    description: "Custom history file path".into(),
+                    default: None,
+                    required: false,
+                },
             ],
             output_formats: None,
         },
         CommandDoc {
-            name: "export".into(),
-            description: "Export data in various formats".into(),
-            usage: "xf export <TARGET> [OPTIONS]".into(),
-            flags: vec![FlagDoc {
-                name: "--format".into(),
-                short: Some("-f".into()),
-                description:
-                    "Global output format; export writes json, jsonl or csv (other values export json)"
-                        .into(),
-                default: Some("json".into()),
-                required: false,
-            }],
-            output_formats: None,
+            name: "benchmark".into(),
+            description: "Run embedding and reranker performance/quality benchmarks".into(),
+            usage: "xf benchmark [OPTIONS]".into(),
+            flags: vec![
+                FlagDoc {
+                    name: "--model".into(),
+                    short: None,
+                    description: "Embedding model to benchmark".into(),
+                    default: Some("all-MiniLM-L6-v2".into()),
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--dimensions".into(),
+                    short: None,
+                    description: "MRL truncation dimension".into(),
+                    default: None,
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--corpus".into(),
+                    short: None,
+                    description: "Path to benchmark corpus JSON".into(),
+                    default: Some("tests/fixtures/benchmark_corpus.json".into()),
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--warmup-iters".into(),
+                    short: None,
+                    description: "Number of warmup iterations".into(),
+                    default: Some("10".into()),
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--measure-iters".into(),
+                    short: None,
+                    description: "Number of measurement iterations".into(),
+                    default: Some("100".into()),
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--batch-size".into(),
+                    short: None,
+                    description: "Batch size for throughput benchmark".into(),
+                    default: Some("32".into()),
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--reranker".into(),
+                    short: None,
+                    description: "Reranker model to benchmark".into(),
+                    default: Some("none".into()),
+                    required: false,
+                },
+                FlagDoc {
+                    name: "--output-dir".into(),
+                    short: Some("-o".into()),
+                    description: "Output directory for benchmark reports (alias: --output)".into(),
+                    default: Some("results".into()),
+                    required: false,
+                },
+            ],
+            output_formats: all_formats(),
         },
         CommandDoc {
             name: "robot-docs".into(),
             description: "Show machine-readable CLI documentation (JSON)".into(),
             usage: "xf robot-docs [TOPIC]".into(),
             flags: vec![],
-            output_formats: Some(vec!["json".into()]),
+            output_formats: all_formats(),
+        },
+        CommandDoc {
+            name: "models".into(),
+            description: "Manage embedding and reranker models (list, show)".into(),
+            usage: "xf models <SUBCOMMAND>".into(),
+            flags: vec![],
+            output_formats: all_formats(),
+        },
+        CommandDoc {
+            name: "daemon".into(),
+            description: "Manage the warm model daemon (start, stop, status, submit, cancel)".into(),
+            usage: "xf daemon <SUBCOMMAND>".into(),
+            flags: vec![],
+            output_formats: all_formats(),
         },
     ]
 }
@@ -430,7 +830,7 @@ fn examples() -> Vec<Example> {
         },
         Example {
             description: "Search only DMs".into(),
-            command: "xf search 'secret' --type dm".into(),
+            command: "xf search 'secret' --types dm".into(),
             notes: None,
         },
         Example {
@@ -451,7 +851,9 @@ fn examples() -> Vec<Example> {
         Example {
             description: "Check health and auto-fix".into(),
             command: "xf doctor --fix".into(),
-            notes: Some("Applies safe repairs (FTS rebuild, PRAGMA optimize)".into()),
+            notes: Some(
+                "Applies safe repairs (FTS rebuild, vector index rebuild, PRAGMA optimize)".into(),
+            ),
         },
         Example {
             description: "Launch interactive shell".into(),
@@ -512,6 +914,12 @@ fn output_formats() -> Vec<OutputFormatDoc> {
             mime_type: "application/json".into(),
         },
         OutputFormatDoc {
+            name: "compact".into(),
+            flag: "--format compact".into(),
+            description: "Single-line summary per item".into(),
+            mime_type: "text/plain".into(),
+        },
+        OutputFormatDoc {
             name: "csv".into(),
             flag: "--format csv".into(),
             description: "Comma-separated values (search, list, export)".into(),
@@ -522,6 +930,12 @@ fn output_formats() -> Vec<OutputFormatDoc> {
             flag: "--format toon".into(),
             description: "Compact TOON encoding optimized for LLM token efficiency".into(),
             mime_type: "application/x-toon".into(),
+        },
+        OutputFormatDoc {
+            name: "jsonl".into(),
+            flag: "--format jsonl".into(),
+            description: "JSON Lines (newline-delimited JSON objects)".into(),
+            mime_type: "application/x-ndjson".into(),
         },
     ]
 }
@@ -541,7 +955,7 @@ fn schemas() -> Vec<SchemaDoc> {
                     "properties": {
                         "result_type": {
                             "type": "string",
-                            "enum": ["tweet", "like", "direct_message", "grok_message"],
+                            "enum": ["tweet", "like", "direct_message", "grok_message", "bookmark"],
                             "description": "Type of content matched"
                         },
                         "id": {
@@ -559,7 +973,7 @@ fn schemas() -> Vec<SchemaDoc> {
                         },
                         "score": {
                             "type": "number",
-                            "description": "BM25 relevance score"
+                            "description": "BM25 or hybrid RRF relevance score"
                         },
                         "highlights": {
                             "type": "array",
@@ -592,7 +1006,7 @@ fn schemas() -> Vec<SchemaDoc> {
                             "tweets_count", "likes_count", "dms_count",
                             "dm_conversations_count", "followers_count", "following_count",
                             "blocks_count", "mutes_count", "grok_messages_count",
-                            "index_built_at"
+                            "bookmarks_count", "index_built_at"
                         ],
                         "properties": {
                             "tweets_count": { "type": "integer" },
@@ -604,6 +1018,7 @@ fn schemas() -> Vec<SchemaDoc> {
                             "blocks_count": { "type": "integer" },
                             "mutes_count": { "type": "integer" },
                             "grok_messages_count": { "type": "integer" },
+                            "bookmarks_count": { "type": "integer" },
                             "first_tweet_date": {
                                 "type": ["string", "null"],
                                 "format": "date-time"
@@ -931,8 +1346,8 @@ mod tests {
         assert!(!examples.is_empty());
         // Each example should have a command
         for ex in &examples {
-            assert!(!ex.command.is_empty());
-            assert!(!ex.description.is_empty());
+            assert_ne!(ex.command, "");
+            assert_ne!(ex.description, "");
         }
     }
 
@@ -968,7 +1383,7 @@ mod tests {
         assert!(docs.output_formats.is_none());
         assert!(docs.schemas.is_none());
         // But version is always present
-        assert!(!docs.version.is_empty());
+        assert_ne!(docs.version, "");
     }
 
     #[test]
@@ -1045,8 +1460,8 @@ mod tests {
         let docs = generate("schemas");
         let schemas = docs.schemas.unwrap();
         for schema_doc in &schemas {
-            assert!(!schema_doc.name.is_empty());
-            assert!(!schema_doc.description.is_empty());
+            assert_ne!(schema_doc.name, "");
+            assert_ne!(schema_doc.description, "");
             // Each schema should have a $schema key and a type
             let schema = &schema_doc.schema;
             assert!(
@@ -1071,5 +1486,43 @@ mod tests {
         assert!(json_str.contains("\"schemas\""));
         assert!(json_str.contains("\"$schema\""));
         assert!(json_str.contains("draft-07"));
+    }
+
+    #[test]
+    fn test_cli_subcommands_and_output_formats_documented_in_robot_docs() {
+        use clap::{CommandFactory, ValueEnum};
+
+        let docs = generate("all");
+        let doc_commands: std::collections::HashSet<String> =
+            docs.commands.unwrap().into_iter().map(|c| c.name).collect();
+
+        let cli_cmd = crate::cli::Cli::command();
+        for sub in cli_cmd.get_subcommands() {
+            let name = sub.get_name();
+            if name == "help" {
+                continue;
+            }
+            assert!(
+                doc_commands.contains(name),
+                "CLI subcommand '{name}' is missing from robot_docs::commands()"
+            );
+        }
+
+        let doc_formats: std::collections::HashSet<String> = docs
+            .output_formats
+            .unwrap()
+            .into_iter()
+            .map(|f| f.name)
+            .collect();
+
+        for variant in crate::cli::OutputFormat::value_variants() {
+            if let Some(pv) = variant.to_possible_value() {
+                let name = pv.get_name();
+                assert!(
+                    doc_formats.contains(name),
+                    "OutputFormat variant '{name}' is missing from robot_docs::output_formats()"
+                );
+            }
+        }
     }
 }

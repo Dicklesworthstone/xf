@@ -336,10 +336,11 @@ pub fn check_duplicate_ids(archive_path: &Path) -> crate::Result<HealthCheck> {
 #[must_use]
 pub fn check_duplicate_ids_in_tweets(tweets: &[crate::Tweet]) -> HealthCheck {
     let mut seen_ids: HashSet<String> = HashSet::new();
+    let mut duplicate_ids: HashSet<String> = HashSet::new();
     let mut duplicates: Vec<String> = Vec::new();
 
     for tweet in tweets {
-        if !seen_ids.insert(tweet.id.clone()) {
+        if !seen_ids.insert(tweet.id.clone()) && duplicate_ids.insert(tweet.id.clone()) {
             duplicates.push(tweet.id.clone());
         }
     }
@@ -1198,6 +1199,21 @@ mod tests {
         assert!(check.suggestion.is_some());
     }
 
+    #[test]
+    fn test_check_duplicate_ids_deduplicates_repeated_ids() {
+        let tweets = vec![
+            make_tweet("1", "Tweet 1", Utc::now()),
+            make_tweet("1", "Tweet 1 second copy", Utc::now()),
+            make_tweet("1", "Tweet 1 third copy", Utc::now()),
+        ];
+
+        let check = check_duplicate_ids_in_tweets(&tweets);
+
+        assert_eq!(check.status, CheckStatus::Warning);
+        assert_eq!(check.message, "1 duplicate IDs found");
+        assert_eq!(check.suggestion.as_deref(), Some("Duplicate IDs: 1"));
+    }
+
     // ======================== Timestamp Tests ========================
 
     #[test]
@@ -1401,7 +1417,7 @@ mod tests {
             CheckCategory::Index,
             CheckCategory::Performance,
         ] {
-            assert!(!category_icon(cat).is_empty());
+            assert_ne!(category_icon(cat), "");
         }
     }
 

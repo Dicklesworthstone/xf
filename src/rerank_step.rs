@@ -139,7 +139,19 @@ impl RerankStep {
             "Reranking complete"
         );
 
-        // Verify score count matches
+        Self::apply_scores(candidates, rerank_count, &scores)
+    }
+
+    /// Apply pre-computed reranker scores (e.g. from daemon) and sort the top `rerank_count` candidates.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `scores.len() != rerank_count`.
+    pub fn apply_scores(
+        candidates: &mut [SearchResult],
+        rerank_count: usize,
+        scores: &[f32],
+    ) -> RerankerResult<()> {
         if scores.len() != rerank_count {
             return Err(RerankerError::Internal(format!(
                 "reranker returned {} scores, expected {}",
@@ -148,22 +160,15 @@ impl RerankStep {
             )));
         }
 
-        // Apply reranker scores
         for (i, score) in scores.iter().enumerate() {
             candidates[i].rerank_score = Some(*score);
         }
 
-        // Stable sort: by rerank_score descending, then original score for ties
+        // Stable sort: by rerank_score descending, then original score for ties (NaN-safe total_cmp)
         candidates[..rerank_count].sort_by(|a, b| {
             let ra = a.rerank_score.unwrap_or(f32::NEG_INFINITY);
             let rb = b.rerank_score.unwrap_or(f32::NEG_INFINITY);
-            rb.partial_cmp(&ra)
-                .unwrap_or(std::cmp::Ordering::Equal)
-                .then_with(|| {
-                    b.score
-                        .partial_cmp(&a.score)
-                        .unwrap_or(std::cmp::Ordering::Equal)
-                })
+            rb.total_cmp(&ra).then_with(|| b.score.total_cmp(&a.score))
         });
 
         Ok(())
@@ -191,7 +196,6 @@ mod tests {
             }
         }
 
-        #[allow(dead_code)]
         fn failing() -> Self {
             Self {
                 scores: Mutex::new(vec![]),

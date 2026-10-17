@@ -18,7 +18,6 @@
 use std::path::{Path, PathBuf};
 
 use safetensors::SafeTensors;
-use tokenizers::Tokenizer;
 
 use crate::embedder::{Embedder, EmbedderError, EmbedderResult, ModelCategory};
 use frankensearch_embed::Model2VecEmbedder as FsModel2VecEmbedder;
@@ -34,18 +33,13 @@ const REQUIRED_FILES: &[&str] = &["tokenizer.json", "model.safetensors"];
 
 /// Model2Vec embedder using static embedding lookup.
 ///
-/// This embedder loads a tokenizer and an embedding matrix, then performs:
+/// This embedder loads a tokenizer and an embedding matrix via `frankensearch_embed`,
+/// then performs:
 /// 1. Subword tokenization
 /// 2. Embedding lookup for each token
 /// 3. Mean pooling over tokens
 /// 4. L2 normalization
 pub struct Model2VecEmbedder {
-    /// Subword tokenizer (BPE or WordPiece from teacher model).
-    #[allow(dead_code)]
-    tokenizer: Tokenizer,
-    /// Static embedding matrix [vocab_size × dims].
-    #[allow(dead_code)]
-    embeddings: Vec<Vec<f32>>,
     /// Output dimensions.
     dimensions: usize,
     /// Model identifier (e.g., "potion-retrieval-32M").
@@ -56,6 +50,14 @@ pub struct Model2VecEmbedder {
 }
 
 impl Model2VecEmbedder {
+    /// Check whether a directory contains all required Model2Vec files.
+    #[must_use]
+    fn has_required_files(model_dir: &Path) -> bool {
+        REQUIRED_FILES
+            .iter()
+            .all(|file| model_dir.join(file).is_file())
+    }
+
     /// Load the model from a directory containing model files.
     ///
     /// # Errors
@@ -73,12 +75,8 @@ impl Model2VecEmbedder {
             }
         }
 
-        // Load tokenizer
-        let tokenizer_path = model_dir.join("tokenizer.json");
-        let tokenizer = Tokenizer::from_file(&tokenizer_path)
-            .map_err(|e| EmbedderError::Internal(format!("failed to load tokenizer: {e}")))?;
-
-        // Load embeddings from safetensors
+        // Inspect safetensors header to validate shape and extract vocab_size + dimensions
+        // without allocating a duplicate copy of the embedding matrix.
         let embeddings_path = model_dir.join("model.safetensors");
         let embeddings_data = std::fs::read(&embeddings_path)
             .map_err(|e| EmbedderError::Internal(format!("failed to read embeddings: {e}")))?;
@@ -86,13 +84,11 @@ impl Model2VecEmbedder {
         let safetensors = SafeTensors::deserialize(&embeddings_data)
             .map_err(|e| EmbedderError::Internal(format!("failed to parse safetensors: {e}")))?;
 
-        // Find the embedding tensor - Model2Vec typically stores as "embeddings" or "embedding"
         let tensor_name = Self::find_embedding_tensor_name(&safetensors)?;
         let tensor = safetensors.tensor(&tensor_name).map_err(|e| {
             EmbedderError::Internal(format!("failed to get tensor {tensor_name}: {e}"))
         })?;
 
-        // Validate tensor shape [vocab_size, dims]
         let shape = tensor.shape();
         if shape.len() != 2 {
             return Err(EmbedderError::Internal(format!(
@@ -101,16 +97,14 @@ impl Model2VecEmbedder {
         }
         let vocab_size = shape[0];
         let dimensions = shape[1];
-
-        // Convert tensor data to embedding vectors
-        let embeddings = Self::tensor_to_embeddings(tensor.data(), vocab_size, dimensions)?;
-
-        tracing::info!(
-            model = model_name,
-            vocab_size = vocab_size,
-            dimensions = dimensions,
-            "Model2Vec embedder loaded"
-        );
+        let expected_bytes = vocab_size * dimensions * 4;
+        if tensor.data().len() != expected_bytes {
+            return Err(EmbedderError::Internal(format!(
+                "tensor size mismatch: expected {expected_bytes} bytes, got {}",
+                tensor.data().len()
+            )));
+        }
+        drop(embeddings_data);
 
         let delegate = FsModel2VecEmbedder::load_with_name(model_dir, model_name).map_err(|e| {
             EmbedderError::Unavailable(format!(
@@ -119,9 +113,14 @@ impl Model2VecEmbedder {
             ))
         })?;
 
+        tracing::info!(
+            model = model_name,
+            vocab_size = vocab_size,
+            dimensions = dimensions,
+            "Model2Vec embedder loaded"
+        );
+
         Ok(Self {
-            tokenizer,
-            embeddings,
             dimensions,
             name: model_name.to_string(),
             vocab_size,
@@ -150,7 +149,8 @@ impl Model2VecEmbedder {
         )))
     }
 
-    /// Convert raw tensor bytes to embedding vectors.
+    /// Convert raw tensor bytes to embedding vectors (used in unit tests).
+    #[cfg(test)]
     fn tensor_to_embeddings(
         data: &[u8],
         vocab_size: usize,
@@ -267,10 +267,24 @@ impl Model2VecEmbedder {
         paths
     }
 
-    /// Check if a specific model is available.
+    /// Check if a specific model is available on disk without loading weights into memory.
     #[must_use]
     pub fn is_available(model_name: &str) -> bool {
-        Self::try_load(model_name).is_ok()
+        for candidate in Self::model_search_paths(model_name) {
+            if !candidate.exists() {
+                continue;
+            }
+            if candidate.to_string_lossy().contains("huggingface") {
+                if let Some(snapshot_dir) = Self::find_hf_snapshot(&candidate) {
+                    if Self::has_required_files(&snapshot_dir) {
+                        return true;
+                    }
+                }
+            } else if Self::has_required_files(&candidate) {
+                return true;
+            }
+        }
+        false
     }
 
     /// Get the vocabulary size.
@@ -367,7 +381,7 @@ mod tests {
     #[test]
     fn test_model_search_paths() {
         let paths = Model2VecEmbedder::model_search_paths(MODEL_POTION_32M);
-        assert!(!paths.is_empty());
+        assert_ne!(paths, Vec::<PathBuf>::new());
 
         // Should include xf cache path
         assert!(paths.iter().any(|p| p.to_string_lossy().contains("xf")));

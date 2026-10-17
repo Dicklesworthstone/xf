@@ -38,11 +38,9 @@ const MODEL_DIR_NAME: &str = "all-MiniLM-L6-v2";
 const EMBEDDER_ID: &str = "minilm-384";
 
 /// Output dimension of MiniLM embeddings.
-#[allow(dead_code)]
-const EMBEDDING_DIMENSION: usize = 384;
+pub const EMBEDDING_DIMENSION: usize = 384;
 
 /// Required model files for validation.
-#[allow(dead_code)]
 const REQUIRED_FILES: &[&str] = &[
     "model.onnx",
     "tokenizer.json",
@@ -260,10 +258,27 @@ impl FastEmbedder {
         ))
     }
 
-    /// Check if the semantic model is available.
+    /// Check if the semantic model files are available in standard xf directories
+    /// without loading the ONNX session into memory.
     #[must_use]
     pub fn is_available() -> bool {
-        Self::try_load().is_ok()
+        let candidates = [
+            dirs::data_local_dir().map(|p| p.join("xf").join("models")),
+            dirs::cache_dir().map(|p| p.join("fastembed")),
+            Some(std::path::PathBuf::from("/usr/local/share/xf/models")),
+        ];
+
+        for candidate in candidates.into_iter().flatten() {
+            let model_dir = candidate.join(MODEL_DIR_NAME);
+            if model_dir.is_dir()
+                && REQUIRED_FILES
+                    .iter()
+                    .all(|file| model_dir.join(file).is_file())
+            {
+                return true;
+            }
+        }
+        false
     }
 
     /// Get the expected model directory path.

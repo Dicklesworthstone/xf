@@ -12,16 +12,11 @@ use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::str;
 
-#[allow(dead_code)]
 const VECTOR_INDEX_MAGIC: [u8; 4] = *b"XFVI";
-#[allow(dead_code)]
 const VECTOR_INDEX_VERSION: u16 = 1;
-#[allow(dead_code)]
 const VECTOR_INDEX_HEADER_LEN: usize = 32;
-#[allow(dead_code)]
 const VECTOR_INDEX_DOC_TYPE_ENCODING: u8 = 0;
 
-#[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
 struct VectorIndexHeader {
     version: u16,
@@ -31,7 +26,6 @@ struct VectorIndexHeader {
     offsets_start: u64,
 }
 
-#[allow(dead_code)]
 fn parse_vector_index_header(bytes: &[u8]) -> Result<VectorIndexHeader> {
     ensure!(
         bytes.len() >= VECTOR_INDEX_HEADER_LEN,
@@ -69,6 +63,7 @@ fn encode_doc_type(doc_type: &str) -> Option<u8> {
         "like" => Some(1),
         "dm" => Some(2),
         "grok" => Some(3),
+        "bookmark" => Some(4),
         _ => None,
     }
 }
@@ -80,6 +75,7 @@ const fn decode_doc_type(value: u8) -> Option<&'static str> {
         1 => Some("like"),
         2 => Some("dm"),
         3 => Some("grok"),
+        4 => Some("bookmark"),
         _ => None,
     }
 }
@@ -93,16 +89,16 @@ fn intern_doc_type(doc_type: &str) -> &'static str {
         "like" => "like",
         "dm" => "dm",
         "grok" => "grok",
+        "bookmark" => "bookmark",
         _ => "tweet", // Default for unknown types (including "tweet")
     }
 }
 
 fn validate_doc_type(value: u8) -> Result<()> {
-    ensure!(value <= 3, "invalid doc_type encoding");
+    ensure!(value <= 4, "invalid doc_type encoding");
     Ok(())
 }
 
-#[allow(dead_code)]
 fn validate_vector_index_layout(bytes: &[u8]) -> Result<()> {
     let header = parse_vector_index_header(bytes)?;
 
@@ -178,13 +174,12 @@ fn validate_vector_index_layout(bytes: &[u8]) -> Result<()> {
 
 #[derive(Debug, Clone, Copy)]
 struct DocTypeFilter {
-    allowed: [bool; 4],
+    allowed: [bool; 5],
 }
 
 impl DocTypeFilter {
-    fn new(doc_types: Option<&[&str]>) -> Option<Self> {
-        let doc_types = doc_types?;
-        let mut allowed = [false; 4];
+    fn from_types(doc_types: &[&str]) -> Self {
+        let mut allowed = [false; 5];
         for doc_type in doc_types {
             if let Some(code) = encode_doc_type(doc_type) {
                 let idx = usize::from(code);
@@ -193,17 +188,34 @@ impl DocTypeFilter {
                 }
             }
         }
-        Some(Self { allowed })
+        Self { allowed }
     }
 
+    fn new(doc_types: Option<&[&str]>) -> Option<Self> {
+        doc_types.map(Self::from_types)
+    }
+
+    #[inline]
+    fn is_empty(self) -> bool {
+        !self.allowed.iter().any(|&b| b)
+    }
+
+    #[inline]
     fn allows(self, code: u8) -> bool {
         let idx = usize::from(code);
         self.allowed.get(idx).copied().unwrap_or(false)
     }
+
+    #[inline]
+    fn allows_str(self, doc_type: &str) -> bool {
+        encode_doc_type(doc_type).is_some_and(|code| self.allows(code))
+    }
 }
 
+#[inline]
 fn dot_product_f16_simd(query: &[f32], embedding: &[u8]) -> Option<f32> {
     use half::f16;
+    use wide::f32x8;
 
     if embedding.len() != query.len().saturating_mul(2) {
         return None;
@@ -212,13 +224,33 @@ fn dot_product_f16_simd(query: &[f32], embedding: &[u8]) -> Option<f32> {
         return Some(0.0);
     }
 
-    // Delegate dot product math to frankensearch-index SIMD.
-    let mut stored = Vec::with_capacity(query.len());
-    for chunk in embedding.chunks_exact(2) {
-        stored.push(f16::from_le_bytes([chunk[0], chunk[1]]));
+    let q_chunks = query.chunks_exact(8);
+    let e_chunks = embedding.chunks_exact(16);
+    let q_rem = q_chunks.remainder();
+    let e_rem = e_chunks.remainder();
+
+    let mut sum = f32x8::ZERO;
+    for (qc, ec) in q_chunks.zip(e_chunks) {
+        let q_vec = f32x8::new([qc[0], qc[1], qc[2], qc[3], qc[4], qc[5], qc[6], qc[7]]);
+        let e_vec = f32x8::new([
+            f16::from_le_bytes([ec[0], ec[1]]).to_f32(),
+            f16::from_le_bytes([ec[2], ec[3]]).to_f32(),
+            f16::from_le_bytes([ec[4], ec[5]]).to_f32(),
+            f16::from_le_bytes([ec[6], ec[7]]).to_f32(),
+            f16::from_le_bytes([ec[8], ec[9]]).to_f32(),
+            f16::from_le_bytes([ec[10], ec[11]]).to_f32(),
+            f16::from_le_bytes([ec[12], ec[13]]).to_f32(),
+            f16::from_le_bytes([ec[14], ec[15]]).to_f32(),
+        ]);
+        sum += q_vec * e_vec;
     }
 
-    frankensearch_index::dot_product_f16_f32(&stored, query).ok()
+    let mut scalar_sum: f32 = sum.reduce_add();
+    for (&q, ec) in q_rem.iter().zip(e_rem.chunks_exact(2)) {
+        scalar_sum = q.mul_add(f16::from_le_bytes([ec[0], ec[1]]).to_f32(), scalar_sum);
+    }
+
+    Some(scalar_sum)
 }
 
 /// Default filename for the vector index file.
@@ -264,6 +296,23 @@ pub fn write_vector_index(
             record_count: 0,
             file_size: 0,
         });
+    }
+
+    // If multiple models with different dimensions exist in `embeddings` (e.g. two-tier
+    // 256d "fast" + 384d "quality"), select the primary model tier rather than failing.
+    let first_len = embeddings[0].2.len();
+    if embeddings.iter().any(|(_, _, emb)| emb.len() != first_len) {
+        for candidate_model in ["default", "quality", "fast"] {
+            let filtered = storage.load_all_embeddings_raw_filtered(Some(candidate_model))?;
+            if !filtered.is_empty()
+                && filtered
+                    .iter()
+                    .all(|(_, _, emb)| emb.len() == filtered[0].2.len())
+            {
+                embeddings = filtered;
+                break;
+            }
+        }
     }
 
     // Determine dimension from first embedding (bytes / 2 since F16)
@@ -669,6 +718,9 @@ impl MmapVectorIndex {
         }
 
         let filter = DocTypeFilter::new(doc_types);
+        if filter.as_ref().is_some_and(|f| f.is_empty()) {
+            return Vec::new();
+        }
         let bytes = self.mmap.as_slice();
         let Some(offsets_bytes) = bytes.get(self.offsets_range.clone()) else {
             return Vec::new();
@@ -676,7 +728,7 @@ impl MmapVectorIndex {
 
         let mut heap: BinaryHeap<HeapEntry> = BinaryHeap::with_capacity(k + 1);
 
-        // Phase 1: Scan all records, keeping only offsets in heap (no String allocations)
+        // Phase 1: Scan all records, keeping only offsets in heap (no UTF-8 decoding or String allocations)
         for chunk in offsets_bytes.chunks_exact(8) {
             let offset = usize::try_from(u64::from_le_bytes([
                 chunk[0], chunk[1], chunk[2], chunk[3], chunk[4], chunk[5], chunk[6], chunk[7],
@@ -704,12 +756,6 @@ impl MmapVectorIndex {
             let doc_id_end = doc_id_start.saturating_add(doc_id_len);
             let embedding_end = doc_id_end.saturating_add(self.embedding_len);
             if record.len() < embedding_end {
-                continue;
-            }
-
-            // Validate UTF-8 without allocating
-            let doc_id_bytes = &record[doc_id_start..doc_id_end];
-            if str::from_utf8(doc_id_bytes).is_err() {
                 continue;
             }
 
@@ -993,9 +1039,17 @@ impl InMemoryVectorIndex {
         let mut vectors = Vec::with_capacity(record_count);
 
         // Parse each record
-        for i in 0..record_count {
-            let offset_bytes = &offsets_slice[i * 8..(i + 1) * 8];
-            let offset = u64::from_le_bytes(offset_bytes.try_into().unwrap()) as usize;
+        for offset_chunk in offsets_slice.chunks_exact(8) {
+            let offset = u64::from_le_bytes([
+                offset_chunk[0],
+                offset_chunk[1],
+                offset_chunk[2],
+                offset_chunk[3],
+                offset_chunk[4],
+                offset_chunk[5],
+                offset_chunk[6],
+                offset_chunk[7],
+            ]) as usize;
 
             let record = &bytes[offset..];
 
@@ -1019,10 +1073,7 @@ impl InMemoryVectorIndex {
             let embedding_slice = &record[embedding_start..embedding_start + embedding_bytes];
             let embedding: Vec<f32> = embedding_slice
                 .chunks_exact(2)
-                .map(|chunk| {
-                    let arr: [u8; 2] = chunk.try_into().unwrap();
-                    f16::from_le_bytes(arr).to_f32()
-                })
+                .map(|chunk| f16::from_le_bytes([chunk[0], chunk[1]]).to_f32())
                 .collect();
 
             vectors.push((doc_id, doc_type, embedding));
@@ -1094,13 +1145,20 @@ impl InMemoryVectorIndex {
             return Vec::new();
         }
 
+        let filter = doc_types.map(DocTypeFilter::from_types);
+        if let Some(f) = &filter {
+            if f.is_empty() {
+                return Vec::new();
+            }
+        }
+
         // Phase 1: Scan vectors, keeping only indices in heap (no String clones)
         let mut heap: BinaryHeap<IndexHeapEntry> = BinaryHeap::with_capacity(k + 1);
 
         for (idx, (_, doc_type, embedding)) in self.vectors.iter().enumerate() {
             // Filter by doc_type if specified
-            if let Some(types) = doc_types {
-                if !types.contains(doc_type) {
+            if let Some(f) = &filter {
+                if !f.allows_str(doc_type) {
                     continue;
                 }
             }
@@ -1159,6 +1217,13 @@ impl InMemoryVectorIndex {
             return self.search_top_k(query, k, doc_types);
         }
 
+        let filter = doc_types.map(DocTypeFilter::from_types);
+        if let Some(f) = &filter {
+            if f.is_empty() {
+                return Vec::new();
+            }
+        }
+
         // Create indexed chunks to preserve absolute indices
         let indexed_chunks: Vec<_> = self
             .vectors
@@ -1174,8 +1239,8 @@ impl InMemoryVectorIndex {
                 let mut local_heap: BinaryHeap<IndexHeapEntry> = BinaryHeap::with_capacity(k + 1);
 
                 for (offset, (_, doc_type, embedding)) in chunk.iter().enumerate() {
-                    if let Some(types) = doc_types {
-                        if !types.contains(doc_type) {
+                    if let Some(f) = &filter {
+                        if !f.allows_str(doc_type) {
                             continue;
                         }
                     }
@@ -1586,6 +1651,7 @@ mod tests {
         assert_eq!(encode_doc_type("like"), Some(1));
         assert_eq!(encode_doc_type("dm"), Some(2));
         assert_eq!(encode_doc_type("grok"), Some(3));
+        assert_eq!(encode_doc_type("bookmark"), Some(4));
         assert_eq!(encode_doc_type("unknown"), None);
     }
 
@@ -1595,12 +1661,13 @@ mod tests {
         assert_eq!(decode_doc_type(1), Some("like"));
         assert_eq!(decode_doc_type(2), Some("dm"));
         assert_eq!(decode_doc_type(3), Some("grok"));
-        assert_eq!(decode_doc_type(4), None);
+        assert_eq!(decode_doc_type(4), Some("bookmark"));
+        assert_eq!(decode_doc_type(5), None);
     }
 
     #[test]
     fn test_doc_type_roundtrip() {
-        for doc_type in &["tweet", "like", "dm", "grok"] {
+        for doc_type in &["tweet", "like", "dm", "grok", "bookmark"] {
             let encoded = encode_doc_type(doc_type).unwrap();
             let decoded = decode_doc_type(encoded).unwrap();
             assert_eq!(*doc_type, decoded);

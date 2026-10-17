@@ -221,7 +221,11 @@ impl<T: Clone> ListTable<T> {
                 .zip(&widths)
                 .map(|((val, col), &w)| {
                     let truncated = if val.len() > w {
-                        format!("{}...", &val[..w.saturating_sub(3)])
+                        let mut end = w.saturating_sub(3);
+                        while end > 0 && !val.is_char_boundary(end) {
+                            end -= 1;
+                        }
+                        format!("{}...", &val[..end])
                     } else {
                         val.clone()
                     };
@@ -238,10 +242,10 @@ impl<T: Clone> ListTable<T> {
     }
 
     /// Render plain TSV output (for piped/non-TTY contexts).
-    fn render_plain(&self, items: &[T], _output: &Output) {
+    fn render_plain(&self, items: &[T], output: &Output) {
         // TSV header
         let headers: Vec<&str> = self.columns.iter().map(|c| c.name.as_str()).collect();
-        println!("{}", headers.join("\t"));
+        output.print_data(&headers.join("\t"));
 
         // TSV rows
         for item in items {
@@ -254,7 +258,7 @@ impl<T: Clone> ListTable<T> {
                     value.replace('\t', "\\t").replace('\n', "\\n")
                 })
                 .collect();
-            println!("{}", cells.join("\t"));
+            output.print_data(&cells.join("\t"));
         }
     }
 }
@@ -414,7 +418,7 @@ mod tests {
                 item.0.to_string()
             }));
 
-        assert!(table.items.is_empty());
+        assert_eq!(table.items, Vec::<(&str, usize)>::new());
         assert_eq!(table.total(), 0);
     }
 

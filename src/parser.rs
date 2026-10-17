@@ -370,10 +370,8 @@ impl ArchiveParser {
                         let Some(sender_id) = mc["senderId"].as_str().map(String::from) else {
                             continue;
                         };
-                        let Some(recipient_id) = mc["recipientId"].as_str().map(String::from)
-                        else {
-                            continue;
-                        };
+                        let recipient_id =
+                            mc["recipientId"].as_str().unwrap_or("group").to_string();
                         let Some(text) = mc["text"].as_str().map(String::from) else {
                             continue;
                         };
@@ -829,14 +827,14 @@ mod tests {
     fn test_parse_hashtags_empty() {
         let json = serde_json::json!([]);
         let hashtags = ArchiveParser::parse_hashtags(&json);
-        assert!(hashtags.is_empty());
+        assert_eq!(hashtags, Vec::<String>::new());
     }
 
     #[test]
     fn test_parse_hashtags_null() {
         let json = serde_json::json!(null);
         let hashtags = ArchiveParser::parse_hashtags(&json);
-        assert!(hashtags.is_empty());
+        assert_eq!(hashtags, Vec::<String>::new());
     }
 
     #[test]
@@ -961,7 +959,7 @@ mod tests {
         assert!(result.is_ok());
         let value = result.unwrap();
         assert!(value.is_array());
-        assert!(value.as_array().unwrap().is_empty());
+        assert_eq!(value.as_array().unwrap().len(), 0);
     }
 
     #[test]
@@ -1572,9 +1570,46 @@ mod tests {
         let tweets = parser.parse_tweets().unwrap();
 
         assert_eq!(tweets.len(), 1);
-        assert!(tweets[0].hashtags.is_empty());
+        assert_eq!(tweets[0].hashtags, Vec::<String>::new());
         assert!(tweets[0].user_mentions.is_empty());
         assert!(tweets[0].urls.is_empty());
         assert!(tweets[0].media.is_empty());
+    }
+
+    #[test]
+    fn test_parse_group_direct_messages_without_recipient_id() {
+        let temp_dir = TempDir::new().unwrap();
+        let data_dir = temp_dir.path().join("data");
+        std::fs::create_dir_all(&data_dir).unwrap();
+
+        let content = r#"window.YTD.direct_messages_group.part0 = [
+            {
+                "dmConversation": {
+                    "conversationId": "group-conv-1",
+                    "messages": [
+                        {
+                            "messageCreate": {
+                                "id": "gmsg-1",
+                                "senderId": "user-1",
+                                "text": "Hello group chat!",
+                                "createdAt": "2025-01-10T12:00:00.000Z",
+                                "urls": [],
+                                "mediaUrls": []
+                            }
+                        }
+                    ]
+                }
+            }
+        ]"#;
+        std::fs::write(data_dir.join("direct-messages-group.js"), content).unwrap();
+
+        let parser = ArchiveParser::new(temp_dir.path());
+        let convos = parser.parse_direct_messages().unwrap();
+
+        assert_eq!(convos.len(), 1);
+        assert_eq!(convos[0].conversation_id, "group-conv-1");
+        assert_eq!(convos[0].messages.len(), 1);
+        assert_eq!(convos[0].messages[0].recipient_id, "group");
+        assert_eq!(convos[0].messages[0].text, "Hello group chat!");
     }
 }

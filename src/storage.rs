@@ -4,8 +4,8 @@
 
 use crate::doctor::{CheckCategory, CheckStatus, HealthCheck, TableStat};
 use crate::model::{
-    ArchiveInfo, ArchiveStats, Block, Bookmark, DirectMessage, DmConversation,
-    DmConversationSummary, Follower, Following, GrokMessage, Like, Mute, Tweet,
+    Account, ArchiveInfo, ArchiveStats, Block, Bookmark, DirectMessage, DmConversation,
+    DmConversationSummary, Follower, Following, GrokMessage, Like, Mute, Profile, Tweet,
 };
 use crate::{format_bytes_i64, format_number};
 use anyhow::{Context, Result};
@@ -116,6 +116,25 @@ pub struct AllCounts {
     pub bookmarks_count: i64,
     pub first_tweet_date: Option<DateTime<Utc>>,
     pub last_tweet_date: Option<DateTime<Utc>>,
+}
+
+impl From<&crate::ArchiveStats> for AllCounts {
+    fn from(stats: &crate::ArchiveStats) -> Self {
+        Self {
+            tweets_count: stats.tweets_count,
+            likes_count: stats.likes_count,
+            dms_count: stats.dms_count,
+            dm_conversations_count: stats.dm_conversations_count,
+            followers_count: stats.followers_count,
+            following_count: stats.following_count,
+            blocks_count: stats.blocks_count,
+            mutes_count: stats.mutes_count,
+            grok_messages_count: stats.grok_messages_count,
+            bookmarks_count: stats.bookmarks_count,
+            first_tweet_date: stats.first_tweet_date,
+            last_tweet_date: stats.last_tweet_date,
+        }
+    }
 }
 
 impl Storage {
@@ -586,6 +605,48 @@ impl Storage {
             Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
             Err(e) => Err(e.into()),
         }
+    }
+
+    /// Store parsed account metadata in `meta`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if serialization or database insert fails.
+    pub fn store_account(&self, account: &Account) -> Result<()> {
+        let json = serde_json::to_string(account)?;
+        self.set_meta("account_json", &json)
+    }
+
+    /// Retrieve stored account metadata, if present.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database query or JSON parsing fails.
+    pub fn get_account(&self) -> Result<Option<Account>> {
+        self.get_meta("account_json")?
+            .map(|json| serde_json::from_str(&json).map_err(Into::into))
+            .transpose()
+    }
+
+    /// Store parsed profile metadata in `meta`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if serialization or database insert fails.
+    pub fn store_profile(&self, profile: &Profile) -> Result<()> {
+        let json = serde_json::to_string(profile)?;
+        self.set_meta("profile_json", &json)
+    }
+
+    /// Retrieve stored profile metadata, if present.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database query or JSON parsing fails.
+    pub fn get_profile(&self) -> Result<Option<Profile>> {
+        self.get_meta("profile_json")?
+            .map(|json| serde_json::from_str(&json).map_err(Into::into))
+            .transpose()
     }
 
     /// Store tweets in a transaction.
@@ -1707,6 +1768,250 @@ impl Storage {
         Ok(messages)
     }
 
+    /// Search bookmarks using FTS5.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database query fails.
+    pub fn search_bookmarks(&self, query: &str, limit: usize) -> Result<Vec<Bookmark>> {
+        let limit = limit_to_i64(limit);
+        let mut stmt = self.conn.prepare(
+            r"
+            SELECT b.tweet_id, b.full_text
+            FROM bookmarks b
+            JOIN fts_bookmarks fts ON b.tweet_id = fts.tweet_id
+            WHERE fts_bookmarks MATCH ?
+            ORDER BY rank
+            LIMIT ?
+            ",
+        )?;
+
+        let bookmarks = stmt
+            .query_map(params![query, limit], |row| {
+                Ok(Bookmark {
+                    tweet_id: row.get(0)?,
+                    full_text: row.get(1)?,
+                })
+            })?
+            .filter_map(std::result::Result::ok)
+            .collect();
+
+        Ok(bookmarks)
+    }
+
+    /// Search across all FTS5 tables and return unified `SearchResult` items.
+    ///
+    /// Used as a full-featured fallback when the Tantivy index is missing or empty.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database queries fail.
+    #[allow(clippy::too_many_lines, clippy::cast_precision_loss)]
+    pub fn search_fts(
+        &self,
+        query: &str,
+        doc_types: Option<&[crate::search::DocType]>,
+        limit: usize,
+    ) -> Result<Vec<crate::model::SearchResult>> {
+        use crate::model::{SearchResult, SearchResultType};
+        use crate::search::DocType;
+
+        if limit == 0 {
+            return Ok(Vec::new());
+        }
+
+        let allows = |dt: DocType| doc_types.is_none_or(|types| types.contains(&dt));
+        let trimmed = query.trim();
+        let sanitized = trimmed
+            .split_whitespace()
+            .map(|tok| format!("\"{}\"", tok.replace('"', "\"\"")))
+            .collect::<Vec<_>>()
+            .join(" ");
+
+        let mut results = Vec::new();
+
+        if allows(DocType::Tweet) {
+            let tweets = if trimmed.is_empty() {
+                self.get_all_tweets(Some(limit))?
+            } else {
+                self.search_tweets(trimmed, limit).or_else(|_| {
+                    if sanitized.is_empty() {
+                        Ok(Vec::new())
+                    } else {
+                        self.search_tweets(&sanitized, limit)
+                    }
+                })?
+            };
+            for (rank, tweet) in tweets.into_iter().enumerate() {
+                let in_reply_to = tweet
+                    .in_reply_to_screen_name
+                    .as_deref()
+                    .or(tweet.in_reply_to_status_id.as_deref())
+                    .or(tweet.in_reply_to_user_id.as_deref());
+                #[allow(clippy::cast_precision_loss)]
+                let score = 1.0 / (1.0 + rank as f32);
+                results.push(SearchResult {
+                    result_type: SearchResultType::Tweet,
+                    id: tweet.id,
+                    text: tweet.full_text,
+                    created_at: tweet.created_at,
+                    score,
+                    highlights: Vec::new(),
+                    metadata: serde_json::json!({
+                        "favorite_count": tweet.favorite_count,
+                        "retweet_count": tweet.retweet_count,
+                        "in_reply_to": in_reply_to,
+                        "in_reply_to_status_id": tweet.in_reply_to_status_id,
+                        "in_reply_to_user_id": tweet.in_reply_to_user_id,
+                        "hashtags": tweet.hashtags,
+                        "source": tweet.source,
+                    }),
+                    rerank_score: None,
+                });
+            }
+        }
+
+        if allows(DocType::Like) {
+            let likes = if trimmed.is_empty() {
+                self.get_all_likes(Some(limit))?
+            } else {
+                self.search_likes(trimmed, limit).or_else(|_| {
+                    if sanitized.is_empty() {
+                        Ok(Vec::new())
+                    } else {
+                        self.search_likes(&sanitized, limit)
+                    }
+                })?
+            };
+            for (rank, like) in likes.into_iter().enumerate() {
+                if let Some(text) = like.full_text {
+                    if !text.is_empty() {
+                        results.push(SearchResult {
+                            result_type: SearchResultType::Like,
+                            id: like.tweet_id,
+                            text,
+                            created_at: epoch_utc(),
+                            score: 1.0 / (1.0 + rank as f32),
+                            highlights: Vec::new(),
+                            metadata: serde_json::json!({
+                                "expanded_url": like.expanded_url,
+                            }),
+                            rerank_score: None,
+                        });
+                    }
+                }
+            }
+        }
+
+        if allows(DocType::DirectMessage) {
+            let dms = if trimmed.is_empty() {
+                self.get_all_dms(Some(limit))?
+            } else {
+                self.search_dms(trimmed, limit).or_else(|_| {
+                    if sanitized.is_empty() {
+                        Ok(Vec::new())
+                    } else {
+                        self.search_dms(&sanitized, limit)
+                    }
+                })?
+            };
+            for (rank, dm) in dms.into_iter().enumerate() {
+                results.push(SearchResult {
+                    result_type: SearchResultType::DirectMessage,
+                    id: dm.id,
+                    text: dm.text,
+                    created_at: dm.created_at,
+                    score: 1.0 / (1.0 + rank as f32),
+                    highlights: Vec::new(),
+                    metadata: serde_json::json!({
+                        "conversation_id": dm.conversation_id,
+                        "sender_id": dm.sender_id,
+                        "recipient_id": dm.recipient_id,
+                    }),
+                    rerank_score: None,
+                });
+            }
+        }
+
+        if allows(DocType::GrokMessage) {
+            let grok_msgs = if trimmed.is_empty() {
+                self.get_all_grok_messages(Some(limit))?
+            } else {
+                self.search_grok(trimmed, limit).or_else(|_| {
+                    if sanitized.is_empty() {
+                        Ok(Vec::new())
+                    } else {
+                        self.search_grok(&sanitized, limit)
+                    }
+                })?
+            };
+            for (rank, msg) in grok_msgs.into_iter().enumerate() {
+                let doc_id = format!(
+                    "{}_{}_{}_{}",
+                    msg.chat_id,
+                    msg.created_at.timestamp(),
+                    msg.created_at.timestamp_subsec_nanos(),
+                    msg.sender
+                );
+                results.push(SearchResult {
+                    result_type: SearchResultType::GrokMessage,
+                    id: doc_id,
+                    text: msg.message,
+                    created_at: msg.created_at,
+                    score: 1.0 / (1.0 + rank as f32),
+                    highlights: Vec::new(),
+                    metadata: serde_json::json!({
+                        "chat_id": msg.chat_id,
+                        "sender": msg.sender,
+                        "grok_mode": msg.grok_mode,
+                    }),
+                    rerank_score: None,
+                });
+            }
+        }
+
+        if allows(DocType::Bookmark) {
+            let bookmarks = if trimmed.is_empty() {
+                self.get_all_bookmarks(Some(limit))?
+            } else {
+                self.search_bookmarks(trimmed, limit).or_else(|_| {
+                    if sanitized.is_empty() {
+                        Ok(Vec::new())
+                    } else {
+                        self.search_bookmarks(&sanitized, limit)
+                    }
+                })?
+            };
+            for (rank, bm) in bookmarks.into_iter().enumerate() {
+                if let Some(text) = bm.full_text {
+                    if !text.is_empty() {
+                        results.push(SearchResult {
+                            result_type: SearchResultType::Bookmark,
+                            id: format!("bm_{}", bm.tweet_id),
+                            text,
+                            created_at: epoch_utc(),
+                            score: 1.0 / (1.0 + rank as f32),
+                            highlights: Vec::new(),
+                            metadata: serde_json::json!({
+                                "tweet_id": bm.tweet_id,
+                            }),
+                            rerank_score: None,
+                        });
+                    }
+                }
+            }
+        }
+
+        results.sort_by(|a, b| {
+            b.score
+                .total_cmp(&a.score)
+                .then_with(|| b.created_at.cmp(&a.created_at))
+                .then_with(|| a.id.cmp(&b.id))
+        });
+        results.truncate(limit);
+        Ok(results)
+    }
+
     /// Get a tweet by ID.
     ///
     /// # Errors
@@ -2129,6 +2434,69 @@ impl Storage {
             .collect();
 
         Ok(messages)
+    }
+
+    /// Get all bookmarks, optionally limited.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database query fails.
+    pub fn get_all_bookmarks(&self, limit: Option<usize>) -> Result<Vec<Bookmark>> {
+        const QUERY: &str = "SELECT tweet_id, full_text FROM bookmarks LIMIT ?";
+        let limit_param: i64 = limit.map_or(-1, |l| i64::try_from(l).unwrap_or(i64::MAX));
+
+        let mut stmt = self.conn.prepare_cached(QUERY)?;
+        let bookmarks = stmt
+            .query_map([limit_param], |row| {
+                Ok(Bookmark {
+                    tweet_id: row.get(0)?,
+                    full_text: row.get(1)?,
+                })
+            })?
+            .filter_map(std::result::Result::ok)
+            .collect();
+
+        Ok(bookmarks)
+    }
+
+    /// Load a map of `tweet_id -> full_text` from stored tweets and likes.
+    ///
+    /// Used during bookmark indexing so bookmarks can resolve text from both
+    /// authored tweets and liked tweets, even when indexing `--only bookmark`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database query fails.
+    pub fn load_tweet_text_lookup(&self) -> Result<HashMap<String, String>> {
+        let mut lookup = HashMap::new();
+
+        {
+            let mut stmt = self
+                .conn
+                .prepare("SELECT id, full_text FROM tweets WHERE full_text != ''")?;
+            let rows = stmt.query_map([], |row| {
+                Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+            })?;
+            for row in rows {
+                let (id, text) = row?;
+                lookup.insert(id, text);
+            }
+        }
+
+        {
+            let mut stmt = self.conn.prepare(
+                "SELECT tweet_id, full_text FROM likes WHERE full_text IS NOT NULL AND full_text != ''",
+            )?;
+            let rows = stmt.query_map([], |row| {
+                Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+            })?;
+            for row in rows {
+                let (id, text) = row?;
+                lookup.entry(id).or_insert(text);
+            }
+        }
+
+        Ok(lookup)
     }
 
     // ============================================================
@@ -4845,5 +5213,54 @@ mod tests {
         let jobs = storage.get_job_status("/db1").unwrap();
         assert_eq!(jobs.len(), 2);
         assert!(jobs.iter().all(|j| j.db_path == "/db1"));
+    }
+
+    #[test]
+    fn test_search_fts_and_bookmark_text_lookup() {
+        use crate::model::{Bookmark, Like, SearchResultType};
+
+        let mut storage = Storage::open_memory().unwrap();
+
+        storage
+            .store_tweets(&[create_test_tweet("101", "Rust async runtime performance")])
+            .unwrap();
+        storage
+            .store_likes(&[Like {
+                tweet_id: "202".to_string(),
+                full_text: Some("Zero copy serialization in Rust".to_string()),
+                expanded_url: None,
+            }])
+            .unwrap();
+
+        let lookup = storage.load_tweet_text_lookup().unwrap();
+        assert_eq!(
+            lookup.get("101").map(String::as_str),
+            Some("Rust async runtime performance")
+        );
+        assert_eq!(
+            lookup.get("202").map(String::as_str),
+            Some("Zero copy serialization in Rust")
+        );
+
+        storage
+            .store_bookmarks(&[Bookmark {
+                tweet_id: "202".to_string(),
+                full_text: lookup.get("202").cloned(),
+            }])
+            .unwrap();
+
+        let all_results = storage.search_fts("Rust", None, 10).unwrap();
+        assert_eq!(all_results.len(), 3);
+
+        let bookmark_results = storage
+            .search_fts(
+                "serialization",
+                Some(&[crate::search::DocType::Bookmark]),
+                10,
+            )
+            .unwrap();
+        assert_eq!(bookmark_results.len(), 1);
+        assert_eq!(bookmark_results[0].result_type, SearchResultType::Bookmark);
+        assert_eq!(bookmark_results[0].id, "bm_202");
     }
 }

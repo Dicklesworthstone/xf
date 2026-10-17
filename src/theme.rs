@@ -553,8 +553,8 @@ mod tests {
     fn test_no_color_theme_has_empty_styles() {
         let theme = Theme::no_color();
         assert_eq!(theme.color_support, ColorSupport::None);
-        assert!(theme.primary.is_empty());
-        assert!(theme.error.is_empty());
+        assert_eq!(theme.primary, "");
+        assert_eq!(theme.error, "");
     }
 
     #[test]

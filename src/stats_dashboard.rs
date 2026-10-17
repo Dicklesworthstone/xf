@@ -179,7 +179,8 @@ impl<'a> StatsDashboard<'a> {
         let total_docs = self.stats.tweets_count
             + self.stats.likes_count
             + self.stats.dms_count
-            + self.stats.grok_messages_count;
+            + self.stats.grok_messages_count
+            + self.stats.bookmarks_count;
 
         output.print(&format!(
             "  {:<20} {}",
@@ -201,7 +202,8 @@ impl<'a> StatsDashboard<'a> {
         let total = (self.stats.tweets_count
             + self.stats.likes_count
             + self.stats.dms_count
-            + self.stats.grok_messages_count) as f64;
+            + self.stats.grok_messages_count
+            + self.stats.bookmarks_count) as f64;
 
         let items = [
             ("Tweets", self.stats.tweets_count, theme.primary),
@@ -212,6 +214,7 @@ impl<'a> StatsDashboard<'a> {
                 self.stats.grok_messages_count,
                 theme.accent,
             ),
+            ("Bookmarks", self.stats.bookmarks_count, theme.info),
         ];
 
         let max_count = items.iter().map(|(_, c, _)| *c).max().unwrap_or(1);
@@ -379,6 +382,10 @@ impl<'a> StatsDashboard<'a> {
             format_number(self.stats.grok_messages_count)
         ));
         output.print(&format!(
+            "Bookmarks: {}",
+            format_number(self.stats.bookmarks_count)
+        ));
+        output.print(&format!(
             "Followers: {}",
             format_number(self.stats.followers_count)
         ));
@@ -434,10 +441,11 @@ impl<'a> StatsDashboard<'a> {
             + self.stats.grok_messages_count;
 
         format!(
-            "Total: {} docs, Tweets: {}, Likes: {}",
+            "Total: {} docs, Tweets: {}, Likes: {}, Bookmarks: {}",
             format_number(total),
             format_number(self.stats.tweets_count),
-            format_number(self.stats.likes_count)
+            format_number(self.stats.likes_count),
+            format_number(self.stats.bookmarks_count)
         )
     }
 }

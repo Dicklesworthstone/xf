@@ -181,10 +181,19 @@ impl StaticMrlEmbedder {
         paths
     }
 
-    /// Check if the model is available.
+    /// Check if the model files are available on disk without loading the ONNX session.
     #[must_use]
     pub fn is_available() -> bool {
-        Self::try_load().is_ok()
+        for candidate in Self::model_search_paths() {
+            if candidate.is_dir()
+                && REQUIRED_FILES
+                    .iter()
+                    .all(|file| candidate.join(file).is_file())
+            {
+                return true;
+            }
+        }
+        false
     }
 
     /// Get the native embedding dimension (before truncation).
@@ -476,7 +485,7 @@ mod tests {
     #[test]
     fn test_model_search_paths() {
         let paths = StaticMrlEmbedder::model_search_paths();
-        assert!(!paths.is_empty());
+        assert_ne!(paths, Vec::<PathBuf>::new());
     }
 
     #[test]

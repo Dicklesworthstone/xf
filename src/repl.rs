@@ -102,7 +102,6 @@ impl IndexStatus {
 /// Styled REPL prompt with mode badge and arrow.
 #[derive(Clone, Debug, Default)]
 pub struct ReplPrompt {
-    #[allow(dead_code)] // Reserved for future use when REPL is fully styled
     theme: Theme,
 }
 
@@ -115,10 +114,16 @@ impl ReplPrompt {
         }
     }
 
+    /// Access the theme configured for this prompt.
+    #[must_use]
+    pub const fn theme(&self) -> &Theme {
+        &self.theme
+    }
+
     /// Render the prompt string, styled if output supports it.
     #[must_use]
     pub fn render(&self, output: &Output, mode: SearchMode) -> String {
-        if !output.is_styled() {
+        if !output.is_styled() || self.theme.primary.is_empty() {
             return format!("xf ({mode})> ");
         }
 
@@ -287,7 +292,6 @@ pub struct ReplStatusLine {
     archive_path: PathBuf,
     doc_count: usize,
     index_status: IndexStatus,
-    #[allow(dead_code)] // Reserved for future use when REPL is fully styled
     theme: Theme,
 }
 
@@ -308,6 +312,12 @@ impl ReplStatusLine {
         }
     }
 
+    /// Access the theme configured for this status line.
+    #[must_use]
+    pub const fn theme(&self) -> &Theme {
+        &self.theme
+    }
+
     /// Render the status line as a string.
     #[must_use]
     pub fn render(&self, output: &Output) -> String {
@@ -317,7 +327,7 @@ impl ReplStatusLine {
             .unwrap_or_default()
             .to_string_lossy();
 
-        if !output.is_styled() {
+        if !output.is_styled() || self.theme.primary.is_empty() {
             return format!(
                 "Archive: {} | {} docs | Index: {}",
                 archive_name,
@@ -352,9 +362,10 @@ pub fn render_repl_help(output: &Output) {
         println!("  :help       - Show this help");
         println!("  :mode MODE  - Switch mode (hybrid|lexical|semantic)");
         println!("  :history    - Show search history");
+        println!("  :status     - Show archive and index status");
         println!("  :clear      - Clear screen");
         println!("  :limit N    - Set result limit");
-        println!("  :type TYPE  - Filter by type (tweet|like|dm|grok)");
+        println!("  :type TYPE  - Filter by type (tweet|like|dm|grok|bookmark)");
         println!("  :quit       - Exit REPL");
         println!();
         println!("Search Commands:");
@@ -386,14 +397,18 @@ pub fn render_repl_help(output: &Output) {
                 "Switch search mode (hybrid|lexical|semantic)",
             ),
             (":history", "Show search history"),
+            (":status", "Show archive and index status"),
             (":clear", "Clear screen"),
             (":limit <n>", "Set result limit"),
-            (":type <type>", "Filter by doc type (tweet|like|dm|grok)"),
+            (
+                ":type <type>",
+                "Filter by doc type (tweet|like|dm|grok|bookmark)",
+            ),
             (":quit", "Exit REPL"),
         ];
 
         for (cmd, desc) in commands {
-            table.add_row_cells([cmd, desc]);
+            table.add_row_cells(<[&str; 2]>::from((cmd, desc)));
         }
 
         output.print_renderable(&table);
@@ -411,9 +426,13 @@ pub fn render_repl_help(output: &Output) {
                 "Switch search mode (hybrid|lexical|semantic)",
             ),
             (":history", "Show search history"),
+            (":status", "Show archive and index status"),
             (":clear", "Clear screen"),
             (":limit <n>", "Set result limit"),
-            (":type <type>", "Filter by doc type (tweet|like|dm|grok)"),
+            (
+                ":type <type>",
+                "Filter by doc type (tweet|like|dm|grok|bookmark)",
+            ),
             (":quit", "Exit REPL"),
         ];
 
@@ -442,6 +461,8 @@ pub struct ReplConfig {
     pub no_history: bool,
     /// Path to history file (None = use default `~/.xf_history`)
     pub history_file: Option<PathBuf>,
+    /// Path to index directory (for mmap vector index loading)
+    pub index_path: Option<PathBuf>,
 }
 
 impl Default for ReplConfig {
@@ -451,6 +472,7 @@ impl Default for ReplConfig {
             page_size: 10,
             no_history: false,
             history_file: None,
+            index_path: None,
         }
     }
 }
@@ -458,7 +480,13 @@ impl Default for ReplConfig {
 /// REPL session state.
 pub struct ReplSession {
     storage: Storage,
-    search: SearchEngine,
+    search: Option<SearchEngine>,
+    index_path: Option<PathBuf>,
+    vector_index: Option<crate::vector::VectorIndex>,
+    embedder: Option<Box<dyn crate::embedder::Embedder>>,
+    search_mode: SearchMode,
+    type_filter: Option<crate::search::DocType>,
+    history_entries: Vec<HistoryEntry>,
     last_results: Vec<SearchResult>,
     last_query: Option<String>,
     history_path: Option<PathBuf>,
@@ -476,7 +504,6 @@ pub struct ReplSession {
 }
 
 #[derive(Default)]
-#[allow(dead_code)]
 enum PromptContext {
     #[default]
     Normal,
@@ -486,15 +513,42 @@ enum PromptContext {
 
 #[derive(Debug)]
 enum Command {
-    Search { query: String },
-    List { target: ListTarget },
-    Refine { filter: String },
+    Search {
+        query: String,
+    },
+    List {
+        target: ListTarget,
+    },
+    Refine {
+        filter: String,
+    },
     More,
-    Show { index: usize },
-    Export { format: ExportFormat },
+    Show {
+        index: usize,
+    },
+    Export {
+        format: ExportFormat,
+    },
     Stats,
-    Help { command: Option<String> },
-    Set { name: String, value: String },
+    Help {
+        command: Option<String>,
+    },
+    Set {
+        name: String,
+        value: String,
+    },
+    Mode {
+        mode: SearchMode,
+    },
+    History,
+    Clear,
+    Status,
+    Limit {
+        limit: usize,
+    },
+    TypeFilter {
+        doc_type: Option<crate::search::DocType>,
+    },
     Quit,
 }
 
@@ -502,7 +556,9 @@ enum Command {
 enum ListTarget {
     Tweets,
     Likes,
+    Bookmarks,
     Dms,
+    Grok,
     Conversations,
     Followers,
     Following,
@@ -513,7 +569,9 @@ enum ListTarget {
 #[derive(Debug, Clone, Copy)]
 enum ExportFormat {
     Json,
+    Jsonl,
     Csv,
+    Toon,
 }
 
 // =============================================================================
@@ -523,7 +581,8 @@ enum ExportFormat {
 /// Commands available in the REPL for completion.
 const COMMANDS: &[&str] = &[
     "search", "s", "list", "l", "refine", "r", "more", "m", "show", "export", "e", "stats", "set",
-    "help", "h", "?", "quit", "exit", "q",
+    "mode", ":mode", "history", ":history", "clear", ":clear", "status", ":status", "limit",
+    ":limit", "type", ":type", "help", ":help", "h", "?", "quit", ":quit", "exit", "q",
 ];
 
 /// List targets for completion.
@@ -531,9 +590,12 @@ const LIST_TARGETS: &[&str] = &[
     "tweets",
     "likes",
     "favorites",
+    "bookmarks",
+    "bookmark",
     "dms",
     "dm",
     "messages",
+    "grok",
     "conversations",
     "convos",
     "followers",
@@ -545,7 +607,7 @@ const LIST_TARGETS: &[&str] = &[
 ];
 
 /// Export formats for completion.
-const EXPORT_FORMATS: &[&str] = &["json", "csv"];
+const EXPORT_FORMATS: &[&str] = &["json", "jsonl", "csv", "toon"];
 
 /// Tab completion helper for xf REPL.
 #[derive(Default)]
@@ -747,7 +809,7 @@ impl Helper for XfCompleter {}
 /// # Errors
 ///
 /// Returns an error if readline setup, history persistence, or command execution fails.
-pub fn run(storage: Storage, search: SearchEngine, repl_config: ReplConfig) -> Result<()> {
+pub fn run(storage: Storage, search: Option<SearchEngine>, repl_config: ReplConfig) -> Result<()> {
     let rl_config = Config::builder()
         .history_ignore_space(true)
         .history_ignore_dups(true)?
@@ -779,6 +841,12 @@ pub fn run(storage: Storage, search: SearchEngine, repl_config: ReplConfig) -> R
     let mut session = ReplSession {
         storage,
         search,
+        index_path: repl_config.index_path,
+        vector_index: None,
+        embedder: None,
+        search_mode: SearchMode::Hybrid,
+        type_filter: None,
+        history_entries: Vec::new(),
         last_results: Vec::new(),
         last_query: None,
         history_path,
@@ -807,7 +875,7 @@ pub fn run(storage: Storage, search: SearchEngine, repl_config: ReplConfig) -> R
                     continue;
                 }
 
-                if !matches!(line, "quit" | "exit" | "q") {
+                if !matches!(line, "quit" | ":quit" | "exit" | "q") {
                     rl.add_history_entry(line)?;
                 }
 
@@ -845,6 +913,20 @@ pub fn run(storage: Storage, search: SearchEngine, repl_config: ReplConfig) -> R
 
 impl ReplSession {
     fn format_prompt(&self) -> String {
+        if self.prompt_str == "xf> " {
+            let output = Output::new_tty();
+            let theme = Theme::for_terminal();
+            let prompt = ReplPrompt::new(&theme);
+            return match &self.prompt_context {
+                PromptContext::Normal => prompt.render(&output, self.search_mode),
+                PromptContext::WithResults(n) => {
+                    prompt.render_with_results(&output, self.search_mode, *n)
+                }
+                PromptContext::InConversation(id) => {
+                    prompt.render_in_conversation(&output, self.search_mode, id)
+                }
+            };
+        }
         // Extract the base prompt (without trailing "> " if present)
         let base = self.prompt_str.trim_end_matches("> ").trim_end_matches('>');
         match &self.prompt_context {
@@ -909,10 +991,77 @@ impl ReplSession {
                 self.run_stats()?;
             }
             Command::Help { command } => {
-                print_help(command.as_deref());
+                if command.is_none() {
+                    let output = Output::new_tty();
+                    render_repl_help(&output);
+                } else {
+                    print_help(command.as_deref());
+                }
             }
             Command::Set { name, value } => {
                 self.run_set(&name, &value);
+            }
+            Command::Mode { mode } => {
+                self.search_mode = mode;
+                println!("Search mode set to {}", mode.to_string().cyan().bold());
+            }
+            Command::History => {
+                let output = Output::new_tty();
+                let theme = Theme::for_terminal();
+                let hist = ReplHistory::new(&self.history_entries, &theme);
+                hist.render(&output);
+            }
+            Command::Clear => {
+                let output = Output::new_tty();
+                clear_screen(&output);
+            }
+            Command::Status => {
+                let output = Output::new_tty();
+                let theme = Theme::for_terminal();
+                let archive_name = self.storage.get_archive_info().ok().flatten().map_or_else(
+                    || PathBuf::from("archive"),
+                    |info| PathBuf::from(format!("@{}", info.username)),
+                );
+                let doc_count = self.search.as_ref().map_or_else(
+                    || {
+                        self.storage.get_stats().map_or(0, |s| {
+                            usize::try_from(
+                                s.tweets_count
+                                    + s.likes_count
+                                    + s.dms_count
+                                    + s.grok_messages_count
+                                    + s.bookmarks_count,
+                            )
+                            .unwrap_or(0)
+                        })
+                    },
+                    |se| usize::try_from(se.doc_count()).unwrap_or(0),
+                );
+                let index_status = if self.search.is_some() {
+                    IndexStatus::Ready
+                } else {
+                    IndexStatus::Missing
+                };
+                let status_line =
+                    ReplStatusLine::new(archive_name, doc_count, index_status, &theme);
+                output.print(&status_line.render(&output));
+            }
+            Command::Limit { limit } => {
+                if limit == 0 {
+                    anyhow::bail!("Limit must be greater than 0.");
+                }
+                self.page_size = limit;
+                println!(
+                    "Result limit set to {}",
+                    format_number_usize(limit).cyan().bold()
+                );
+            }
+            Command::TypeFilter { doc_type } => {
+                self.type_filter = doc_type;
+                match doc_type {
+                    Some(dt) => println!("Type filter set to {}", dt.as_str().cyan().bold()),
+                    None => println!("Type filter cleared (searching all types)"),
+                }
             }
             Command::Quit => return Ok(false),
         }
@@ -1006,8 +1155,33 @@ impl ReplSession {
     }
 
     fn run_search(&mut self, query: &str) -> Result<()> {
-        let results = self.search.search(query, None, 100)?;
+        let start = std::time::Instant::now();
+        let type_filter_copy = self.type_filter;
+        let doc_types_slice = type_filter_copy.as_ref().map(std::slice::from_ref);
+
+        let lexical_results = match self.search_mode {
+            SearchMode::Lexical | SearchMode::Hybrid => self.search.as_ref().map_or_else(
+                || self.storage.search_fts(query, doc_types_slice, 100),
+                |engine| engine.search(query, doc_types_slice, 100),
+            )?,
+            SearchMode::Semantic => Vec::new(),
+        };
+
+        let results = match self.search_mode {
+            SearchMode::Lexical => lexical_results,
+            SearchMode::Semantic | SearchMode::Hybrid => {
+                self.execute_semantic_or_hybrid(query, doc_types_slice, lexical_results)?
+            }
+        };
+
         let count = results.len();
+        let duration_ms = start.elapsed().as_secs_f64() * 1000.0;
+        self.history_entries.push(HistoryEntry {
+            query: query.to_string(),
+            timestamp: Utc::now(),
+            result_count: count,
+            duration_ms,
+        });
         self.last_results = results;
         self.last_query = Some(query.to_string());
         self.current_offset = 0;
@@ -1023,12 +1197,157 @@ impl ReplSession {
         Ok(())
     }
 
+    fn ensure_semantic_resources(&mut self) -> Result<()> {
+        if self.vector_index.is_none() {
+            let loaded = if let Some(ref index_path) = self.index_path {
+                crate::vector::VectorIndex::load_from_file_or_storage(index_path, &self.storage)?
+            } else {
+                crate::vector::VectorIndex::load_from_storage(&self.storage)?
+            };
+            self.vector_index = Some(loaded);
+        }
+
+        if self.embedder.is_none() {
+            let resolved = crate::embedder_resolution::resolve_query_embedder(&self.storage);
+            if resolved.degraded {
+                warn!(
+                    detail = %resolved.detail,
+                    "Semantic query embedder degraded to hash fallback in REPL"
+                );
+            } else {
+                debug!(
+                    embedder = %resolved.embedder.id(),
+                    detail = %resolved.detail,
+                    "Resolved REPL query embedder"
+                );
+            }
+            self.embedder = Some(resolved.embedder);
+        }
+
+        Ok(())
+    }
+
+    fn execute_semantic_or_hybrid(
+        &mut self,
+        query: &str,
+        doc_types_slice: Option<&[crate::search::DocType]>,
+        lexical_results: Vec<SearchResult>,
+    ) -> Result<Vec<SearchResult>> {
+        let has_embeddings = self.storage.embedding_count().unwrap_or(0) > 0;
+        if !has_embeddings {
+            if matches!(self.search_mode, SearchMode::Semantic) {
+                anyhow::bail!(
+                    "No embeddings found for semantic search. Run 'xf index <archive> --semantic' or switch ':mode lexical'."
+                );
+            }
+            return Ok(lexical_results);
+        }
+
+        self.ensure_semantic_resources()?;
+
+        let canonical_query = crate::canonicalize::canonicalize_for_embedding(query);
+        let semantic_hits = if canonical_query.is_empty() {
+            Vec::new()
+        } else if let (Some(embedder), Some(vector_index)) =
+            (self.embedder.as_ref(), self.vector_index.as_ref())
+        {
+            embedder.embed(&canonical_query).map_or_else(
+                |_| Vec::new(),
+                |query_vec| {
+                    let type_strs: Option<Vec<&str>> = doc_types_slice.map(|ts| {
+                        ts.iter()
+                            .copied()
+                            .map(crate::search::DocType::as_str)
+                            .collect()
+                    });
+                    vector_index.search_top_k(&query_vec, 100, type_strs.as_deref())
+                },
+            )
+        } else {
+            Vec::new()
+        };
+
+        if matches!(self.search_mode, SearchMode::Semantic) {
+            let lookups: Vec<_> = semantic_hits
+                .iter()
+                .map(|h| crate::search::DocLookup::with_type(&h.doc_id, h.doc_type))
+                .collect();
+            let fetched = if let Some(ref engine) = self.search {
+                engine.get_by_ids(&lookups)?
+            } else {
+                let all_fts = self.storage.search_fts("", doc_types_slice, 1000)?;
+                let by_id: HashMap<(String, String), SearchResult> = all_fts
+                    .into_iter()
+                    .map(|r| ((r.id.clone(), r.result_type.to_string()), r))
+                    .collect();
+                lookups
+                    .iter()
+                    .map(|l| {
+                        l.doc_type
+                            .and_then(|dt| by_id.get(&(l.id.to_string(), dt.to_string())).cloned())
+                    })
+                    .collect()
+            };
+            let mut hydrated = Vec::with_capacity(semantic_hits.len());
+            for (hit, item) in semantic_hits.into_iter().zip(fetched) {
+                if let Some(mut res) = item {
+                    res.score = hit.score;
+                    hydrated.push(res);
+                }
+            }
+            return Ok(hydrated);
+        }
+
+        let fused = crate::hybrid::rrf_fuse(&lexical_results, &semantic_hits, 100, 0);
+        let mut lexical_map: HashMap<(String, String), &SearchResult> =
+            HashMap::with_capacity(lexical_results.len());
+        for r in &lexical_results {
+            lexical_map.insert((r.id.clone(), r.result_type.to_string()), r);
+        }
+        let missing_lookups: Vec<_> = fused
+            .iter()
+            .filter(|h| !lexical_map.contains_key(&(h.doc_id.to_string(), h.doc_type.to_string())))
+            .map(|h| crate::search::DocLookup::with_type(h.doc_id, h.doc_type))
+            .collect();
+        let fetched = if missing_lookups.is_empty() {
+            Vec::new()
+        } else if let Some(ref engine) = self.search {
+            engine.get_by_ids(&missing_lookups)?
+        } else {
+            Vec::new()
+        };
+        let mut fetched_map: HashMap<(String, String), SearchResult> = HashMap::new();
+        for (lookup, res) in missing_lookups.iter().zip(fetched) {
+            if let (Some(dt), Some(r)) = (lookup.doc_type, res) {
+                fetched_map.insert((lookup.id.to_string(), dt.to_string()), r);
+            }
+        }
+        let mut out = Vec::with_capacity(fused.len());
+        for hit in fused {
+            let key = (hit.doc_id.to_string(), hit.doc_type.to_string());
+            if let Some(&existing) = lexical_map.get(&key) {
+                let mut r = existing.clone();
+                r.score = hit.score;
+                out.push(r);
+            } else if let Some(mut r) = fetched_map.remove(&key) {
+                r.score = hit.score;
+                out.push(r);
+            }
+        }
+        Ok(out)
+    }
+
     fn run_stats(&self) -> Result<()> {
         let stats = self.storage.get_stats()?;
         println!("{}", "Archive Statistics".bold().cyan());
         println!("{}", "─".repeat(CONTENT_DIVIDER_WIDTH));
         println!("  {:<20} {}", "Tweets:", format_number(stats.tweets_count));
         println!("  {:<20} {}", "Likes:", format_number(stats.likes_count));
+        println!(
+            "  {:<20} {}",
+            "Bookmarks:",
+            format_number(stats.bookmarks_count)
+        );
         println!(
             "  {:<20} {}",
             "DM Messages:",
@@ -1112,6 +1431,29 @@ impl ReplSession {
                     );
                 }
             }
+            ListTarget::Bookmarks => {
+                let bookmarks = self.storage.get_all_bookmarks(None)?;
+                println!(
+                    "{} {}",
+                    format_number_usize(bookmarks.len()).bold(),
+                    "bookmarks".dimmed()
+                );
+                for bm in bookmarks.iter().take(self.page_size) {
+                    let text = bm.full_text.as_deref().unwrap_or(&bm.tweet_id);
+                    let text = truncate_text(text, 60);
+                    println!("  {} {text}", format_short_id(&bm.tweet_id).dimmed());
+                }
+                if bookmarks.len() > self.page_size {
+                    println!(
+                        "{}",
+                        format!(
+                            "… {} more",
+                            format_number_usize(bookmarks.len() - self.page_size)
+                        )
+                        .dimmed()
+                    );
+                }
+            }
             ListTarget::Dms => {
                 let dms = self.storage.get_all_dms(None)?;
                 println!(
@@ -1132,6 +1474,33 @@ impl ReplSession {
                         "{}",
                         format!("… {} more", format_number_usize(dms.len() - self.page_size))
                             .dimmed()
+                    );
+                }
+            }
+            ListTarget::Grok => {
+                let grok = self.storage.get_all_grok_messages(None)?;
+                println!(
+                    "{} {}",
+                    format_number_usize(grok.len()).bold(),
+                    "Grok messages".dimmed()
+                );
+                for msg in grok.iter().take(self.page_size) {
+                    let text = truncate_text(&msg.message, 60);
+                    println!(
+                        "  {} [{}] {}",
+                        format_relative_date(msg.created_at).dimmed(),
+                        msg.sender,
+                        text
+                    );
+                }
+                if grok.len() > self.page_size {
+                    println!(
+                        "{}",
+                        format!(
+                            "… {} more",
+                            format_number_usize(grok.len() - self.page_size)
+                        )
+                        .dimmed()
                     );
                 }
             }
@@ -1321,6 +1690,16 @@ impl ReplSession {
         let result = &self.last_results[index - 1];
         debug!(index, result_type = %result.result_type, "Showing result details");
 
+        if result.result_type == crate::SearchResultType::DirectMessage {
+            let conv_id = result
+                .metadata
+                .get("conversation_id")
+                .and_then(|v| v.as_str())
+                .unwrap_or(&result.id)
+                .to_string();
+            self.prompt_context = PromptContext::InConversation(conv_id);
+        }
+
         println!("{}", "─".repeat(CONTENT_DIVIDER_WIDTH));
         println!("{}: {}", "Type".dimmed(), result.result_type);
         println!("{}: {}", "ID".dimmed(), result.id);
@@ -1355,6 +1734,11 @@ impl ReplSession {
                 let json = serde_json::to_string_pretty(&self.last_results)?;
                 println!("{json}");
             }
+            ExportFormat::Jsonl => {
+                for r in &self.last_results {
+                    println!("{}", serde_json::to_string(r)?);
+                }
+            }
             ExportFormat::Csv => {
                 println!("id,type,score,created_at,text");
                 for r in &self.last_results {
@@ -1366,6 +1750,10 @@ impl ReplSession {
                         r.id, r.result_type, r.score, created, text_escaped
                     );
                 }
+            }
+            ExportFormat::Toon => {
+                let json = serde_json::to_value(&self.last_results)?;
+                println!("{}", toon_rust::encode(json, None));
             }
         }
 
@@ -1419,11 +1807,7 @@ fn parse_command(input: &str) -> Result<Command> {
         }
         "export" | "e" => {
             let fmt = parts.get(1).copied().unwrap_or("json");
-            let format = match fmt {
-                "json" => ExportFormat::Json,
-                "csv" => ExportFormat::Csv,
-                _ => anyhow::bail!("Unknown export format: {fmt}. Use 'json' or 'csv'."),
-            };
+            let format = parse_export_format(fmt)?;
             Ok(Command::Export { format })
         }
         "stats" => Ok(Command::Stats),
@@ -1448,13 +1832,65 @@ fn parse_command(input: &str) -> Result<Command> {
             let value = parts[2..].join(" ");
             Ok(Command::Set { name, value })
         }
-        "help" | "h" | "?" => Ok(Command::Help {
+        "mode" | ":mode" => {
+            let mode_str = parts
+                .get(1)
+                .copied()
+                .ok_or_else(|| anyhow::anyhow!("Usage: :mode <hybrid|lexical|semantic>"))?;
+            let mode = mode_str
+                .parse::<SearchMode>()
+                .map_err(|e| anyhow::anyhow!("{e}"))?;
+            Ok(Command::Mode { mode })
+        }
+        "history" | ":history" => Ok(Command::History),
+        "clear" | ":clear" => Ok(Command::Clear),
+        "status" | ":status" => Ok(Command::Status),
+        "limit" | ":limit" => {
+            let limit_str = parts
+                .get(1)
+                .copied()
+                .ok_or_else(|| anyhow::anyhow!("Usage: :limit <number>"))?;
+            let limit: usize = limit_str
+                .parse()
+                .map_err(|_| anyhow::anyhow!("Invalid limit: {limit_str}"))?;
+            Ok(Command::Limit { limit })
+        }
+        "type" | ":type" => {
+            let type_str = parts.get(1).copied().unwrap_or("all");
+            let doc_type = parse_type_filter(type_str)?;
+            Ok(Command::TypeFilter { doc_type })
+        }
+        "help" | ":help" | "h" | "?" => Ok(Command::Help {
             command: parts.get(1).map(ToString::to_string),
         }),
-        "quit" | "exit" | "q" => Ok(Command::Quit),
+        "quit" | ":quit" | "exit" | "q" => Ok(Command::Quit),
         _ => anyhow::bail!(
             "Unknown command: {}. Type 'help' for available commands.",
             parts[0]
+        ),
+    }
+}
+
+fn parse_export_format(fmt: &str) -> Result<ExportFormat> {
+    match fmt {
+        "json" => Ok(ExportFormat::Json),
+        "jsonl" => Ok(ExportFormat::Jsonl),
+        "csv" => Ok(ExportFormat::Csv),
+        "toon" => Ok(ExportFormat::Toon),
+        _ => anyhow::bail!("Unknown export format: {fmt}. Use 'json', 'jsonl', 'csv', or 'toon'."),
+    }
+}
+
+fn parse_type_filter(type_str: &str) -> Result<Option<crate::search::DocType>> {
+    match type_str {
+        "all" | "none" | "clear" => Ok(None),
+        "tweet" | "tweets" | "t" => Ok(Some(crate::search::DocType::Tweet)),
+        "like" | "likes" => Ok(Some(crate::search::DocType::Like)),
+        "dm" | "dms" => Ok(Some(crate::search::DocType::DirectMessage)),
+        "grok" => Ok(Some(crate::search::DocType::GrokMessage)),
+        "bookmark" | "bookmarks" | "bm" => Ok(Some(crate::search::DocType::Bookmark)),
+        _ => anyhow::bail!(
+            "Unknown doc type: {type_str}. Use tweet, like, dm, grok, bookmark, or all."
         ),
     }
 }
@@ -1463,14 +1899,16 @@ fn parse_list_target(s: &str) -> Result<ListTarget> {
     match s {
         "tweets" | "t" => Ok(ListTarget::Tweets),
         "likes" | "favorites" => Ok(ListTarget::Likes),
+        "bookmarks" | "bookmark" | "bm" => Ok(ListTarget::Bookmarks),
         "dms" | "dm" | "messages" => Ok(ListTarget::Dms),
+        "grok" | "grok-messages" => Ok(ListTarget::Grok),
         "conversations" | "convos" => Ok(ListTarget::Conversations),
         "followers" => Ok(ListTarget::Followers),
         "following" => Ok(ListTarget::Following),
         "blocks" | "blocked" => Ok(ListTarget::Blocks),
         "mutes" | "muted" => Ok(ListTarget::Mutes),
         _ => anyhow::bail!(
-            "Unknown list target: {s}. Options: tweets, likes, dms, conversations, followers, following, blocks, mutes"
+            "Unknown list target: {s}. Options: tweets, likes, bookmarks, dms, grok, conversations, followers, following, blocks, mutes"
         ),
     }
 }
@@ -1478,12 +1916,14 @@ fn parse_list_target(s: &str) -> Result<ListTarget> {
 fn print_results(results: &[SearchResult], offset: usize, page_size: usize) {
     for (idx, result) in results.iter().skip(offset).take(page_size).enumerate() {
         let text = truncate_text(&result.text, 80);
-        println!(
-            "{:>3}. [{}] {}",
-            offset + idx + 1,
-            result.result_type.to_string().cyan(),
-            text
-        );
+        let type_badge = match result.result_type {
+            crate::SearchResultType::Tweet => result.result_type.to_string().cyan(),
+            crate::SearchResultType::Like => result.result_type.to_string().magenta(),
+            crate::SearchResultType::DirectMessage => result.result_type.to_string().blue(),
+            crate::SearchResultType::GrokMessage => result.result_type.to_string().green(),
+            crate::SearchResultType::Bookmark => result.result_type.to_string().yellow(),
+        };
+        println!("{:>3}. [{}] {}", offset + idx + 1, type_badge, text);
     }
     let remaining = results.len().saturating_sub(offset + page_size);
     if remaining > 0 {
@@ -1999,6 +2439,7 @@ mod tests {
         assert_eq!(config.page_size, 10);
         assert!(!config.no_history);
         assert!(config.history_file.is_none());
+        assert!(config.index_path.is_none());
     }
 
     #[test]
@@ -2008,6 +2449,7 @@ mod tests {
             page_size: 25,
             no_history: true,
             history_file: Some(PathBuf::from("/tmp/test_history")),
+            index_path: Some(PathBuf::from("/tmp/test_index")),
         };
         assert_eq!(config.prompt, "custom> ");
         assert_eq!(config.page_size, 25);
@@ -2016,6 +2458,7 @@ mod tests {
             config.history_file,
             Some(PathBuf::from("/tmp/test_history"))
         );
+        assert_eq!(config.index_path, Some(PathBuf::from("/tmp/test_index")));
     }
 
     #[test]
@@ -2025,12 +2468,14 @@ mod tests {
             page_size: 15,
             no_history: false,
             history_file: None,
+            index_path: None,
         };
         let cloned = config.clone();
         assert_eq!(cloned.prompt, config.prompt);
         assert_eq!(cloned.page_size, config.page_size);
         assert_eq!(cloned.no_history, config.no_history);
         assert_eq!(cloned.history_file, config.history_file);
+        assert_eq!(cloned.index_path, config.index_path);
     }
 
     // ======================== Prompt Base Extraction Tests ========================
@@ -2853,5 +3298,185 @@ mod tests {
             let rendered = status_line.render(&output);
             assert!(rendered.contains('●'), "Status line should have indicator");
         }
+    }
+
+    #[test]
+    fn test_parse_repl_colon_and_extended_commands() {
+        assert!(matches!(
+            parse_command(":mode semantic").unwrap(),
+            Command::Mode {
+                mode: SearchMode::Semantic
+            }
+        ));
+        assert!(matches!(
+            parse_command("mode lexical").unwrap(),
+            Command::Mode {
+                mode: SearchMode::Lexical
+            }
+        ));
+        assert!(matches!(
+            parse_command(":history").unwrap(),
+            Command::History
+        ));
+        assert!(matches!(parse_command(":clear").unwrap(), Command::Clear));
+        assert!(matches!(parse_command(":status").unwrap(), Command::Status));
+        assert!(matches!(parse_command("status").unwrap(), Command::Status));
+        assert!(matches!(
+            parse_command(":limit 25").unwrap(),
+            Command::Limit { limit: 25 }
+        ));
+        assert!(matches!(
+            parse_command(":type bookmark").unwrap(),
+            Command::TypeFilter {
+                doc_type: Some(crate::search::DocType::Bookmark)
+            }
+        ));
+        assert!(matches!(
+            parse_command(":type all").unwrap(),
+            Command::TypeFilter { doc_type: None }
+        ));
+        assert!(matches!(
+            parse_command("list bookmarks").unwrap(),
+            Command::List {
+                target: ListTarget::Bookmarks
+            }
+        ));
+        assert!(matches!(
+            parse_command("list grok").unwrap(),
+            Command::List {
+                target: ListTarget::Grok
+            }
+        ));
+        assert!(matches!(
+            parse_command("export toon").unwrap(),
+            Command::Export {
+                format: ExportFormat::Toon
+            }
+        ));
+        assert!(matches!(
+            parse_command("export jsonl").unwrap(),
+            Command::Export {
+                format: ExportFormat::Jsonl
+            }
+        ));
+    }
+
+    #[test]
+    fn test_repl_show_dm_sets_in_conversation_context() {
+        let theme = Theme::default();
+        let prompt = ReplPrompt::new(&theme);
+        assert_eq!(prompt.theme().primary, theme.primary);
+        let status_line = ReplStatusLine::new(
+            PathBuf::from("/test/archive"),
+            42,
+            IndexStatus::Ready,
+            &theme,
+        );
+        assert_eq!(status_line.theme().primary, theme.primary);
+
+        let storage = Storage::open_memory().unwrap();
+        let mut session = ReplSession {
+            storage,
+            search: None,
+            index_path: None,
+            vector_index: None,
+            embedder: None,
+            search_mode: SearchMode::Hybrid,
+            type_filter: None,
+            history_entries: Vec::new(),
+            last_results: vec![SearchResult {
+                result_type: crate::SearchResultType::DirectMessage,
+                id: "dm_999".to_string(),
+                text: "Hello DM".to_string(),
+                created_at: Utc::now(),
+                score: 1.0,
+                highlights: vec![],
+                metadata: serde_json::json!({ "conversation_id": "conv_1234567890" }),
+                rerank_score: None,
+            }],
+            last_query: None,
+            history_path: None,
+            prompt_context: PromptContext::Normal,
+            current_offset: 0,
+            page_size: 10,
+            prompt_str: "xf> ".to_string(),
+            last_selected: None,
+            named_vars: HashMap::new(),
+        };
+        session.run_show(1).unwrap();
+        assert!(matches!(
+            session.prompt_context,
+            PromptContext::InConversation(ref cid) if cid == "conv_1234567890"
+        ));
+        let rendered = session.format_prompt();
+        assert!(rendered.contains("[dm:conv_123]"));
+    }
+
+    #[test]
+    fn test_repl_semantic_search_caches_vector_index_and_embedder() {
+        use crate::embedder::Embedder;
+
+        let mut storage = Storage::open_memory().unwrap();
+        let tweet = crate::model::Tweet {
+            id: "tw_cache_1".to_string(),
+            created_at: Utc::now(),
+            full_text: "Rust async programming and zero copy".to_string(),
+            source: Some("web".to_string()),
+            favorite_count: 3,
+            retweet_count: 1,
+            lang: Some("en".to_string()),
+            in_reply_to_status_id: None,
+            in_reply_to_user_id: None,
+            in_reply_to_screen_name: None,
+            is_retweet: false,
+            hashtags: vec!["rust".to_string()],
+            user_mentions: vec![],
+            urls: vec![],
+            media: vec![],
+        };
+        storage.store_tweets(&[tweet]).unwrap();
+        let hash_embedder = crate::hash_embedder::HashEmbedder::default();
+        let emb = hash_embedder
+            .embed("Rust async programming and zero copy")
+            .unwrap();
+        storage
+            .store_embedding("tw_cache_1", "tweet", &emb, None)
+            .unwrap();
+        storage
+            .set_embedding_model("default", hash_embedder.model_name())
+            .unwrap();
+
+        let mut session = ReplSession {
+            storage,
+            search: None,
+            index_path: None,
+            vector_index: None,
+            embedder: None,
+            search_mode: SearchMode::Semantic,
+            type_filter: None,
+            history_entries: Vec::new(),
+            last_results: Vec::new(),
+            last_query: None,
+            history_path: None,
+            prompt_context: PromptContext::Normal,
+            current_offset: 0,
+            page_size: 10,
+            prompt_str: "xf> ".to_string(),
+            last_selected: None,
+            named_vars: HashMap::new(),
+        };
+
+        assert!(session.vector_index.is_none());
+        assert!(session.embedder.is_none());
+
+        session.run_search("Rust async").unwrap();
+        assert!(session.vector_index.is_some());
+        assert!(session.embedder.is_some());
+        assert_eq!(session.last_results.len(), 1);
+        assert_eq!(session.last_results[0].id, "tw_cache_1");
+
+        // Second search reuses the cached vector_index and embedder
+        session.run_search("zero copy").unwrap();
+        assert_eq!(session.last_results.len(), 1);
     }
 }

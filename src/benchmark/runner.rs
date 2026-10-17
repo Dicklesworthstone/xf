@@ -257,6 +257,79 @@ pub fn evaluate_embedder_quality(
     })
 }
 
+/// MRL dimension sweep output: `(dims_tested, quality_at_dims)`.
+pub type MrlSweepResult = (Vec<usize>, Vec<(usize, f64)>);
+
+/// Evaluate MRL NDCG@10 across specified target dimensions.
+#[allow(clippy::cast_precision_loss)]
+pub fn evaluate_mrl_quality_sweep(
+    embedder: &dyn Embedder,
+    corpus: &BenchmarkCorpus,
+    mrl_dims: &[usize],
+) -> Result<MrlSweepResult> {
+    if !embedder.supports_mrl() || corpus.queries.is_empty() || mrl_dims.is_empty() {
+        return Ok((Vec::new(), Vec::new()));
+    }
+
+    let max_dim = embedder.dimension();
+    let valid_dims: Vec<usize> = mrl_dims
+        .iter()
+        .copied()
+        .filter(|&d| d > 0 && d <= max_dim)
+        .collect();
+    if valid_dims.is_empty() {
+        return Ok((Vec::new(), Vec::new()));
+    }
+
+    let doc_texts: Vec<&str> = corpus.corpus.iter().map(|d| d.text.as_str()).collect();
+    let full_doc_embeddings = embedder.embed_batch(&doc_texts)?;
+    let query_texts: Vec<&str> = corpus.queries.iter().map(|q| q.text.as_str()).collect();
+    let full_query_embeddings = embedder.embed_batch(&query_texts)?;
+
+    let mut dims_tested = Vec::with_capacity(valid_dims.len());
+    let mut quality_at_dims = Vec::with_capacity(valid_dims.len());
+
+    for dim in valid_dims {
+        let Ok(mut trunc_docs) = embedder.truncate_batch(&full_doc_embeddings, dim) else {
+            continue;
+        };
+        let Ok(mut trunc_queries) = embedder.truncate_batch(&full_query_embeddings, dim) else {
+            continue;
+        };
+        for v in &mut trunc_docs {
+            crate::embedder::l2_normalize(v);
+        }
+        for v in &mut trunc_queries {
+            crate::embedder::l2_normalize(v);
+        }
+
+        let mut ndcg_scores = Vec::with_capacity(corpus.queries.len());
+        for (q_idx, query) in corpus.queries.iter().enumerate() {
+            let query_vec = &trunc_queries[q_idx];
+            let mut scores: Vec<(usize, f32)> = trunc_docs
+                .iter()
+                .enumerate()
+                .map(|(i, doc_emb)| (i, dot_product(query_vec, doc_emb)))
+                .collect();
+            scores.sort_by(|a, b| b.1.total_cmp(&a.1));
+            let ranked_rels: Vec<u8> = scores
+                .iter()
+                .take(10)
+                .map(|(idx, _)| {
+                    let doc_id = &corpus.corpus[*idx].id;
+                    query.relevants.get(doc_id).copied().unwrap_or(0)
+                })
+                .collect();
+            ndcg_scores.push(ndcg_at_k(&ranked_rels, 10));
+        }
+
+        dims_tested.push(dim);
+        quality_at_dims.push((dim, mean(&ndcg_scores)));
+    }
+
+    Ok((dims_tested, quality_at_dims))
+}
+
 /// Compute dot product between two embedding vectors.
 #[inline]
 fn dot_product(a: &[f32], b: &[f32]) -> f32 {
@@ -462,19 +535,28 @@ where
     };
 
     // 5. MRL sweep (if supported)
-    // For now, return empty - actual MRL evaluation would require
-    // dimension-aware embedding which needs model-specific support
-    let mrl_dims_tested: Vec<usize> = vec![];
-    let mrl_quality_at_dims: Vec<(usize, f64)> = vec![];
-    let _ = (supports_mrl, &config.mrl_dims); // Suppress unused warnings
+    let (mrl_dims_tested, mrl_quality_at_dims) =
+        if supports_mrl && config.eval_quality && !corpus.queries.is_empty() {
+            evaluate_mrl_quality_sweep(embedder.as_ref(), corpus, &config.mrl_dims)?
+        } else {
+            (Vec::new(), Vec::new())
+        };
 
-    // Resource metrics (basic for now)
+    // Resource and model registry metrics
     let peak_threads = rayon::current_num_threads();
+    let (peak_rss_mb, steady_rss_mb) = measure_process_rss_mb();
+    let registry = crate::model_registry::ModelRegistry::new();
+    let canonical_name = crate::model_registry::ModelRegistry::canonical_embedder_name(&model_name);
+    let eligible = canonical_name.is_some();
+    let model_file_size_mb = canonical_name
+        .and_then(|canon| registry.list_models().into_iter().find(|m| m.name == canon))
+        .and_then(|m| m.size_mb)
+        .unwrap_or(0.0);
 
     Ok(FullBenchmarkResult {
         model_name,
         category,
-        eligible: true, // TODO: Check against candidates list
+        eligible,
         release_date: None,
         quality,
         speed,
@@ -482,15 +564,51 @@ where
         errors,
         oom_count,
         panics: 0,
-        peak_rss_mb: 0.0,        // TODO: Implement RSS measurement
-        steady_rss_mb: 0.0,      // TODO: Implement RSS measurement
-        model_file_size_mb: 0.0, // TODO: Implement model size measurement
+        peak_rss_mb,
+        steady_rss_mb,
+        model_file_size_mb,
         peak_threads,
         mrl_dims_tested,
         mrl_quality_at_dims,
         reranker_lift: None,
         latency_ms: latencies,
     })
+}
+
+/// Parse `(peak_rss_mb, steady_rss_mb)` (`VmHWM` and `VmRSS`) from `/proc/self/status` text.
+#[must_use]
+#[allow(clippy::cast_precision_loss)]
+pub fn parse_proc_status_rss_mb(status_text: &str) -> (f64, f64) {
+    let mut vm_hwm_kib = None;
+    let mut vm_rss_kib = None;
+    for line in status_text.lines() {
+        if let Some(rest) = line.strip_prefix("VmHWM:") {
+            if let Some(val_str) = rest.split_whitespace().next() {
+                if let Ok(kb) = val_str.parse::<u64>() {
+                    vm_hwm_kib = Some(kb);
+                }
+            }
+        } else if let Some(rest) = line.strip_prefix("VmRSS:") {
+            if let Some(val_str) = rest.split_whitespace().next() {
+                if let Ok(kb) = val_str.parse::<u64>() {
+                    vm_rss_kib = Some(kb);
+                }
+            }
+        }
+    }
+    let steady_mb = vm_rss_kib.map_or(0.0, |kb| kb as f64 / 1024.0);
+    let peak_mb = vm_hwm_kib.map_or(steady_mb, |kb| (kb as f64 / 1024.0).max(steady_mb));
+    (peak_mb, steady_mb)
+}
+
+fn measure_process_rss_mb() -> (f64, f64) {
+    #[cfg(target_os = "linux")]
+    {
+        if let Ok(status) = std::fs::read_to_string("/proc/self/status") {
+            return parse_proc_status_rss_mb(&status);
+        }
+    }
+    (0.0, 0.0)
 }
 
 #[cfg(test)]
@@ -686,7 +804,7 @@ mod tests {
         assert_eq!(config.measure_iters, 100);
         assert_eq!(config.batch_size, 32);
         assert!(config.eval_quality);
-        assert!(!config.mrl_dims.is_empty());
+        assert_ne!(config.mrl_dims, Vec::<usize>::new());
     }
 
     #[test]
@@ -694,5 +812,88 @@ mod tests {
         let info = SystemInfo::default();
         assert_eq!(info.cpu_model, "unknown");
         assert!(info.cores > 0);
+    }
+
+    #[test]
+    fn test_parse_proc_status_rss_mb() {
+        let sample = "\
+Name:\txf
+VmPeak:\t  524288 kB
+VmSize:\t  512000 kB
+VmHWM:\t  131072 kB
+VmRSS:\t   65536 kB
+Threads:\t8
+";
+        let (peak_mb, steady_mb) = parse_proc_status_rss_mb(sample);
+        assert!((peak_mb - 128.0).abs() < 1e-6);
+        assert!((steady_mb - 64.0).abs() < 1e-6);
+
+        let empty = parse_proc_status_rss_mb("");
+        assert!((empty.0 - 0.0).abs() < 1e-6);
+        assert!((empty.1 - 0.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_full_benchmark_populates_rss_and_eligibility() {
+        let corpus = make_test_corpus();
+        let config = BenchmarkConfig {
+            warmup_iters: 1,
+            measure_iters: 1,
+            batch_size: 2,
+            eval_quality: false,
+            ..Default::default()
+        };
+        let result = run_full_benchmark(|| Ok(Box::new(HashEmbedder::default())), &corpus, &config)
+            .expect("full benchmark failed");
+        assert!(result.eligible);
+        #[cfg(target_os = "linux")]
+        {
+            assert!(result.steady_rss_mb > 0.0);
+            assert!(result.peak_rss_mb >= result.steady_rss_mb);
+        }
+    }
+
+    #[test]
+    fn test_full_benchmark_mrl_sweep() {
+        struct MockMrlEmbedder(HashEmbedder);
+        impl Embedder for MockMrlEmbedder {
+            fn embed(&self, text: &str) -> crate::embedder::EmbedderResult<Vec<f32>> {
+                self.0.embed(text)
+            }
+            fn dimension(&self) -> usize {
+                self.0.dimension()
+            }
+            fn id(&self) -> &'static str {
+                "potion-multilingual-128M"
+            }
+            fn is_semantic(&self) -> bool {
+                false
+            }
+            fn supports_mrl(&self) -> bool {
+                true
+            }
+        }
+
+        let corpus = make_test_corpus();
+        let config = BenchmarkConfig {
+            warmup_iters: 1,
+            measure_iters: 1,
+            batch_size: 2,
+            mrl_dims: vec![64, 128, 384, 1024],
+            eval_quality: true,
+        };
+        let result = run_full_benchmark(
+            || Ok(Box::new(MockMrlEmbedder(HashEmbedder::default()))),
+            &corpus,
+            &config,
+        )
+        .expect("full benchmark with MRL sweep failed");
+
+        assert_eq!(result.mrl_dims_tested, vec![64, 128, 384]);
+        assert_eq!(result.mrl_quality_at_dims.len(), 3);
+        for (dim, ndcg) in &result.mrl_quality_at_dims {
+            assert!([64, 128, 384].contains(dim));
+            assert!((0.0..=1.0).contains(ndcg));
+        }
     }
 }

@@ -83,7 +83,7 @@ impl std::str::FromStr for SearchMode {
 }
 
 /// Hybrid score tracking for RRF fusion.
-#[allow(dead_code)]
+#[cfg(test)]
 #[derive(Debug, Default, Clone)]
 struct HybridScore {
     /// RRF score (sum of 1/(K+rank+1) from each list).
@@ -608,7 +608,6 @@ mod tests {
     }
 
     #[derive(Debug, Clone)]
-    #[allow(dead_code)]
     struct LegacyFusedHit {
         doc_id: String,
         doc_type: String,
@@ -949,13 +948,21 @@ mod tests {
             // of score-based ordering differences.
             let mut fused_sorted: Vec<_> = fused
                 .iter()
-                .map(|h| (h.doc_id, h.doc_type, h.score, h.in_both))
+                .map(|h| (h.doc_id, h.doc_type, h.score, h.in_both, h.lexical_rank))
                 .collect();
             fused_sorted.sort_by(|a, b| a.0.cmp(b.0).then(a.1.cmp(b.1)));
 
             let mut legacy_sorted: Vec<_> = legacy
                 .iter()
-                .map(|h| (h.doc_id.as_str(), h.doc_type.as_str(), h.score, h.in_both))
+                .map(|h| {
+                    (
+                        h.doc_id.as_str(),
+                        h.doc_type.as_str(),
+                        h.score,
+                        h.in_both,
+                        h.lexical_rank,
+                    )
+                })
                 .collect();
             legacy_sorted.sort_by(|a, b| a.0.cmp(b.0).then(a.1.cmp(b.1)));
 
@@ -963,6 +970,7 @@ mod tests {
                 assert_eq!(new.0, old.0, "doc_id mismatch in case {case}");
                 assert_eq!(new.1, old.1, "doc_type mismatch in case {case}");
                 assert_eq!(new.3, old.3, "in_both mismatch in case {case}");
+                assert_eq!(new.4, old.4, "lexical_rank mismatch in case {case}");
                 // Allow f64→f32 rounding difference
                 assert!(
                     (new.2 - old.2).abs() < 1e-6,

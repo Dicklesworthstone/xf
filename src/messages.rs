@@ -782,7 +782,7 @@ mod tests {
         let panel = MessagePanel::archive_not_found(Path::new("/test"));
         assert_eq!(panel.code, Some(ErrorCode::ArchiveNotFound));
         assert_eq!(panel.level, MessageLevel::Error);
-        assert!(!panel.suggestions.is_empty());
+        assert_ne!(panel.suggestions, Vec::<String>::new());
         assert!(panel.message.contains("/test"));
     }
 
