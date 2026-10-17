@@ -503,6 +503,13 @@ pub fn generate_embeddings_with_config(storage: &Storage, config: &EmbeddingConf
         let mut candidates: Vec<(String, &'static str, String, [u8; 32])> = Vec::new();
 
         for (doc_id, text, doc_type) in chunk {
+            if *doc_type == "tweet" {
+                stored_count += embed_post_chunks(storage, embedder, doc_id, text, "default")?;
+                if let Some(ref pb) = pb {
+                    pb.inc(1);
+                }
+                continue;
+            }
             // Canonicalize text
             let canonical = canonicalize_for_embedding(text);
             if canonical.is_empty() {
@@ -649,6 +656,53 @@ pub fn generate_embeddings_with_config(storage: &Storage, config: &EmbeddingConf
     }
 
     Ok(())
+}
+
+/// Index every byte of a post through overlapping, model-bounded windows.
+/// Fail closed on inference errors so an incomplete chunk set cannot replace a post.
+pub(crate) fn embed_post_chunks(
+    storage: &Storage,
+    embedder: &dyn crate::embedder::Embedder,
+    doc_id: &str,
+    text: &str,
+    model_id: &str,
+) -> Result<usize> {
+    let ranges = embedder
+        .document_chunks(text)
+        .map_err(|e| anyhow::anyhow!("Cannot chunk post {doc_id}: {e}"))?;
+    let chunks: Vec<_> = ranges
+        .iter()
+        .map(|range| {
+            (
+                range.clone(),
+                crate::canonicalize::content_hash(&text[range.clone()]),
+            )
+        })
+        .collect();
+    let model_name = crate::model_registry::ModelRegistry::canonical_name(embedder.model_name())
+        .unwrap_or_else(|| embedder.model_name());
+    if storage.get_embedding_model(model_id)?.as_deref() == Some(model_name)
+        && storage.document_chunks_match(doc_id, model_id, &chunks, embedder.dimension())?
+    {
+        return Ok(0);
+    }
+    let mut embeddings = Vec::with_capacity(chunks.len());
+    for batch in ranges.chunks(32) {
+        let texts: Vec<_> = batch.iter().map(|range| &text[range.clone()]).collect();
+        embeddings.extend(
+            embedder
+                .embed_batch(&texts)
+                .map_err(|e| anyhow::anyhow!("Cannot embed post {doc_id}: {e}"))?,
+        );
+    }
+    if embeddings
+        .iter()
+        .any(|v| v.len() != embedder.dimension() || v.iter().any(|x| !x.is_finite()))
+    {
+        return Err(anyhow::anyhow!("Invalid chunk vector for post {doc_id}").into());
+    }
+    storage.store_document_chunks(doc_id, model_id, &chunks, &embeddings)?;
+    Ok(chunks.len())
 }
 
 /// Record which embedder model produced the embeddings stored under
@@ -812,6 +866,13 @@ fn generate_embeddings_for_model(
         let mut candidates: Vec<(String, &'static str, String, [u8; 32])> = Vec::new();
 
         for (doc_id, text, doc_type) in chunk {
+            if *doc_type == "tweet" {
+                stored_count += embed_post_chunks(storage, embedder, doc_id, text, model_id)?;
+                if let Some(ref pb) = pb {
+                    pb.inc(1);
+                }
+                continue;
+            }
             let canonical = canonicalize_for_embedding(text);
             if canonical.is_empty() {
                 skipped_count += 1;
@@ -1022,6 +1083,49 @@ mod tests {
     use std::time::Duration as StdDuration;
 
     type EmbedBatch = Vec<(String, String, Vec<f32>, Option<[u8; 32]>)>;
+
+    #[test]
+    fn post_chunks_cover_tail_and_replace_edits_idempotently() -> Result<()> {
+        let storage = Storage::open_memory()?;
+        let embedder = HashEmbedder::default();
+        let text = format!(
+            "{}\n```rust\n{}\n```\nRare tail: orbital telescope spectroscopy 🔭",
+            "opening paragraph ".repeat(250),
+            "let middle = 42;\n".repeat(100)
+        );
+        let count = super::embed_post_chunks(&storage, &embedder, "post", &text, "default")?;
+        assert!(count > 5);
+        storage.set_embedding_model("default", "hash-fnv1a-384")?;
+        assert_eq!(
+            super::embed_post_chunks(&storage, &embedder, "post", &text, "default")?,
+            0
+        );
+        assert_eq!(storage.embedding_count()?, i64::try_from(count)?);
+        let index = crate::vector::InMemoryVectorIndex::load_from_storage(&storage)?;
+        let query = embedder.embed("orbital telescope spectroscopy")?;
+        let hits = index.search_top_k(&query, 10, None);
+        assert_eq!(hits.len(), 1);
+        assert_eq!(hits[0].doc_id, "post");
+        // This deterministic hash model measures lexical overlap, not semantic
+        // quality. The tail must improve retrieval over the legacy prefix.
+        let truncated = embedder.embed(&canonicalize_for_embedding(&text))?;
+        let prefix_score = crate::embedder::dot_product(&query, &truncated);
+        assert!(
+            hits[0].score > prefix_score,
+            "tail score {} must exceed truncated-prefix score {prefix_score}",
+            hits[0].score
+        );
+        // An edit limited to the previously truncated tail must invalidate it.
+        let changed = format!("{text} New ending: geothermal energy.");
+        assert!(super::embed_post_chunks(&storage, &embedder, "post", &changed, "default")? > 0);
+        // Shortening a post removes all its obsolete chunk vectors.
+        assert_eq!(
+            super::embed_post_chunks(&storage, &embedder, "post", "short edited post", "default")?,
+            1
+        );
+        assert_eq!(storage.embedding_count()?, 1);
+        Ok(())
+    }
 
     #[test]
     fn format_number_adds_separators() {

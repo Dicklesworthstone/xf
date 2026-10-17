@@ -374,6 +374,11 @@ impl EmbeddingWorker {
             let mut candidates: Vec<(String, &'static str, String, [u8; 32])> = Vec::new();
 
             for (doc_id, text, doc_type) in chunk {
+                if *doc_type == "tweet" {
+                    crate::embed_post_chunks(&storage, embedder, doc_id, text, model_id)?;
+                    completed_docs += 1;
+                    continue;
+                }
                 let canonical = canonicalize_for_embedding(text);
                 if canonical.is_empty() {
                     completed_docs += 1;

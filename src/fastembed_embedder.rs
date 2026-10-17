@@ -381,6 +381,29 @@ impl std::fmt::Debug for FastEmbedModelEmbedder {
 }
 
 impl Embedder for FastEmbedModelEmbedder {
+    fn document_chunks(&self, text: &str) -> EmbedderResult<Vec<std::ops::Range<usize>>> {
+        let model = self
+            .model
+            .lock()
+            .map_err(|e| EmbedderError::Internal(format!("model lock poisoned: {e}")))?;
+        let limit = model
+            .tokenizer
+            .get_truncation()
+            .map_or(224, |p| p.max_length.min(224));
+        let mut tokenizer = model.tokenizer.clone();
+        drop(model);
+        tokenizer.with_truncation(None).map_err(|e| {
+            EmbedderError::Internal(format!("cannot disable tokenizer truncation: {e}"))
+        })?;
+        tokenizer.with_padding(None);
+        crate::embedder::overlapping_chunks(text, |chunk| {
+            let encoded = tokenizer.encode(chunk, true).map_err(|e| {
+                EmbedderError::InvalidInput(format!("cannot tokenize document chunk: {e}"))
+            })?;
+            Ok(encoded.len() <= limit)
+        })
+    }
+
     fn embed(&self, text: &str) -> EmbedderResult<Vec<f32>> {
         if text.is_empty() {
             return Err(EmbedderError::InvalidInput("empty text".to_string()));

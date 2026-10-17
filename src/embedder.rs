@@ -57,6 +57,50 @@ pub enum EmbedderError {
 /// Result type for embedder operations.
 pub type EmbedderResult<T> = Result<T, EmbedderError>;
 
+/// Split the complete original text into overlapping UTF-8 byte ranges.
+/// Each window contains at most 800 characters and overlaps the next by 20%.
+/// Transformer implementations additionally enforce their tokenizer's limit.
+/// No markdown, code, URLs, or tail text is discarded.
+pub(crate) fn overlapping_chunks(
+    text: &str,
+    fits: impl Fn(&str) -> EmbedderResult<bool>,
+) -> EmbedderResult<Vec<std::ops::Range<usize>>> {
+    let mut boundaries: Vec<usize> = text.char_indices().map(|(offset, _)| offset).collect();
+    boundaries.push(text.len());
+    let chars = boundaries.len() - 1;
+    let mut chunks = Vec::new();
+    let mut start = 0;
+    while start < chars {
+        let mut end = (start + 800).min(chars);
+        if !fits(&text[boundaries[start]..boundaries[end]])? {
+            // Find a fitting prefix without ever relying on silent truncation.
+            let mut low = start;
+            let mut high = end;
+            while low + 1 < high {
+                let mid = low + (high - low) / 2;
+                if fits(&text[boundaries[start]..boundaries[mid]])? {
+                    low = mid;
+                } else {
+                    high = mid;
+                }
+            }
+            end = low;
+            if end == start {
+                return Err(EmbedderError::InvalidInput(
+                    "a single character exceeds the embedding token budget".to_string(),
+                ));
+            }
+        }
+        chunks.push(boundaries[start]..boundaries[end]);
+        if end == chars {
+            break;
+        }
+        let overlap = (end - start) / 5;
+        start = end - overlap;
+    }
+    Ok(chunks)
+}
+
 /// Information about an embedder.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EmbedderInfo {
@@ -87,6 +131,12 @@ pub struct EmbedderInfo {
 /// - `FastEmbedder` (optional): ML-based semantic embeddings using `MiniLM`.
 ///   Requires model files, ~5ms per embedding.
 pub trait Embedder: Send + Sync {
+    /// Full-document windows, expressed as byte ranges in the original text.
+    /// Models with a token limit must override this to check every window.
+    fn document_chunks(&self, text: &str) -> EmbedderResult<Vec<std::ops::Range<usize>>> {
+        overlapping_chunks(text, |_| Ok(true))
+    }
+
     /// Embed a single text into a dense vector.
     ///
     /// The returned vector is L2-normalized (unit length).
@@ -349,6 +399,31 @@ impl FrankensearchEmbedder for FrankensearchEmbedderAdapter {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn chunks_preserve_every_byte_and_overlap_without_splitting_unicode() {
+        let text = format!(
+            "{}{}",
+            "α🦀中文 code_with_marks **text**\n".repeat(200),
+            "UNIQUE TAIL"
+        );
+        let chunks = overlapping_chunks(&text, |s| Ok(s.chars().count() <= 211)).unwrap();
+        assert_eq!(chunks.first().unwrap().start, 0);
+        assert_eq!(chunks.last().unwrap().end, text.len());
+        for range in &chunks {
+            assert!(text.is_char_boundary(range.start) && text.is_char_boundary(range.end));
+            assert!(text[range.clone()].chars().count() <= 211);
+        }
+        for pair in chunks.windows(2) {
+            assert!(pair[0].start < pair[1].start);
+            assert!(pair[0].end > pair[1].start);
+            assert!(pair[0].end < pair[1].end);
+        }
+        assert!(text[chunks.last().unwrap().clone()].ends_with("UNIQUE TAIL"));
+        assert_eq!(overlapping_chunks("", |_| Ok(true)).unwrap().len(), 0);
+        assert_eq!(overlapping_chunks("é", |_| Ok(true)).unwrap(), vec![0..2]);
+        assert!(overlapping_chunks("x", |_| Ok(false)).is_err());
+    }
 
     #[test]
     fn test_l2_normalize() {

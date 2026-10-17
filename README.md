@@ -684,7 +684,7 @@ Each document type has specific fields indexed for search:
 
 ### Embedding Strategy
 
-All content is stored and indexed in full—nothing is truncated. For vector embeddings, text is canonicalized (Unicode normalization, markdown stripped, whitespace collapsed) before embedding (hash or ML).
+All content is stored and keyword-indexed in full. Post embeddings cover the original text with overlapping chunks, including long-post tails and code blocks. Other content types use the canonicalization pipeline below.
 
 | Type | Text Source | Notes |
 |------|-------------|-------|
@@ -950,14 +950,29 @@ xf search "productivity tips"
 
 ### Text Canonicalization
 
-Before embedding, text passes through a normalization pipeline:
+Posts use overlapping windows of at most 800 Unicode characters, with 20% overlap.
+FastEmbed models also tokenize each window without truncation and require it to fit
+within 224 tokens (including special tokens), or the model's smaller configured
+limit. The original UTF-8 byte offsets and content hashes are stored with each
+vector. No part of a long post or code block is discarded.
+
+Semantic search scores each post by its best matching chunk **before** selecting
+the top results. Hybrid search then combines one semantic rank per post with its
+keyword rank. Results retain the original post ID and full text, without duplicates
+or extra fusion votes for long posts. Changed posts replace their complete chunk
+set atomically; unchanged chunk manifests are reused. Build a fresh snapshot using
+new `--db` and `--index` paths with `xf index /path/to/archive --semantic
+--sync-embeddings` to replace legacy truncated post vectors while retaining the
+previous snapshot. Synchronous, two-tier, and daemon indexing use this path.
+
+Queries and non-post content retain the normalization pipeline:
 
 1. **Unicode NFC**: Normalize composed characters
 2. **Strip Markdown**: Remove `**bold**`, `*italic*`, `[links](url)`, headers
 3. **Collapse Code Blocks**: Keep first 20 + last 10 lines of code
 4. **Normalize Whitespace**: Collapse runs of spaces/newlines
 5. **Filter Low-Signal**: Skip trivial content ("OK", "Thanks", "Done")
-6. **Truncate**: Cap at 2000 characters for consistent embedding dimensions
+6. **Truncate**: Cap at 2000 characters before model tokenization
 
 This ensures semantically equivalent text produces identical embeddings.
 

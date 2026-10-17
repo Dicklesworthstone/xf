@@ -9,7 +9,7 @@ use crate::storage::Storage;
 use anyhow::{Result, ensure};
 use fmmap::{MmapFile, MmapFileExt};
 use std::cmp::Ordering;
-use std::collections::BinaryHeap;
+use std::collections::{BinaryHeap, HashMap};
 use std::str;
 
 #[allow(dead_code)]
@@ -674,7 +674,7 @@ impl MmapVectorIndex {
             return Vec::new();
         };
 
-        let mut heap: BinaryHeap<HeapEntry> = BinaryHeap::with_capacity(k + 1);
+        let mut best: HashMap<(u8, &[u8]), HeapEntry> = HashMap::new();
 
         // Phase 1: Scan all records, keeping only offsets in heap (no String allocations)
         for chunk in offsets_bytes.chunks_exact(8) {
@@ -718,8 +718,18 @@ impl MmapVectorIndex {
                 continue;
             };
 
-            heap.push(HeapEntry { score, offset });
-
+            // Max-pool all chunks before top-k, so a long post cannot crowd
+            // other posts out of the candidate set or receive extra RRF votes.
+            let entry = best
+                .entry((doc_type_code, doc_id_bytes))
+                .or_insert(HeapEntry { score, offset });
+            if score > entry.score {
+                *entry = HeapEntry { score, offset };
+            }
+        }
+        let mut heap: BinaryHeap<HeapEntry> = BinaryHeap::with_capacity(k + 1);
+        for entry in best.into_values() {
+            heap.push(entry);
             if heap.len() > k {
                 heap.pop();
             }
@@ -1094,23 +1104,38 @@ impl InMemoryVectorIndex {
             return Vec::new();
         }
 
-        // Phase 1: Scan vectors, keeping only indices in heap (no String clones)
-        let mut heap: BinaryHeap<IndexHeapEntry> = BinaryHeap::with_capacity(k + 1);
+        let scores =
+            self.vectors
+                .iter()
+                .enumerate()
+                .filter_map(|(idx, (_, doc_type, embedding))| {
+                    if doc_types.is_some_and(|types| !types.contains(doc_type)) {
+                        return None;
+                    }
+                    Some(IndexHeapEntry {
+                        score: dot_product_simd(query, embedding),
+                        idx,
+                    })
+                });
+        self.rank_document_scores(scores, k)
+    }
 
-        for (idx, (_, doc_type, embedding)) in self.vectors.iter().enumerate() {
-            // Filter by doc_type if specified
-            if let Some(types) = doc_types {
-                if !types.contains(doc_type) {
-                    continue;
-                }
+    fn rank_document_scores(
+        &self,
+        scores: impl IntoIterator<Item = IndexHeapEntry>,
+        k: usize,
+    ) -> Vec<VectorSearchResult> {
+        let mut best: HashMap<(&str, &str), IndexHeapEntry> = HashMap::new();
+        for candidate in scores {
+            let (id, doc_type, _) = &self.vectors[candidate.idx];
+            let entry = best.entry((id.as_str(), doc_type)).or_insert(candidate);
+            if candidate.score > entry.score {
+                *entry = candidate;
             }
-
-            // Compute similarity using SIMD dot product
-            let score = dot_product_simd(query, embedding);
-
-            heap.push(IndexHeapEntry { score, idx });
-
-            // Keep only top-k by removing the minimum when heap exceeds k
+        }
+        let mut heap: BinaryHeap<IndexHeapEntry> = BinaryHeap::with_capacity(k + 1);
+        for entry in best.into_values() {
+            heap.push(entry);
             if heap.len() > k {
                 heap.pop();
             }
@@ -1153,77 +1178,24 @@ impl InMemoryVectorIndex {
         use rayon::prelude::*;
 
         const PARALLEL_THRESHOLD: usize = 10_000;
-        const CHUNK_SIZE: usize = 1024;
-
-        if self.vectors.len() < PARALLEL_THRESHOLD {
+        if self.vectors.len() < PARALLEL_THRESHOLD || k == 0 || query.len() != self.dimension {
             return self.search_top_k(query, k, doc_types);
         }
-
-        // Create indexed chunks to preserve absolute indices
-        let indexed_chunks: Vec<_> = self
+        let scores: Vec<_> = self
             .vectors
-            .chunks(CHUNK_SIZE)
-            .enumerate()
-            .map(|(chunk_idx, chunk)| (chunk_idx * CHUNK_SIZE, chunk))
-            .collect();
-
-        // Parallel scan with thread-local heaps using indices (no String clones)
-        let partial_results: Vec<Vec<IndexHeapEntry>> = indexed_chunks
             .par_iter()
-            .map(|(base_idx, chunk)| {
-                let mut local_heap: BinaryHeap<IndexHeapEntry> = BinaryHeap::with_capacity(k + 1);
-
-                for (offset, (_, doc_type, embedding)) in chunk.iter().enumerate() {
-                    if let Some(types) = doc_types {
-                        if !types.contains(doc_type) {
-                            continue;
-                        }
-                    }
-
-                    let score = dot_product_simd(query, embedding);
-                    let idx = base_idx + offset;
-
-                    local_heap.push(IndexHeapEntry { score, idx });
-
-                    if local_heap.len() > k {
-                        local_heap.pop();
-                    }
+            .enumerate()
+            .filter_map(|(idx, (_, doc_type, embedding))| {
+                if doc_types.is_some_and(|types| !types.contains(doc_type)) {
+                    return None;
                 }
-
-                local_heap.into_vec()
+                Some(IndexHeapEntry {
+                    score: dot_product_simd(query, embedding),
+                    idx,
+                })
             })
             .collect();
-
-        // Merge thread-local results
-        let mut final_heap: BinaryHeap<IndexHeapEntry> = BinaryHeap::with_capacity(k + 1);
-        for entries in partial_results {
-            for entry in entries {
-                final_heap.push(entry);
-                if final_heap.len() > k {
-                    final_heap.pop();
-                }
-            }
-        }
-
-        // Only clone doc_id for the final k results (doc_type is Copy)
-        let mut results: Vec<VectorSearchResult> = Vec::with_capacity(final_heap.len());
-        for entry in final_heap {
-            let (doc_id, doc_type, _) = &self.vectors[entry.idx];
-            results.push(VectorSearchResult {
-                doc_id: doc_id.clone(),
-                doc_type,
-                score: entry.score,
-            });
-        }
-
-        results.sort_by(|a, b| {
-            b.score
-                .total_cmp(&a.score)
-                .then_with(|| a.doc_id.cmp(&b.doc_id))
-                .then_with(|| a.doc_type.cmp(b.doc_type))
-        });
-
-        results
+        self.rank_document_scores(scores, k)
     }
 }
 
@@ -1231,6 +1203,50 @@ impl InMemoryVectorIndex {
 mod tests {
     use super::*;
     use crate::embedder::l2_normalize;
+
+    #[test]
+    fn chunks_rank_unique_documents_before_top_k_in_all_backends() -> Result<()> {
+        let storage = Storage::open_memory()?;
+        let ranges: Vec<_> = (0..20).map(|i| (i..i + 1, [0; 32])).collect();
+        let mut vectors = vec![vec![0.9, 0.1]; 20];
+        vectors[19] = vec![1.0, 0.0]; // Best match is in the last chunk.
+        storage.store_document_chunks("long", "default", &ranges, &vectors)?;
+        storage.store_embedding("other", "tweet", &[0.8, 0.2], None)?;
+        storage.store_embedding("long", "like", &[0.7, 0.3], None)?;
+        let dir = tempfile::tempdir()?;
+        write_vector_index(dir.path(), &storage)?;
+        let memory = InMemoryVectorIndex::load_from_storage(&storage)?;
+        let file = InMemoryVectorIndex::load_from_file(dir.path())?.unwrap();
+        let mmap = MmapVectorIndex::open(&dir.path().join(VECTOR_INDEX_FILENAME))?;
+        for results in [
+            memory.search_top_k(&[1.0, 0.0], 2, Some(&["tweet"])),
+            file.search_top_k(&[1.0, 0.0], 2, Some(&["tweet"])),
+            mmap.search_top_k(&[1.0, 0.0], 2, Some(&["tweet"])),
+        ] {
+            assert_eq!(results.len(), 2);
+            assert_eq!(results[0].doc_id, "long");
+            assert_eq!(results[0].score, 1.0);
+            assert_eq!(results[1].doc_id, "other");
+        }
+        assert_eq!(mmap.search_top_k(&[1.0, 0.0], 10, None).len(), 3);
+        Ok(())
+    }
+
+    #[cfg(feature = "parallel-search")]
+    #[test]
+    fn parallel_chunks_do_not_crowd_out_other_posts() {
+        let mut index = InMemoryVectorIndex::new(2);
+        for _ in 0..10_100 {
+            index.add("long".to_string(), "tweet", vec![1.0, 0.0]);
+        }
+        index.add("other".to_string(), "tweet", vec![0.8, 0.2]);
+        let hits = index.search_top_k_parallel(&[1.0, 0.0], 2, None);
+        assert_eq!(hits.len(), 2);
+        assert_eq!(hits[0].doc_id, "long");
+        assert_eq!(hits[1].doc_id, "other");
+        assert_eq!(index.search_top_k_parallel(&[1.0], 2, None).len(), 0);
+        assert_eq!(index.search_top_k_parallel(&[1.0, 0.0], 0, None).len(), 0);
+    }
 
     #[allow(clippy::cast_precision_loss)]
     fn create_test_vector(seed: u32, dim: usize) -> Vec<f32> {
