@@ -577,17 +577,30 @@ impl InferenceMode {
     /// Returns an error if both daemon and direct inference fail.
     pub async fn embed(&mut self, texts: &[&str]) -> anyhow::Result<Vec<Vec<f32>>> {
         match self {
-            Self::Daemon(client) => {
-                match client.embed(texts, None, None).await {
-                    Ok(vectors) => Ok(vectors),
-                    Err(e) => {
-                        tracing::warn!(error = %e, "daemon embed failed, consider direct fallback");
-                        // In a full implementation, this would upgrade to Direct mode
-                        // For now, propagate the error
-                        Err(e)
-                    }
+            Self::Daemon(client) => match client.embed(texts, None, None).await {
+                Ok(vectors) => Ok(vectors),
+                Err(e) => {
+                    tracing::warn!(
+                        error = %e,
+                        "daemon embed failed, upgrading to direct in-process fallback"
+                    );
+                    let embedder: Box<dyn crate::embedder::Embedder> =
+                        if crate::fastembed_embedder::fastembed_model_downloaded(
+                            &fastembed::EmbeddingModel::AllMiniLML6V2,
+                        ) {
+                            crate::model_registry::ModelRegistry::new()
+                                .embedder_by_name(crate::model_registry::EMBEDDER_MINILM_L6_V2)
+                                .unwrap_or_else(|_| {
+                                    Box::new(crate::hash_embedder::HashEmbedder::default())
+                                })
+                        } else {
+                            Box::new(crate::hash_embedder::HashEmbedder::default())
+                        };
+                    let vectors = embedder.embed_batch(texts)?;
+                    *self = Self::Direct(embedder);
+                    Ok(vectors)
                 }
-            }
+            },
             Self::Direct(embedder) => embedder.embed_batch(texts).map_err(Into::into),
         }
     }
@@ -750,5 +763,23 @@ mod tests {
         // Other fields unchanged
         assert_eq!(config.connect_timeout, Duration::from_secs(2));
         assert_eq!(config.max_retries, 3);
+    }
+
+    #[tokio::test]
+    async fn test_inference_mode_embed_fallback_to_direct() {
+        let config = ClientConfig {
+            socket_path: PathBuf::from("/tmp/nonexistent-xf-fallback-test.sock"),
+            pid_path: PathBuf::from("/tmp/nonexistent-xf-fallback-test.pid"),
+            connect_timeout: Duration::from_millis(20),
+            request_timeout: Duration::from_millis(50),
+            max_retries: 0,
+            auto_spawn: false,
+            spawn_wait: Duration::from_millis(10),
+        };
+        let mut mode = InferenceMode::Daemon(DaemonClient::with_config(config));
+        let vectors = mode.embed(&["hello fallback world"]).await.unwrap();
+        assert_eq!(vectors.len(), 1);
+        assert!(!vectors[0].is_empty());
+        assert!(matches!(mode, InferenceMode::Direct(_)));
     }
 }

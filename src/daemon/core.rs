@@ -22,7 +22,7 @@ use super::models::ModelManager;
 use super::protocol::{
     EmbeddingJobInfo, Envelope, PROTOCOL_VERSION, Request, Response, error_codes,
 };
-use super::resource::{ResourceConfig, apply_resource_settings, get_process_rss_mb};
+use super::resource::{MemoryMonitor, ResourceConfig, apply_resource_settings, get_process_rss_mb};
 use super::worker::{EmbeddingJobConfig, EmbeddingWorker, EmbeddingWorkerHandle};
 
 /// Default maximum number of models to keep loaded.
@@ -147,10 +147,19 @@ struct DaemonState {
     shutdown_requested: bool,
     /// Handle to the background embedding worker.
     worker_handle: Option<EmbeddingWorkerHandle>,
+    /// System memory pressure monitor.
+    memory_monitor: MemoryMonitor,
+    /// Configured process RSS memory limit in MB (0 = unlimited).
+    memory_limit_mb: u64,
 }
 
 impl DaemonState {
+    #[cfg(test)]
     fn new(max_models: usize) -> Self {
+        Self::with_memory_limit(max_models, ResourceConfig::default().memory_limit_mb)
+    }
+
+    fn with_memory_limit(max_models: usize, memory_limit_mb: u64) -> Self {
         let now = Instant::now();
         Self {
             models: ModelManager::new(max_models),
@@ -162,6 +171,8 @@ impl DaemonState {
             }),
             shutdown_requested: false,
             worker_handle: None,
+            memory_monitor: MemoryMonitor::default(),
+            memory_limit_mb,
         }
     }
 
@@ -171,6 +182,35 @@ impl DaemonState {
 
     fn touch(&mut self) {
         self.last_request = Instant::now();
+    }
+
+    /// Evict loaded models if system memory pressure is high or process RSS exceeds `memory_limit_mb`.
+    ///
+    /// Returns the number of models evicted.
+    #[allow(clippy::cast_precision_loss)]
+    fn enforce_memory_pressure(&mut self) -> usize {
+        let loaded = self.models.total_models();
+        if loaded == 0 {
+            return 0;
+        }
+
+        let rss_mb = get_process_rss_mb();
+        let rss_exceeded = self.memory_limit_mb > 0 && rss_mb > self.memory_limit_mb as f64;
+        let system_pressure = self.memory_monitor.is_under_pressure();
+
+        if rss_exceeded || system_pressure {
+            tracing::warn!(
+                rss_mb,
+                memory_limit_mb = self.memory_limit_mb,
+                available_mb = self.memory_monitor.available_mb(),
+                evicted_models = loaded,
+                "evicting loaded daemon models due to memory pressure"
+            );
+            self.models.unload_all();
+            return loaded;
+        }
+
+        0
     }
 }
 
@@ -186,7 +226,10 @@ impl ModelDaemon {
     /// Note: The embedding worker is spawned when `run()` is called.
     #[must_use]
     pub fn new(config: DaemonConfig) -> Self {
-        let state = Arc::new(Mutex::new(DaemonState::new(config.max_models)));
+        let state = Arc::new(Mutex::new(DaemonState::with_memory_limit(
+            config.max_models,
+            config.resources.memory_limit_mb,
+        )));
         Self { config, state }
     }
 
@@ -438,6 +481,7 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
         Request::Embed { texts, model, dims } => {
             let mut s = state.lock().await;
             s.touch();
+            s.enforce_memory_pressure();
 
             // Get embedder
             let embedder = match s.models.get_embedder(&model) {
@@ -492,6 +536,7 @@ async fn handle_request(request: Request, state: &Arc<Mutex<DaemonState>>) -> Re
         } => {
             let mut s = state.lock().await;
             s.touch();
+            s.enforce_memory_pressure();
 
             // Get reranker
             let reranker = match s.models.get_reranker(&model) {
@@ -1011,5 +1056,26 @@ mod tests {
             }
             _ => panic!("expected Error response for 'none' reranker"),
         }
+    }
+
+    #[test]
+    fn test_enforce_memory_pressure_evicts_when_rss_exceeds_limit() {
+        // Set a 1 MB limit so current process RSS is guaranteed to exceed it on Linux/macOS
+        let mut state = DaemonState::with_memory_limit(4, 1);
+        state.models.get_embedder("hash").unwrap();
+        assert_eq!(state.models.total_models(), 1);
+
+        #[cfg(any(target_os = "linux", target_os = "macos"))]
+        {
+            let evicted = state.enforce_memory_pressure();
+            assert_eq!(evicted, 1);
+            assert_eq!(state.models.total_models(), 0);
+        }
+    }
+
+    #[test]
+    fn test_enforce_memory_pressure_noop_when_empty() {
+        let mut state = DaemonState::with_memory_limit(4, 1);
+        assert_eq!(state.enforce_memory_pressure(), 0);
     }
 }
