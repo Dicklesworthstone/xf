@@ -184,6 +184,101 @@ impl std::str::FromStr for LogFormat {
     }
 }
 
+impl LogConfig {
+    /// Build a [`LogConfig`] from CLI [`crate::output::Verbosity`] and color settings,
+    /// honoring optional `XF_LOG_FORMAT` (`pretty|compact|full`) and `XF_LOG_FILE` environment variables.
+    #[must_use]
+    pub fn from_verbosity(verbosity: crate::output::Verbosity, colors: bool) -> Self {
+        use crate::output::Verbosity;
+
+        let level = match verbosity {
+            Verbosity::Quiet => LogLevel::Error,
+            Verbosity::Normal => LogLevel::Warn,
+            Verbosity::Verbose => LogLevel::Info,
+            Verbosity::Debug => LogLevel::Debug,
+        };
+
+        let format = std::env::var("XF_LOG_FORMAT")
+            .ok()
+            .and_then(|v| v.parse::<LogFormat>().ok())
+            .unwrap_or(LogFormat::Compact);
+
+        let file = std::env::var("XF_LOG_FILE")
+            .ok()
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty());
+
+        Self {
+            level,
+            format,
+            timestamps: false,
+            target: matches!(verbosity, Verbosity::Debug),
+            spans: false,
+            colors,
+            file,
+        }
+    }
+}
+
+/// Writer factory that writes to `stderr` and optionally appends to a log file.
+#[derive(Clone, Default)]
+struct CombinedMakeWriter {
+    file: Option<std::sync::Arc<std::sync::Mutex<std::fs::File>>>,
+}
+
+impl CombinedMakeWriter {
+    fn new(file_path: Option<&str>) -> Self {
+        let file = file_path.and_then(|path| {
+            std::fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(path)
+                .ok()
+                .map(|f| std::sync::Arc::new(std::sync::Mutex::new(f)))
+        });
+        Self { file }
+    }
+}
+
+/// Active writer returned by [`CombinedMakeWriter`].
+struct CombinedWriter {
+    stderr: std::io::Stderr,
+    file: Option<std::sync::Arc<std::sync::Mutex<std::fs::File>>>,
+}
+
+impl std::io::Write for CombinedWriter {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        let written = self.stderr.write(buf)?;
+        if let Some(ref file_mutex) = self.file {
+            if let Ok(mut guard) = file_mutex.lock() {
+                let _ = guard.write_all(&buf[..written]);
+            }
+        }
+        Ok(written)
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        let res = self.stderr.flush();
+        if let Some(ref file_mutex) = self.file {
+            if let Ok(mut guard) = file_mutex.lock() {
+                let _ = guard.flush();
+            }
+        }
+        res
+    }
+}
+
+impl<'a> fmt::MakeWriter<'a> for CombinedMakeWriter {
+    type Writer = CombinedWriter;
+
+    fn make_writer(&'a self) -> Self::Writer {
+        CombinedWriter {
+            stderr: std::io::stderr(),
+            file: self.file.clone(),
+        }
+    }
+}
+
 /// Initialize the logging system with the given configuration.
 ///
 /// This should be called once at the start of the application.
@@ -207,15 +302,16 @@ pub fn init_logging(config: &LogConfig) {
         FmtSpan::NONE
     };
 
+    let writer = CombinedMakeWriter::new(config.file.as_deref());
+
     match config.format {
         LogFormat::Pretty => {
-            let stderr_fn = || std::io::stderr();
             let layer = fmt::layer()
                 .pretty()
                 .with_ansi(config.colors)
                 .with_target(config.target)
                 .with_span_events(span_events)
-                .with_writer(stderr_fn);
+                .with_writer(writer);
 
             if config.timestamps {
                 tracing_subscriber::registry()
@@ -232,13 +328,12 @@ pub fn init_logging(config: &LogConfig) {
             }
         }
         LogFormat::Compact => {
-            let stderr_fn = || std::io::stderr();
             let layer = fmt::layer()
                 .compact()
                 .with_ansi(config.colors)
                 .with_target(config.target)
                 .with_span_events(span_events)
-                .with_writer(stderr_fn);
+                .with_writer(writer);
 
             if config.timestamps {
                 tracing_subscriber::registry()
@@ -255,7 +350,6 @@ pub fn init_logging(config: &LogConfig) {
             }
         }
         LogFormat::Full => {
-            let stderr_fn = || std::io::stderr();
             let layer = fmt::layer()
                 .with_ansi(config.colors)
                 .with_target(config.target)
@@ -264,7 +358,7 @@ pub fn init_logging(config: &LogConfig) {
                 .with_thread_names(true)
                 .with_file(true)
                 .with_line_number(true)
-                .with_writer(stderr_fn);
+                .with_writer(writer);
 
             tracing_subscriber::registry()
                 .with(env_filter)
@@ -302,6 +396,7 @@ pub fn init_cli_logging(quiet: bool, verbose: bool) {
 pub struct OperationGuard {
     name: String,
     start: std::time::Instant,
+    completed: bool,
 }
 
 impl OperationGuard {
@@ -312,11 +407,19 @@ impl OperationGuard {
         Self {
             name,
             start: std::time::Instant::now(),
+            completed: false,
         }
     }
 
+    /// Check whether this operation was explicitly completed or failed.
+    #[must_use]
+    pub const fn is_completed(&self) -> bool {
+        self.completed
+    }
+
     /// Complete the operation successfully.
-    pub fn complete(self) {
+    pub fn complete(mut self) {
+        self.completed = true;
         let duration = self.start.elapsed();
         tracing::info!(
             operation = %self.name,
@@ -326,7 +429,8 @@ impl OperationGuard {
     }
 
     /// Mark the operation as failed.
-    pub fn fail(self, error: &dyn std::error::Error) {
+    pub fn fail(mut self, error: &dyn std::error::Error) {
+        self.completed = true;
         let duration = self.start.elapsed();
         tracing::error!(
             operation = %self.name,
@@ -339,8 +443,14 @@ impl OperationGuard {
 
 impl Drop for OperationGuard {
     fn drop(&mut self) {
-        // Only log if not explicitly completed/failed
-        // This is a safety net for operations that panic
+        if !self.completed {
+            let duration = self.start.elapsed();
+            tracing::warn!(
+                operation = %self.name,
+                duration_ms = duration.as_millis(),
+                "Operation dropped without explicit completion"
+            );
+        }
     }
 }
 
@@ -376,6 +486,7 @@ macro_rules! log_metric {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::Write;
 
     #[test]
     fn test_log_level_from_str() {
@@ -423,5 +534,49 @@ mod tests {
         assert_eq!(LogLevel::Debug.to_filter_string(), "debug");
         assert_eq!(LogLevel::Trace.to_filter_string(), "trace");
         assert_eq!(LogLevel::Off.to_filter_string(), "off");
+    }
+
+    #[test]
+    fn test_from_verbosity() {
+        use crate::output::Verbosity;
+
+        let quiet_cfg = LogConfig::from_verbosity(Verbosity::Quiet, false);
+        assert_eq!(quiet_cfg.level, LogLevel::Error);
+        assert!(!quiet_cfg.colors);
+        assert!(!quiet_cfg.target);
+
+        let debug_cfg = LogConfig::from_verbosity(Verbosity::Debug, true);
+        assert_eq!(debug_cfg.level, LogLevel::Debug);
+        assert!(debug_cfg.colors);
+        assert!(debug_cfg.target);
+        assert!(!debug_cfg.spans);
+
+        let verbose_cfg = LogConfig::from_verbosity(Verbosity::Verbose, true);
+        assert_eq!(verbose_cfg.level, LogLevel::Info);
+        assert!(!verbose_cfg.target);
+    }
+
+    #[test]
+    fn test_combined_make_writer_writes_to_file() {
+        use tracing_subscriber::fmt::MakeWriter;
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        let log_path = temp_dir.path().join("xf-test.log");
+        let log_path_str = log_path.to_string_lossy().to_string();
+
+        let make_writer = CombinedMakeWriter::new(Some(&log_path_str));
+        let mut writer = make_writer.make_writer();
+        writer.write_all(b"test log entry\n").unwrap();
+        writer.flush().unwrap();
+
+        let content = std::fs::read_to_string(&log_path).unwrap();
+        assert_eq!(content, "test log entry\n");
+    }
+
+    #[test]
+    fn test_operation_guard_completion_state() {
+        let guard = OperationGuard::new("test_op");
+        assert!(!guard.is_completed());
+        guard.complete();
     }
 }

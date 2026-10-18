@@ -556,9 +556,9 @@ pub struct DaemonStartArgs {
     #[arg(long)]
     pub socket: Option<PathBuf>,
 
-    /// Idle timeout in seconds (0 = no timeout)
-    #[arg(long, default_value = "300")]
-    pub idle_timeout: u64,
+    /// Idle timeout in seconds (0 = no timeout, defaults to daemon config or 1800s)
+    #[arg(long)]
+    pub idle_timeout: Option<u64>,
 
     /// Maximum models to keep loaded
     #[arg(long, default_value = "4")]

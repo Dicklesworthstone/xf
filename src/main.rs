@@ -15,7 +15,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant, SystemTime};
 use tracing::{info, warn};
-use tracing_subscriber::EnvFilter;
+use xf::logging::{LogConfig, init_logging};
 
 use xf::benchmark::datasets::BenchmarkCorpus;
 use xf::benchmark::reporters;
@@ -321,21 +321,13 @@ fn main() -> Result<()> {
     // For machine-readable formats, force quiet unless user explicitly asked for verbose
     let effective_quiet = cli.quiet || (machine_output && cli.verbose == 0);
     let verbosity = Verbosity::from_flags(effective_quiet, cli.verbose);
-    let env_filter = if std::env::var("RUST_LOG").is_ok() {
-        EnvFilter::from_default_env()
-    } else {
-        EnvFilter::new(format!("xf={}", verbosity.log_filter()))
-    };
-
-    tracing_subscriber::fmt()
-        .with_env_filter(env_filter)
-        .with_target(false)
-        .without_time()
-        .with_writer(std::io::stderr)
-        .init();
 
     // Create output abstraction for styled terminal output
     let output = Output::new(cli_format_to_output(cli.format.clone())).with_verbosity(verbosity);
+
+    // Initialize structured logging via xf::logging
+    let log_config = LogConfig::from_verbosity(verbosity, output.is_stderr_styled());
+    init_logging(&log_config);
 
     // Run the appropriate command
     match &cli.command {
@@ -5321,10 +5313,12 @@ fn cmd_daemon(cli: &Cli, args: &cli::DaemonArgs, output: &Output) -> Result<()> 
             if let Some(socket) = &start_args.socket {
                 config.socket_path.clone_from(socket);
             }
-            if start_args.idle_timeout > 0 {
-                config.idle_timeout = Duration::from_secs(start_args.idle_timeout);
-            } else {
-                config.idle_timeout = Duration::MAX; // No timeout
+            if let Some(timeout_secs) = start_args.idle_timeout {
+                if timeout_secs > 0 {
+                    config.idle_timeout = Duration::from_secs(timeout_secs);
+                } else {
+                    config.idle_timeout = Duration::MAX; // No timeout
+                }
             }
             config.max_models = start_args.max_models;
 
@@ -5350,10 +5344,15 @@ fn cmd_daemon(cli: &Cli, args: &cli::DaemonArgs, output: &Output) -> Result<()> 
                 let mut cmd = std::process::Command::new(std::env::current_exe()?);
                 cmd.args(["daemon", "start", "--foreground"]);
 
+                if let Some(config_path) = &start_args.config {
+                    cmd.args(["--config", &config_path.to_string_lossy()]);
+                }
                 if let Some(socket) = &start_args.socket {
                     cmd.args(["--socket", &socket.to_string_lossy()]);
                 }
-                cmd.args(["--idle-timeout", &start_args.idle_timeout.to_string()]);
+                if let Some(timeout_secs) = start_args.idle_timeout {
+                    cmd.args(["--idle-timeout", &timeout_secs.to_string()]);
+                }
                 cmd.args(["--max-models", &start_args.max_models.to_string()]);
 
                 cmd.stdin(std::process::Stdio::null())

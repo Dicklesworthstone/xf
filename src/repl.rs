@@ -1375,6 +1375,13 @@ impl ReplSession {
         );
         println!("  {:<20} {}", "Blocks:", format_number(stats.blocks_count));
         println!("  {:<20} {}", "Mutes:", format_number(stats.mutes_count));
+
+        if stats.tweets_count > 0 {
+            if let Ok(summary) = format_repl_analytics_summary(&self.storage) {
+                println!();
+                print!("{summary}");
+            }
+        }
         Ok(())
     }
 
@@ -1950,6 +1957,75 @@ fn truncate_text(text: &str, max_len: usize) -> String {
         let truncated: String = text.chars().take(max_len - 3).collect();
         format!("{truncated}...")
     }
+}
+
+/// Format rich analytics (activity sparklines, distributions, and top tags) for REPL `stats`.
+fn format_repl_analytics_summary(storage: &Storage) -> Result<String> {
+    use crate::stats_analytics::{
+        ContentStats, EngagementStats, TemporalStats, format_dow_distribution,
+        format_hourly_sparkline, format_length_distribution, format_likes_histogram,
+        format_top_tags, sparkline_from_daily, sparkline_from_monthly,
+    };
+    use std::fmt::Write as _;
+
+    let temporal = TemporalStats::compute(storage)?;
+    let engagement = EngagementStats::compute(storage, 5)?;
+    let content = ContentStats::compute(storage, 5)?;
+
+    let mut out = String::new();
+    let _ = writeln!(out, "{}", "Activity & Engagement Analytics".bold().cyan());
+    let _ = writeln!(out, "{}", "─".repeat(CONTENT_DIVIDER_WIDTH));
+
+    let daily_spark = sparkline_from_daily(&temporal.daily_counts, 24);
+    if !daily_spark.is_empty() {
+        let _ = writeln!(out, "  {:<20} {daily_spark}", "Daily Trend:");
+    }
+
+    let hourly_spark = format_hourly_sparkline(&temporal.hourly_distribution);
+    if !hourly_spark.is_empty() {
+        let _ = writeln!(out, "  {:<20} {hourly_spark}", "Hourly (00-23h):");
+    }
+
+    let monthly_spark = sparkline_from_monthly(&engagement.monthly_trend, 24);
+    if !monthly_spark.is_empty() {
+        let _ = writeln!(out, "  {:<20} {monthly_spark}", "Monthly Engagement:");
+    }
+
+    let tags_line = format_top_tags(&content.top_hashtags, "#");
+    if !tags_line.is_empty() {
+        let _ = writeln!(out, "  {:<20} {tags_line}", "Top Hashtags:");
+    }
+
+    let mentions_line = format_top_tags(&content.top_mentions, "@");
+    if !mentions_line.is_empty() {
+        let _ = writeln!(out, "  {:<20} {mentions_line}", "Top Mentions:");
+    }
+
+    let dow_chart = format_dow_distribution(&temporal.dow_distribution);
+    if !dow_chart.is_empty() {
+        let _ = writeln!(out, "\n  {}", "Day-of-Week Activity:".bold());
+        for line in dow_chart.lines() {
+            let _ = writeln!(out, "    {line}");
+        }
+    }
+
+    let length_chart = format_length_distribution(&content.length_distribution);
+    if !length_chart.is_empty() {
+        let _ = writeln!(out, "\n  {}", "Tweet Length Distribution:".bold());
+        for line in length_chart.lines() {
+            let _ = writeln!(out, "    {line}");
+        }
+    }
+
+    let likes_chart = format_likes_histogram(&engagement.likes_histogram);
+    if !likes_chart.is_empty() {
+        let _ = writeln!(out, "\n  {}", "Likes Histogram:".bold());
+        for line in likes_chart.lines() {
+            let _ = writeln!(out, "    {line}");
+        }
+    }
+
+    Ok(out)
 }
 
 /// Print the startup banner with archive statistics.
@@ -3478,5 +3554,41 @@ mod tests {
         // Second search reuses the cached vector_index and embedder
         session.run_search("zero copy").unwrap();
         assert_eq!(session.last_results.len(), 1);
+    }
+
+    #[test]
+    fn test_repl_stats_with_analytics() {
+        let mut storage = Storage::open_memory().unwrap();
+        storage
+            .store_tweets(&[crate::model::Tweet {
+                id: "tw_stats_1".to_string(),
+                created_at: Utc::now(),
+                full_text: "Testing #rustlang analytics with @alice".to_string(),
+                source: None,
+                favorite_count: 12,
+                retweet_count: 3,
+                lang: Some("en".to_string()),
+                in_reply_to_status_id: None,
+                in_reply_to_user_id: None,
+                in_reply_to_screen_name: None,
+                is_retweet: false,
+                hashtags: vec!["rustlang".to_string()],
+                user_mentions: vec![crate::model::UserMention {
+                    id: "u1".to_string(),
+                    screen_name: "alice".to_string(),
+                    name: Some("Alice".to_string()),
+                }],
+                urls: Vec::new(),
+                media: Vec::new(),
+            }])
+            .unwrap();
+
+        let summary = format_repl_analytics_summary(&storage).unwrap();
+        assert!(summary.contains("Daily Trend:"));
+        assert!(summary.contains("Hourly (00-23h):"));
+        assert!(summary.contains("#rustlang"));
+        assert!(summary.contains("@alice"));
+        assert!(summary.contains("Tweet Length Distribution:"));
+        assert!(summary.contains("Likes Histogram:"));
     }
 }
