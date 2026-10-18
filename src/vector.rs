@@ -803,6 +803,135 @@ impl MmapVectorIndex {
         results
     }
 
+    /// Search with parallel processing for large memory-mapped indices.
+    ///
+    /// Uses rayon to parallelize the scan across chunks of the offset table.
+    /// Falls back to sequential search for small indices (< 10,000 records).
+    #[cfg(feature = "parallel-search")]
+    #[must_use]
+    pub fn search_top_k_parallel(
+        &self,
+        query: &[f32],
+        k: usize,
+        doc_types: Option<&[&str]>,
+    ) -> Vec<VectorSearchResult> {
+        use rayon::prelude::*;
+
+        const PARALLEL_THRESHOLD: usize = 10_000;
+        const CHUNK_RECORDS: usize = 1024;
+        const CHUNK_BYTES: usize = CHUNK_RECORDS * 8;
+
+        if k == 0 || self.record_count == 0 || query.len() != self.dimension {
+            return Vec::new();
+        }
+
+        if self.record_count < PARALLEL_THRESHOLD {
+            return self.search_top_k(query, k, doc_types);
+        }
+
+        let filter = DocTypeFilter::new(doc_types);
+        if filter.is_some_and(DocTypeFilter::is_empty) {
+            return Vec::new();
+        }
+
+        let bytes = self.mmap.as_slice();
+        let Some(offsets_bytes) = bytes.get(self.offsets_range.clone()) else {
+            return Vec::new();
+        };
+
+        let partial_results: Vec<Vec<HeapEntry>> = offsets_bytes
+            .par_chunks(CHUNK_BYTES)
+            .map(|offset_block| {
+                let mut local_heap: BinaryHeap<HeapEntry> = BinaryHeap::with_capacity(k + 1);
+
+                for chunk in offset_block.chunks_exact(8) {
+                    let offset = usize::try_from(u64::from_le_bytes([
+                        chunk[0], chunk[1], chunk[2], chunk[3], chunk[4], chunk[5], chunk[6],
+                        chunk[7],
+                    ]))
+                    .unwrap_or(usize::MAX);
+                    let Some(record) = bytes.get(offset..) else {
+                        continue;
+                    };
+                    if record.len() < 4 {
+                        continue;
+                    }
+
+                    let doc_type_code = record[0];
+                    if let Some(filter) = &filter {
+                        if !filter.allows(doc_type_code) {
+                            continue;
+                        }
+                    }
+                    if decode_doc_type(doc_type_code).is_none() {
+                        continue;
+                    }
+
+                    let doc_id_len = u16::from_le_bytes([record[2], record[3]]) as usize;
+                    let doc_id_start = 4usize;
+                    let doc_id_end = doc_id_start.saturating_add(doc_id_len);
+                    let embedding_end = doc_id_end.saturating_add(self.embedding_len);
+                    if record.len() < embedding_end {
+                        continue;
+                    }
+
+                    let embedding_bytes = &record[doc_id_end..embedding_end];
+                    let Some(score) = dot_product_f16_simd(query, embedding_bytes) else {
+                        continue;
+                    };
+
+                    local_heap.push(HeapEntry { score, offset });
+
+                    if local_heap.len() > k {
+                        local_heap.pop();
+                    }
+                }
+
+                local_heap.into_vec()
+            })
+            .collect();
+
+        let mut final_heap: BinaryHeap<HeapEntry> = BinaryHeap::with_capacity(k + 1);
+        for entries in partial_results {
+            for entry in entries {
+                final_heap.push(entry);
+                if final_heap.len() > k {
+                    final_heap.pop();
+                }
+            }
+        }
+
+        let mut results: Vec<VectorSearchResult> = Vec::with_capacity(final_heap.len());
+        for entry in final_heap {
+            let Some(record) = bytes.get(entry.offset..) else {
+                continue;
+            };
+            let doc_type_code = record[0];
+            let Some(doc_type) = decode_doc_type(doc_type_code) else {
+                continue;
+            };
+            let doc_id_len = u16::from_le_bytes([record[2], record[3]]) as usize;
+            let doc_id_bytes = &record[4..4 + doc_id_len];
+            let Ok(doc_id) = str::from_utf8(doc_id_bytes) else {
+                continue;
+            };
+            results.push(VectorSearchResult {
+                doc_id: doc_id.to_string(),
+                doc_type,
+                score: entry.score,
+            });
+        }
+
+        results.sort_by(|a, b| {
+            b.score
+                .total_cmp(&a.score)
+                .then_with(|| a.doc_id.cmp(&b.doc_id))
+                .then_with(|| a.doc_type.cmp(b.doc_type))
+        });
+
+        results
+    }
+
     /// Get counts of embeddings by document type.
     #[must_use]
     pub fn type_counts(&self) -> std::collections::HashMap<String, usize> {
@@ -939,6 +1068,10 @@ impl VectorIndex {
     }
 
     /// Search for top-k results.
+    ///
+    /// When the `parallel-search` feature is enabled, automatically dispatches
+    /// to [`Self::search_top_k_parallel`] (which falls back to sequential search
+    /// for indices under 10,000 vectors).
     #[must_use]
     pub fn search_top_k(
         &self,
@@ -946,9 +1079,29 @@ impl VectorIndex {
         k: usize,
         doc_types: Option<&[&str]>,
     ) -> Vec<VectorSearchResult> {
+        #[cfg(feature = "parallel-search")]
+        {
+            self.search_top_k_parallel(query, k, doc_types)
+        }
+        #[cfg(not(feature = "parallel-search"))]
         match self {
             Self::Mmap(idx) => idx.search_top_k(query, k, doc_types),
             Self::InMemory(idx) => idx.search_top_k(query, k, doc_types),
+        }
+    }
+
+    /// Search for top-k results using parallel processing for large indices.
+    #[cfg(feature = "parallel-search")]
+    #[must_use]
+    pub fn search_top_k_parallel(
+        &self,
+        query: &[f32],
+        k: usize,
+        doc_types: Option<&[&str]>,
+    ) -> Vec<VectorSearchResult> {
+        match self {
+            Self::Mmap(idx) => idx.search_top_k_parallel(query, k, doc_types),
+            Self::InMemory(idx) => idx.search_top_k_parallel(query, k, doc_types),
         }
     }
 }
@@ -1213,6 +1366,10 @@ impl InMemoryVectorIndex {
         const PARALLEL_THRESHOLD: usize = 10_000;
         const CHUNK_SIZE: usize = 1024;
 
+        if k == 0 || self.is_empty() || query.len() != self.dimension {
+            return Vec::new();
+        }
+
         if self.vectors.len() < PARALLEL_THRESHOLD {
             return self.search_top_k(query, k, doc_types);
         }
@@ -1224,18 +1381,13 @@ impl InMemoryVectorIndex {
             }
         }
 
-        // Create indexed chunks to preserve absolute indices
-        let indexed_chunks: Vec<_> = self
-            .vectors
-            .chunks(CHUNK_SIZE)
-            .enumerate()
-            .map(|(chunk_idx, chunk)| (chunk_idx * CHUNK_SIZE, chunk))
-            .collect();
-
         // Parallel scan with thread-local heaps using indices (no String clones)
-        let partial_results: Vec<Vec<IndexHeapEntry>> = indexed_chunks
-            .par_iter()
-            .map(|(base_idx, chunk)| {
+        let partial_results: Vec<Vec<IndexHeapEntry>> = self
+            .vectors
+            .par_chunks(CHUNK_SIZE)
+            .enumerate()
+            .map(|(chunk_idx, chunk)| {
+                let base_idx = chunk_idx * CHUNK_SIZE;
                 let mut local_heap: BinaryHeap<IndexHeapEntry> = BinaryHeap::with_capacity(k + 1);
 
                 for (offset, (_, doc_type, embedding)) in chunk.iter().enumerate() {
@@ -2331,5 +2483,127 @@ mod tests {
         let result =
             VectorIndex::load_named(temp_dir.path(), VECTOR_INDEX_QUALITY_FILENAME).unwrap();
         assert!(result.is_none());
+    }
+
+    #[cfg(feature = "parallel-search")]
+    #[test]
+    #[allow(clippy::cast_possible_truncation)]
+    fn test_in_memory_parallel_search_parity_above_threshold() {
+        let dim = 32;
+        let mut index = InMemoryVectorIndex::new(dim);
+        for i in 0..10_500u32 {
+            let doc_type = if i % 3 == 0 { "like" } else { "tweet" };
+            index.add(
+                format!("doc-{i:05}"),
+                doc_type,
+                create_test_vector(i + 1, dim),
+            );
+        }
+
+        let query = create_test_vector(42, dim);
+        let seq = index.search_top_k(&query, 25, None);
+        let par = index.search_top_k_parallel(&query, 25, None);
+        assert_eq!(seq.len(), 25);
+        assert_eq!(par.len(), 25);
+        for (a, b) in seq.iter().zip(par.iter()) {
+            assert_eq!(a.doc_id, b.doc_id);
+            assert_eq!(a.doc_type, b.doc_type);
+            assert!((a.score - b.score).abs() < 1e-6);
+        }
+
+        // Filtered by doc_type
+        let filter = ["like"];
+        let seq_filtered = index.search_top_k(&query, 15, Some(&filter));
+        let par_filtered = index.search_top_k_parallel(&query, 15, Some(&filter));
+        assert_eq!(seq_filtered.len(), 15);
+        assert_eq!(par_filtered.len(), 15);
+        for (a, b) in seq_filtered.iter().zip(par_filtered.iter()) {
+            assert_eq!(a.doc_id, b.doc_id);
+            assert_eq!(a.doc_type, "like");
+            assert_eq!(b.doc_type, "like");
+            assert!((a.score - b.score).abs() < 1e-6);
+        }
+
+        // Edge cases above PARALLEL_THRESHOLD
+        assert!(index.search_top_k_parallel(&query, 0, None).is_empty());
+        assert!(
+            index
+                .search_top_k_parallel(&[1.0, 0.0], 10, None)
+                .is_empty()
+        );
+    }
+
+    #[cfg(feature = "parallel-search")]
+    #[test]
+    #[allow(clippy::cast_possible_truncation)]
+    fn test_mmap_parallel_search_parity_above_threshold() {
+        let dim = 16;
+        let temp_dir = tempfile::tempdir().unwrap();
+        let file_path = temp_dir.path().join(VECTOR_INDEX_FILENAME);
+
+        let record_count = 10_500usize;
+        let offsets_start = VECTOR_INDEX_HEADER_LEN as u64;
+        let offsets_len = record_count * 8;
+        let records_start = offsets_start + offsets_len as u64;
+
+        let mut offsets: Vec<u64> = Vec::with_capacity(record_count);
+        let mut record_bytes: Vec<u8> = Vec::with_capacity(record_count * (16 + dim * 2));
+        let mut current_offset = records_start;
+
+        for i in 0..record_count {
+            offsets.push(current_offset);
+            let doc_id = format!("doc-{i:05}");
+            let doc_id_bytes = doc_id.as_bytes();
+            let doc_type_code = if i % 4 == 0 { 2u8 } else { 1u8 }; // 1 = tweet, 2 = like
+            record_bytes.push(doc_type_code);
+            record_bytes.push(0);
+            record_bytes.extend_from_slice(&(doc_id_bytes.len() as u16).to_le_bytes());
+            record_bytes.extend_from_slice(doc_id_bytes);
+
+            let vec = create_test_vector((i + 1) as u32, dim);
+            for val in vec {
+                let f16_bits = half::f16::from_f32(val).to_le_bytes();
+                record_bytes.extend_from_slice(&f16_bits);
+            }
+
+            current_offset += (4 + doc_id_bytes.len() + dim * 2) as u64;
+        }
+
+        let mut bytes = Vec::with_capacity(current_offset as usize);
+        bytes.extend_from_slice(&VECTOR_INDEX_MAGIC);
+        bytes.extend_from_slice(&VECTOR_INDEX_VERSION.to_le_bytes());
+        bytes.extend_from_slice(&[0u8; 2]);
+        bytes.extend_from_slice(&(dim as u32).to_le_bytes());
+        bytes.extend_from_slice(&(record_count as u64).to_le_bytes());
+        bytes.extend_from_slice(&offsets_start.to_le_bytes());
+        bytes.extend_from_slice(&records_start.to_le_bytes());
+        for off in offsets {
+            bytes.extend_from_slice(&off.to_le_bytes());
+        }
+        bytes.extend_from_slice(&record_bytes);
+
+        std::fs::write(&file_path, &bytes).unwrap();
+
+        let mmap_idx = MmapVectorIndex::open(&file_path).unwrap();
+        let query = create_test_vector(77, dim);
+
+        let seq = mmap_idx.search_top_k(&query, 20, None);
+        let par = mmap_idx.search_top_k_parallel(&query, 20, None);
+        assert_eq!(seq.len(), 20);
+        assert_eq!(par.len(), 20);
+        for (a, b) in seq.iter().zip(par.iter()) {
+            assert_eq!(a.doc_id, b.doc_id);
+            assert_eq!(a.doc_type, b.doc_type);
+            assert!((a.score - b.score).abs() < 1e-6);
+        }
+
+        // Verify VectorIndex::Mmap dispatches cleanly
+        let unified = VectorIndex::Mmap(mmap_idx);
+        let unified_res = unified.search_top_k(&query, 20, None);
+        assert_eq!(unified_res.len(), 20);
+        for (a, b) in seq.iter().zip(unified_res.iter()) {
+            assert_eq!(a.doc_id, b.doc_id);
+            assert_eq!(a.doc_type, b.doc_type);
+        }
     }
 }
