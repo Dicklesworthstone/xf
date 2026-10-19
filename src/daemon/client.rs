@@ -779,7 +779,7 @@ mod tests {
         let mut mode = InferenceMode::Daemon(DaemonClient::with_config(config));
         let vectors = mode.embed(&["hello fallback world"]).await.unwrap();
         assert_eq!(vectors.len(), 1);
-        assert!(!vectors[0].is_empty());
+        assert_ne!(vectors[0], Vec::<f32>::new());
         assert!(matches!(mode, InferenceMode::Direct(_)));
     }
 }
