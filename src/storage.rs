@@ -15,7 +15,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use tracing::info;
 
-const SCHEMA_VERSION: i32 = 6;
+const SCHEMA_VERSION: i32 = 7;
 // SQLite default limit on host parameters is usually 999 or 32766.
 // We use a safe batch size to avoid "too many SQL variables" errors.
 const SQLITE_BATCH_SIZE: usize = 900;
@@ -214,6 +214,10 @@ impl Storage {
 
             self.create_schema()?;
 
+            if (3..7).contains(&current_version) {
+                self.migrate_v7_embedding_chunks()?;
+            }
+
             self.set_schema_version(SCHEMA_VERSION)?;
         }
 
@@ -369,6 +373,30 @@ impl Storage {
         Ok(())
     }
 
+    /// Preserve existing vectors as chunk zero while extending their key.
+    fn migrate_v7_embedding_chunks(&self) -> Result<()> {
+        let tx = self.conn.unchecked_transaction()?;
+        tx.execute_batch(
+            "CREATE TABLE embeddings_v7 (
+                doc_id TEXT NOT NULL, doc_type TEXT NOT NULL,
+                embedding BLOB NOT NULL, content_hash BLOB, created_at TEXT NOT NULL,
+                model_id TEXT NOT NULL DEFAULT 'default',
+                chunk_index INTEGER NOT NULL DEFAULT 0,
+                chunk_start INTEGER, chunk_end INTEGER,
+                PRIMARY KEY (doc_id, doc_type, model_id, chunk_index)
+            );
+            INSERT INTO embeddings_v7 (doc_id,doc_type,embedding,content_hash,created_at,model_id)
+                SELECT doc_id,doc_type,embedding,content_hash,created_at,model_id FROM embeddings;
+            DROP TABLE embeddings;
+            ALTER TABLE embeddings_v7 RENAME TO embeddings;
+            CREATE INDEX idx_embeddings_type ON embeddings(doc_type);
+            CREATE INDEX idx_embeddings_hash ON embeddings(content_hash);
+            CREATE INDEX idx_embeddings_model ON embeddings(model_id);",
+        )?;
+        tx.commit()?;
+        Ok(())
+    }
+
     #[allow(clippy::too_many_lines)]
     fn create_schema(&self) -> Result<()> {
         self.conn.execute_batch(
@@ -519,7 +547,10 @@ impl Storage {
                 content_hash BLOB,
                 created_at TEXT NOT NULL,
                 model_id TEXT NOT NULL DEFAULT 'default',
-                PRIMARY KEY (doc_id, doc_type, model_id)
+                chunk_index INTEGER NOT NULL DEFAULT 0,
+                chunk_start INTEGER,
+                chunk_end INTEGER,
+                PRIMARY KEY (doc_id, doc_type, model_id, chunk_index)
             );
             CREATE INDEX IF NOT EXISTS idx_embeddings_type ON embeddings(doc_type);
             CREATE INDEX IF NOT EXISTS idx_embeddings_hash ON embeddings(content_hash);
@@ -2574,6 +2605,80 @@ impl Storage {
         self.store_embeddings_batch_with_model(embeddings, "default")
     }
 
+    /// Check the complete chunk manifest, including offsets, hashes and dimensions.
+    /// Legacy truncated vectors have no offsets and cannot pass this check.
+    pub(crate) fn document_chunks_match(
+        &self,
+        doc_id: &str,
+        model_id: &str,
+        chunks: &[(std::ops::Range<usize>, [u8; 32])],
+        dimension: usize,
+    ) -> Result<bool> {
+        let mut stmt = self.conn.prepare(
+            "SELECT chunk_index,chunk_start,chunk_end,content_hash,length(embedding)
+             FROM embeddings WHERE doc_id=? AND doc_type='tweet' AND model_id=?
+             ORDER BY chunk_index",
+        )?;
+        let mut rows = stmt.query(params![doc_id, model_id])?;
+        for (index, (range, hash)) in chunks.iter().enumerate() {
+            let Some(row) = rows.next()? else {
+                return Ok(false);
+            };
+            if row.get::<_, i64>(0)? != i64::try_from(index)?
+                || row.get::<_, Option<i64>>(1)? != Some(i64::try_from(range.start)?)
+                || row.get::<_, Option<i64>>(2)? != Some(i64::try_from(range.end)?)
+                || row.get::<_, Option<Vec<u8>>>(3)?.as_deref() != Some(hash.as_slice())
+                || row.get::<_, i64>(4)? != i64::try_from(dimension * 2)?
+            {
+                return Ok(false);
+            }
+        }
+        Ok(rows.next()?.is_none())
+    }
+
+    /// Replace a post's complete chunk set atomically, removing stale tails on edits.
+    /// Inference must finish successfully before this method is called.
+    pub(crate) fn store_document_chunks(
+        &self,
+        doc_id: &str,
+        model_id: &str,
+        chunks: &[(std::ops::Range<usize>, [u8; 32])],
+        embeddings: &[Vec<f32>],
+    ) -> Result<()> {
+        anyhow::ensure!(chunks.len() == embeddings.len(), "missing chunk embeddings");
+        let tx = self.conn.unchecked_transaction()?;
+        tx.execute(
+            "DELETE FROM embeddings WHERE doc_id=? AND doc_type='tweet' AND model_id=?",
+            params![doc_id, model_id],
+        )?;
+        {
+            let mut stmt = tx.prepare(
+                "INSERT INTO embeddings
+                 (doc_id,doc_type,model_id,chunk_index,chunk_start,chunk_end,content_hash,embedding,created_at)
+                 VALUES (?,'tweet',?,?,?,?,?,?,?)",
+            )?;
+            let now = Utc::now().to_rfc3339();
+            for (index, ((range, hash), embedding)) in chunks.iter().zip(embeddings).enumerate() {
+                let bytes: Vec<u8> = embedding
+                    .iter()
+                    .flat_map(|&f| half::f16::from_f32(f).to_le_bytes())
+                    .collect();
+                stmt.execute(params![
+                    doc_id,
+                    model_id,
+                    i64::try_from(index)?,
+                    i64::try_from(range.start)?,
+                    i64::try_from(range.end)?,
+                    hash.as_slice(),
+                    bytes,
+                    &now
+                ])?;
+            }
+        }
+        tx.commit()?;
+        Ok(())
+    }
+
     /// Store multiple embeddings in a batch with a specific model ID.
     ///
     /// # Errors
@@ -4618,6 +4723,49 @@ mod tests {
     }
 
     #[test]
+    fn migrate_v6_preserves_vectors_and_chunk_replacement_rolls_back_on_failure() -> Result<()> {
+        let conn = Connection::open_in_memory()?;
+        conn.execute_batch(
+            "CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+             INSERT INTO meta VALUES ('schema_version','6');
+             CREATE TABLE embeddings (
+                doc_id TEXT NOT NULL, doc_type TEXT NOT NULL, embedding BLOB NOT NULL,
+                content_hash BLOB, created_at TEXT NOT NULL,
+                model_id TEXT NOT NULL DEFAULT 'default',
+                PRIMARY KEY(doc_id,doc_type,model_id));
+             INSERT INTO embeddings VALUES ('post','tweet',X'003C0000',NULL,'old','default');",
+        )?;
+        let storage = Storage { conn };
+        storage.migrate()?;
+        assert_eq!(
+            storage.get_embedding("post", "tweet")?,
+            Some(vec![1.0, 0.0])
+        );
+        let chunks = vec![(0..800, [1; 32]), (640..900, [2; 32])];
+        assert!(!storage.document_chunks_match("post", "default", &chunks, 2)?);
+        storage.conn.execute_batch(
+            "CREATE TRIGGER reject_second_chunk BEFORE INSERT ON embeddings
+             WHEN NEW.chunk_index = 1 BEGIN SELECT RAISE(ABORT,'test storage failure'); END;",
+        )?;
+        assert!(
+            storage
+                .store_document_chunks(
+                    "post",
+                    "default",
+                    &chunks,
+                    &[vec![0.0, 1.0], vec![0.5, 0.5]]
+                )
+                .is_err()
+        );
+        assert_eq!(storage.embedding_count()?, 1);
+        assert_eq!(
+            storage.get_embedding("post", "tweet")?,
+            Some(vec![1.0, 0.0])
+        );
+        Ok(())
+    }
+
+    #[test]
     fn test_migrate_embeddings_schema_v3() {
         let conn = Connection::open_in_memory().unwrap();
         conn.execute_batch(
@@ -4653,7 +4801,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert!(schema_sql.contains("PRIMARY KEY (doc_id, doc_type, model_id)"));
+        assert!(schema_sql.contains("PRIMARY KEY (doc_id, doc_type, model_id, chunk_index)"));
     }
 
     #[test]
