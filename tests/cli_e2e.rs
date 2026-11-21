@@ -2028,3 +2028,132 @@ fn test_doctor_fix_rebuilds_corrupted_vector_index() {
         meta.len()
     );
 }
+
+#[test]
+fn test_issue_14_reindex_idempotent_and_doctor_clean() {
+    let (archive_temp, _output_dir, db_path, index_path) = create_indexed_archive();
+    let archive_str = archive_temp.path().to_str().unwrap();
+    let db_str = db_path.to_str().unwrap();
+    let idx_str = index_path.to_str().unwrap();
+
+    // Re-index the same archive three additional times without --force (issue #14).
+    for pass in 2..=4 {
+        let out = xf_cmd()
+            .args([
+                "index",
+                archive_str,
+                "--db",
+                db_str,
+                "--index",
+                idx_str,
+                "--quiet",
+            ])
+            .output()
+            .expect("Failed to re-index archive");
+        assert!(
+            out.status.success(),
+            "Re-index pass {pass} failed: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+
+    // Verify Tantivy doc count equals SQLite indexable doc count (3 tweets + 2 likes = 5).
+    let engine = SearchEngine::open(&index_path).expect("Failed to open search index");
+    assert_eq!(
+        engine.doc_count(),
+        5,
+        "Re-indexing without --force must not duplicate Tantivy documents"
+    );
+
+    // Verify xf doctor reports zero count drift and exits cleanly.
+    let doctor_out = xf_cmd()
+        .args([
+            "doctor",
+            "--archive",
+            archive_str,
+            "--format",
+            "json",
+            "--quiet",
+            "--db",
+            db_str,
+            "--index",
+            idx_str,
+        ])
+        .output()
+        .expect("Failed to run xf doctor");
+    assert!(
+        doctor_out.status.success(),
+        "xf doctor failed after repeated re-index: stdout={} stderr={}",
+        String::from_utf8_lossy(&doctor_out.stdout),
+        String::from_utf8_lossy(&doctor_out.stderr)
+    );
+
+    // Verify searches still return full unique results without duplicates stealing --limit slots.
+    let search_out = xf_cmd()
+        .args([
+            "search", "rust", "--mode", "lexical", "--limit", "2", "--format", "json", "--quiet",
+            "--db", db_str, "--index", idx_str,
+        ])
+        .output()
+        .expect("Failed to run lexical search after re-index");
+    let results = parse_search_results(&search_out);
+    assert_eq!(
+        results.len(),
+        2,
+        "Expected both matching docs (tweet + like) to fill --limit 2 after repeated re-indexing"
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn test_issue_15_broken_pipe_exits_cleanly() {
+    use std::os::unix::process::ExitStatusExt;
+    use std::process::{Command as StdCommand, Stdio};
+
+    let (_archive_temp, _output_dir, db_path, index_path) = create_indexed_archive();
+    let db_str = db_path.to_str().unwrap();
+    let idx_str = index_path.to_str().unwrap();
+    let bin = env!("CARGO_BIN_EXE_xf");
+
+    let invocations: Vec<Vec<&str>> = vec![
+        vec!["stats", "--db", db_str, "--index", idx_str],
+        vec![
+            "search", "rust", "--mode", "lexical", "--format", "json", "--db", db_str, "--index",
+            idx_str,
+        ],
+        vec!["--help"],
+        vec!["completions", "bash"],
+    ];
+
+    for args in invocations {
+        // Create an OS pipe and close the read end BEFORE spawning so the very first
+        // stdout write deterministically hits EPIPE (issue #15).
+        let (rx, tx) = std::io::pipe().expect("create OS pipe");
+        drop(rx);
+
+        let output = StdCommand::new(bin)
+            .args(&args)
+            .stdin(Stdio::null())
+            .stdout(Stdio::from(tx))
+            .stderr(Stdio::piped())
+            .output()
+            .expect("spawn xf with closed stdout pipe");
+
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert_ne!(
+            output.status.code(),
+            Some(134),
+            "xf {args:?} aborted with exit 134 on closed stdout; stderr={stderr}"
+        );
+        assert_ne!(
+            output.status.signal(),
+            Some(6), // SIGABRT
+            "xf {args:?} died with SIGABRT on closed stdout; stderr={stderr}"
+        );
+        assert!(
+            !stderr.contains("panicked at") && !stderr.contains("Broken pipe"),
+            "xf {args:?} panicked on closed stdout; status={:?} stderr={stderr}",
+            output.status
+        );
+    }
+}

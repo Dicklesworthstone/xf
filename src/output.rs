@@ -246,7 +246,8 @@ pub struct Output {
 }
 
 impl Output {
-    fn write_stdout_line(text: &str) {
+    /// Write a line to stdout, exiting cleanly with status 0 on `BrokenPipe` (EPIPE).
+    pub fn write_stdout_line(text: &str) {
         let mut stdout = io::stdout().lock();
         if let Err(err) = writeln!(stdout, "{text}") {
             if err.kind() == io::ErrorKind::BrokenPipe {
@@ -255,7 +256,8 @@ impl Output {
         }
     }
 
-    fn write_stdout_str(text: &str) {
+    /// Write a string to stdout without trailing newline, exiting cleanly with status 0 on `BrokenPipe` (EPIPE).
+    pub fn write_stdout_str(text: &str) {
         let mut stdout = io::stdout().lock();
         if let Err(err) = write!(stdout, "{text}") {
             if err.kind() == io::ErrorKind::BrokenPipe {

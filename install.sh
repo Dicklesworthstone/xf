@@ -11,10 +11,11 @@
 # Options:
 #   --version vX.Y.Z   Install specific version (default: latest)
 #   --dest DIR         Install to DIR (default: ~/.local/bin)
-#   --system           Install to /usr/local/bin (requires sudo)
+#   --system           Install to /usr/local/bin (requires root/sudo)
 #   --easy-mode        Auto-update PATH in shell rc files
 #   --verify           Run self-test after install
-#   --from-source      Build from source instead of downloading binary
+#   --from-source      Build the selected release tag from source (explicit opt-in)
+#   --allow-rustup     Permit installing Rust nightly via rustup during --from-source
 #   --quiet            Suppress non-error output
 #   --no-gum           Disable gum formatting even if available
 #   --insecure-skip-checksum   Skip SHA256 verification (NOT recommended)
@@ -32,6 +33,7 @@ EASY=0
 QUIET=0
 VERIFY=0
 FROM_SOURCE=0
+ALLOW_RUSTUP="${ALLOW_RUSTUP:-0}"
 CHECKSUM="${CHECKSUM:-}"
 CHECKSUM_URL="${CHECKSUM_URL:-}"
 SKIP_CHECKSUM="${SKIP_CHECKSUM:-0}"
@@ -78,9 +80,9 @@ warn() {
 
 err() {
   if [ "$HAS_GUM" -eq 1 ] && [ "$NO_GUM" -eq 0 ]; then
-    gum style --foreground 196 "✗ $*"
+    gum style --foreground 196 "✗ $*" >&2
   else
-    echo -e "\033[0;31m✗\033[0m $*"
+    echo -e "\033[0;31m✗\033[0m $*" >&2
   fi
 }
 
@@ -96,16 +98,31 @@ run_with_spinner() {
   fi
 }
 
+is_valid_version_tag() {
+  local v="$1"
+  [[ "$v" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-.+][0-9A-Za-z._-]+)?$ ]]
+}
+
 resolve_version() {
-  if [ -n "$VERSION" ]; then return 0; fi
+  if [ -n "$VERSION" ]; then
+    if ! is_valid_version_tag "$VERSION"; then
+      err "Invalid version tag: '$VERSION' (expected format vX.Y.Z, e.g. v0.5.0)."
+      err "Releases: https://github.com/${OWNER}/${REPO}/releases"
+      exit 1
+    fi
+    return 0
+  fi
 
   info "Resolving latest version..."
   local latest_url="https://api.github.com/repos/${OWNER}/${REPO}/releases/latest"
-  local tag
-  if ! tag=$(curl -fsSL -H "Accept: application/vnd.github.v3+json" -H "User-Agent: xf-installer/1.0" "$latest_url" 2>/dev/null | grep -o '"tag_name": *"[^"]*"' | head -n 1 | sed -E 's/.*"([^"]*)"$/\1/'); then
+  local tag=""
+  if tag=$(curl -fsSL -H "Accept: application/vnd.github.v3+json" -H "User-Agent: xf-installer/1.0" "$latest_url" 2>/dev/null | grep -o '"tag_name"[[:space:]]*:[[:space:]]*"[^"]*"' | head -n 1 | sed -E 's/.*"([^"]*)"$/\1/'); then
+    if ! is_valid_version_tag "$tag"; then
+      tag=""
+    fi
+  else
     tag=""
   fi
-  case "$tag" in v[0-9]*|[0-9]*) ;; *) tag="" ;; esac
 
   if [ -n "$tag" ]; then
     VERSION="$tag"
@@ -114,8 +131,7 @@ resolve_version() {
     # Try redirect-based resolution as fallback
     local redirect_url="https://github.com/${OWNER}/${REPO}/releases/latest"
     if tag=$(curl -fsSL -H "User-Agent: xf-installer/1.0" -o /dev/null -w '%{url_effective}' "$redirect_url" 2>/dev/null | sed -E 's|.*/tag/||'); then
-      # Validate: tag must be non-empty, start with 'v' + digit, and not contain URL chars
-      if [ -n "$tag" ] && [[ "$tag" =~ ^v[0-9] ]] && [[ "$tag" != *"/"* ]]; then
+      if is_valid_version_tag "$tag"; then
         VERSION="$tag"
         info "Resolved latest version via redirect: $VERSION"
         return 0
@@ -123,7 +139,7 @@ resolve_version() {
     fi
     err "Could not resolve the latest release version (GitHub API and redirect lookup both failed)."
     err "This is usually a transient network issue or GitHub API rate limiting."
-    err "Retry later, or pin a version explicitly, e.g.: install.sh --version v0.4.3"
+    err "Retry later, or pin a version explicitly, e.g.: install.sh --version v0.5.0"
     err "Releases: https://github.com/${OWNER}/${REPO}/releases"
     exit 1
   fi
@@ -156,37 +172,75 @@ maybe_add_path() {
 }
 
 ensure_rust() {
-  if [ "${RUSTUP_INIT_SKIP:-0}" != "0" ]; then
-    info "Skipping rustup install (RUSTUP_INIT_SKIP set)"
+  if command -v cargo >/dev/null 2>&1 && rustc --version 2>/dev/null | grep -q nightly; then
     return 0
   fi
-  if command -v cargo >/dev/null 2>&1 && rustc --version 2>/dev/null | grep -q nightly; then return 0; fi
-  if [ "$EASY" -ne 1 ]; then
+  if [ "${RUSTUP_INIT_SKIP:-0}" != "0" ]; then
+    err "Rust nightly toolchain is required for --from-source, and RUSTUP_INIT_SKIP is set."
+    err "Install Rust nightly manually (https://rustup.rs) and retry."
+    exit 1
+  fi
+  if [ "$ALLOW_RUSTUP" != "1" ]; then
     if [ -t 0 ]; then
-      echo -n "Install Rust nightly via rustup? (y/N): "
+      echo -n "Rust nightly is required for --from-source. Install via rustup? (y/N): "
       read -r ans
-      case "$ans" in y|Y) :;; *) warn "Skipping rustup install"; return 0;; esac
+      case "$ans" in
+        y|Y) :;;
+        *)
+          err "Aborted: Rust nightly is not installed and rustup installation was declined."
+          err "Install Rust nightly manually or re-run with --from-source --allow-rustup."
+          exit 1
+          ;;
+      esac
+    else
+      err "Rust nightly toolchain is required for --from-source, and stdin is non-interactive."
+      err "Refusing to install rustup automatically without explicit consent (pass --allow-rustup or set ALLOW_RUSTUP=1)."
+      exit 1
     fi
   fi
-  info "Installing rustup (nightly)"
+  info "Installing rustup (nightly) as requested (--allow-rustup)"
   curl -fsSL https://sh.rustup.rs | sh -s -- -y --default-toolchain nightly --profile minimal
   export PATH="$HOME/.cargo/bin:$PATH"
-  rustup component add rustfmt clippy || true
+  if ! command -v cargo >/dev/null 2>&1; then
+    err "rustup installation completed, but cargo was not found in PATH."
+    exit 1
+  fi
+}
+
+verify_installed_binary() {
+  local bin_path="$1"
+  local out
+  if ! out=$("$bin_path" --version 2>&1); then
+    err "Self-test failed: '$bin_path --version' exited non-zero."
+    err "$out"
+    exit 1
+  fi
+  if [ -n "$VERSION" ] && [ -z "$ARTIFACT_URL" ]; then
+    local expected_ver="${VERSION#v}"
+    if [[ "$out" != *"$expected_ver"* ]]; then
+      err "Self-test failed: expected version containing '$expected_ver', got: $out"
+      exit 1
+    fi
+  fi
+  log "$out"
+  ok "Self-test complete"
 }
 
 usage() {
   cat <<EOFU
 Usage: install.sh [--version vX.Y.Z] [--dest DIR] [--system] [--easy-mode] [--verify] \\
-                  [--artifact-url URL] [--checksum HEX] [--checksum-url URL] \\
-                  [--insecure-skip-checksum] [--quiet] [--no-gum]
+                  [--from-source] [--allow-rustup] [--artifact-url URL] \\
+                  [--checksum HEX] [--checksum-url URL] [--insecure-skip-checksum] \\
+                  [--quiet] [--no-gum]
 
 Options:
-  --version vX.Y.Z   Install specific version (default: latest)
+  --version vX.Y.Z   Install specific release tag (default: latest)
   --dest DIR         Install to DIR (default: ~/.local/bin)
-  --system           Install to /usr/local/bin (requires sudo)
+  --system           Install to /usr/local/bin (requires root/sudo)
   --easy-mode        Auto-update PATH in shell rc files
-  --verify           Run self-test after install
-  --from-source      Build from source instead of downloading binary
+  --verify           Run strict self-test after install
+  --from-source      Build the selected release tag from source (explicit opt-in)
+  --allow-rustup     Permit installing Rust nightly via rustup during --from-source
   --quiet            Suppress non-error output
   --no-gum           Disable gum formatting even if available
   --insecure-skip-checksum   Skip SHA256 verification (NOT recommended)
@@ -195,20 +249,31 @@ EOFU
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --version) VERSION="$2"; shift 2;;
-    --dest) DEST="$2"; shift 2;;
+    --version)
+      [ $# -ge 2 ] || { err "--version requires an argument"; exit 1; }
+      VERSION="$2"; shift 2;;
+    --dest)
+      [ $# -ge 2 ] || { err "--dest requires an argument"; exit 1; }
+      DEST="$2"; shift 2;;
     --system) SYSTEM=1; DEST="/usr/local/bin"; shift;;
     --easy-mode) EASY=1; shift;;
     --verify) VERIFY=1; shift;;
-    --artifact-url) ARTIFACT_URL="$2"; shift 2;;
-    --checksum) CHECKSUM="$2"; shift 2;;
-    --checksum-url) CHECKSUM_URL="$2"; shift 2;;
+    --artifact-url)
+      [ $# -ge 2 ] || { err "--artifact-url requires an argument"; exit 1; }
+      ARTIFACT_URL="$2"; shift 2;;
+    --checksum)
+      [ $# -ge 2 ] || { err "--checksum requires an argument"; exit 1; }
+      CHECKSUM="$2"; shift 2;;
+    --checksum-url)
+      [ $# -ge 2 ] || { err "--checksum-url requires an argument"; exit 1; }
+      CHECKSUM_URL="$2"; shift 2;;
     --from-source) FROM_SOURCE=1; shift;;
+    --allow-rustup) ALLOW_RUSTUP=1; shift;;
     --insecure-skip-checksum) SKIP_CHECKSUM=1; shift;;
     --quiet|-q) QUIET=1; shift;;
     --no-gum) NO_GUM=1; shift;;
     -h|--help) usage; exit 0;;
-    *) shift;;
+    *) err "Unknown option: $1"; usage >&2; exit 1;;
   esac
 done
 
@@ -230,10 +295,17 @@ if [ "$QUIET" -eq 0 ]; then
   fi
 fi
 
-resolve_version
+if [ -z "$ARTIFACT_URL" ] || [ -n "$VERSION" ]; then
+  resolve_version
+fi
+
+if [ "$SYSTEM" -eq 1 ] && [ ! -w "$DEST" ] && [ "$(id -u)" -ne 0 ]; then
+  err "--system requires write permission to $DEST (re-run with sudo)."
+  exit 1
+fi
 
 mkdir -p "$DEST"
-OS=$(uname -s | tr 'A-Z' 'a-z')
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 case "$ARCH" in
   x86_64|amd64) ARCH="x86_64" ;;
@@ -245,12 +317,12 @@ TARGET=""
 case "${OS}-${ARCH}" in
   linux-x86_64) TARGET="x86_64-unknown-linux-gnu" ;;
   linux-aarch64) TARGET="aarch64-unknown-linux-gnu" ;;
-  darwin-x86_64) TARGET="x86_64-apple-darwin" ;;
   darwin-aarch64) TARGET="aarch64-apple-darwin" ;;
-  *) :;;
+  darwin-x86_64) TARGET="" ;; # No prebuilt ONNX Runtime binary for Intel macOS
+  *) TARGET="" ;;
 esac
 
-# Prefer prebuilt artifact when we know the target or the caller supplied a direct URL.
+# Prefer prebuilt artifact unless caller deliberately asked for --from-source.
 TAR=""
 URL=""
 if [ "$FROM_SOURCE" -eq 0 ]; then
@@ -261,8 +333,14 @@ if [ "$FROM_SOURCE" -eq 0 ]; then
     TAR="xf-${TARGET}.tar.gz"
     URL="https://github.com/${OWNER}/${REPO}/releases/download/${VERSION}/${TAR}"
   else
-    warn "No prebuilt artifact for ${OS}/${ARCH}; falling back to build-from-source"
-    FROM_SOURCE=1
+    if [ "${OS}-${ARCH}" = "darwin-x86_64" ]; then
+      err "No prebuilt binary is published for Intel macOS (darwin/x86_64; ONNX Runtime provides no prebuilt x86_64-apple-darwin archive)."
+    else
+      err "No prebuilt binary is published for ${OS}/${ARCH}."
+    fi
+    err "Refusing to silently compile from source or install a Rust toolchain."
+    err "To build release tag ${VERSION} from source deliberately, run with --from-source (and --allow-rustup if Rust nightly is not installed)."
+    exit 1
   fi
 fi
 
@@ -301,47 +379,43 @@ trap cleanup EXIT
 if [ "$FROM_SOURCE" -eq 0 ]; then
   info "Downloading $URL"
   if ! curl -fsSL -H "User-Agent: xf-installer/1.0" "$URL" -o "$TMP/$TAR"; then
-    if [ "$EASY" -eq 1 ]; then
-      warn "Artifact download failed; --easy-mode enabled, falling back to build-from-source"
-      FROM_SOURCE=1
-    elif [ -t 0 ]; then
-      warn "Artifact download failed for $URL"
-      echo -n "Build from source instead? (y/N): "
-      read -r ans
-      case "$ans" in
-        y|Y) FROM_SOURCE=1 ;;
-        *) err "Aborted. Retry later or pass --from-source to build from source."; exit 1 ;;
-      esac
-    else
-      err "Artifact download failed for $URL"
-      err "Refusing to silently compile from source in non-interactive mode (pass --from-source or --easy-mode to opt in)."
-      exit 1
-    fi
+    err "Artifact download failed for $URL"
+    err "Refusing to silently compile from source or install a Rust toolchain."
+    err "Check the version tag / network connectivity, or pass --from-source explicitly to build ${VERSION} from source."
+    exit 1
   fi
 fi
 
 if [ "$FROM_SOURCE" -eq 1 ]; then
-  info "Building from source (requires git, rust nightly)"
+  info "Building release tag ${VERSION} from source (requires git and Rust nightly)"
   ensure_rust
-  if [ -n "$VERSION" ]; then
-    git clone --depth 1 --branch "$VERSION" "https://github.com/${OWNER}/${REPO}.git" "$TMP/src" 2>/dev/null \
-      || git clone --depth 1 "https://github.com/${OWNER}/${REPO}.git" "$TMP/src"
-  else
-    git clone --depth 1 "https://github.com/${OWNER}/${REPO}.git" "$TMP/src"
+  if ! git clone --depth 1 --branch "$VERSION" "https://github.com/${OWNER}/${REPO}.git" "$TMP/src"; then
+    err "Could not check out release tag '${VERSION}' from https://github.com/${OWNER}/${REPO}.git"
+    err "Refusing to fall back to an unpinned default branch."
+    exit 1
   fi
-  (cd "$TMP/src" && cargo build --release --features full)
-  BIN="$TMP/src/target/release/xf"
-  [ -x "$BIN" ] || { err "Build failed"; exit 1; }
+  (cd "$TMP/src" && cargo build --locked --release --features full)
+  # Locate the compiled binary via Cargo's actual target directory (respects CARGO_TARGET_DIR).
+  TARGET_DIR=""
+  if [ -n "${CARGO_TARGET_DIR:-}" ]; then
+    case "$CARGO_TARGET_DIR" in
+      /*) TARGET_DIR="$CARGO_TARGET_DIR" ;;
+      *) TARGET_DIR="$TMP/src/$CARGO_TARGET_DIR" ;;
+    esac
+  else
+    TARGET_DIR="$TMP/src/target"
+  fi
+  BIN="$TARGET_DIR/release/xf"
+  [ -x "$BIN" ] || { err "Build failed: expected compiled binary at $BIN"; exit 1; }
   if ! "$BIN" --version >/dev/null 2>&1; then
     err "Built binary failed smoke test ('$BIN --version'); refusing to overwrite $DEST/xf"
     exit 1
   fi
   install -m 0755 "$BIN" "$DEST/xf"
-  ok "Installed to $DEST/xf (source build)"
+  ok "Installed to $DEST/xf (source build of $VERSION)"
   maybe_add_path
   if [ "$VERIFY" -eq 1 ]; then
-    "$DEST/xf" --version || true
-    ok "Self-test complete"
+    verify_installed_binary "$DEST/xf"
   fi
   ok "Done. Binary at: $DEST/xf"
   exit 0
@@ -414,8 +488,7 @@ ok "Installed to $DEST/xf"
 maybe_add_path
 
 if [ "$VERIFY" -eq 1 ]; then
-  "$DEST/xf" --version || true
-  ok "Self-test complete"
+  verify_installed_binary "$DEST/xf"
 fi
 
 ok "Done. Binary at: $DEST/xf"

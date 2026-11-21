@@ -601,6 +601,7 @@ pub fn parse_proc_status_rss_mb(status_text: &str) -> (f64, f64) {
     (peak_mb, steady_mb)
 }
 
+#[allow(clippy::missing_const_for_fn)] // Linux implementation reads /proc/self/status
 fn measure_process_rss_mb() -> (f64, f64) {
     #[cfg(target_os = "linux")]
     {

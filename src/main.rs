@@ -287,7 +287,23 @@ const fn cli_format_to_output(format: OutputFormat) -> OutFmt {
 }
 
 fn main() -> Result<()> {
-    let mut cli = Cli::parse();
+    let mut cli = match Cli::try_parse() {
+        Ok(cli) => cli,
+        Err(err) => {
+            let code = err.exit_code();
+            if err.use_stderr() {
+                let _ = err.print();
+            } else {
+                let rendered = if io::stdout().is_terminal() {
+                    err.render().ansi().to_string()
+                } else {
+                    err.render().to_string()
+                };
+                Output::write_stdout_str(&rendered);
+            }
+            std::process::exit(code);
+        }
+    };
     let config = Config::load();
 
     // Resolve format: CLI explicit value wins, then env vars, then config.output.format

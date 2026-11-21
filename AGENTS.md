@@ -118,11 +118,11 @@ This project uses **Tokio** for async operations.
 
 ### Release Profile
 
-The release build optimizes for binary size:
+The release build optimizes for runtime performance:
 
 ```toml
 [profile.release]
-opt-level = "z"     # Optimize for size (lean binary for distribution)
+opt-level = 3       # Optimize for runtime speed (indexing and search latency)
 lto = true          # Link-time optimization
 codegen-units = 1   # Single codegen unit for better optimization
 panic = "abort"     # Smaller binary, no unwinding overhead

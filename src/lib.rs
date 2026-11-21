@@ -320,13 +320,13 @@ pub fn generate_embeddings_with_config(storage: &Storage, config: &EmbeddingConf
     // Two-tier mode: run two separate embedding passes
     if config.two_tier {
         if config.show_progress {
-            println!();
-            println!(
+            crate::output::Output::write_stdout_line("");
+            crate::output::Output::write_stdout_line(&format!(
                 "{}",
                 "Two-tier embedding: generating fast + quality embeddings..."
                     .bold()
                     .cyan()
-            );
+            ));
         }
 
         // Pass 1: Fast model
@@ -335,11 +335,11 @@ pub fn generate_embeddings_with_config(storage: &Storage, config: &EmbeddingConf
             .clone()
             .unwrap_or_else(|| "hash-fnv1a-384".to_string());
         if config.show_progress {
-            println!(
+            crate::output::Output::write_stdout_line(&format!(
                 "  {} Fast pass (model: {})",
                 "→".cyan(),
                 fast_model.dimmed()
-            );
+            ));
         }
         let fast_config = EmbeddingConfig {
             show_progress: config.show_progress,
@@ -358,11 +358,11 @@ pub fn generate_embeddings_with_config(storage: &Storage, config: &EmbeddingConf
             .clone()
             .unwrap_or_else(|| "all-MiniLM-L6-v2".to_string());
         if config.show_progress {
-            println!(
+            crate::output::Output::write_stdout_line(&format!(
                 "  {} Quality pass (model: {})",
                 "→".cyan(),
                 quality_model.dimmed()
-            );
+            ));
         }
         let quality_config = EmbeddingConfig {
             show_progress: config.show_progress,
@@ -407,16 +407,16 @@ pub fn generate_embeddings_with_config(storage: &Storage, config: &EmbeddingConf
     let store_batch_size = if embedder.is_semantic() { 50 } else { 100 };
 
     if config.show_progress {
-        println!();
+        crate::output::Output::write_stdout_line("");
         let mode = if embedder.is_semantic() {
             "semantic (ML)"
         } else {
             "hash-based"
         };
-        println!(
+        crate::output::Output::write_stdout_line(&format!(
             "{}",
             format!("Generating {mode} embeddings...").bold().cyan()
-        );
+        ));
     }
 
     // Fetch all collections first to pre-allocate
@@ -477,7 +477,10 @@ pub fn generate_embeddings_with_config(storage: &Storage, config: &EmbeddingConf
 
     if docs.is_empty() {
         if config.show_progress {
-            println!("  {} No documents to embed", "⚠".yellow());
+            crate::output::Output::write_stdout_line(&format!(
+                "  {} No documents to embed",
+                "⚠".yellow()
+            ));
         }
         return Ok(());
     }
@@ -641,32 +644,32 @@ pub fn generate_embeddings_with_config(storage: &Storage, config: &EmbeddingConf
     let embed_elapsed = format_duration(embed_start.elapsed());
     let generated_count = stored_count.saturating_sub(reused_count);
     if config.show_progress {
-        println!(
+        crate::output::Output::write_stdout_line(&format!(
             "  {} {} embeddings stored {}",
             "✓".green(),
             format_number_usize(stored_count).bold(),
             format!("({embed_elapsed})").dimmed()
-        );
+        ));
         if reused_count > 0 {
-            println!(
+            crate::output::Output::write_stdout_line(&format!(
                 "  {} {} reused from identical content",
                 "·".dimmed(),
                 format_number_usize(reused_count).dimmed()
-            );
+            ));
         }
         if generated_count > 0 && reused_count > 0 {
-            println!(
+            crate::output::Output::write_stdout_line(&format!(
                 "  {} {} generated",
                 "·".dimmed(),
                 format_number_usize(generated_count).dimmed()
-            );
+            ));
         }
         if skipped_count > 0 {
-            println!(
+            crate::output::Output::write_stdout_line(&format!(
                 "  {} {} skipped (empty or unchanged)",
                 "·".dimmed(),
                 format_number_usize(skipped_count).dimmed()
-            );
+            ));
         }
     }
 
@@ -893,7 +896,10 @@ fn generate_embeddings_for_model(
 
     if docs.is_empty() {
         if config.show_progress {
-            println!("    {} No documents to embed", "⚠".yellow());
+            crate::output::Output::write_stdout_line(&format!(
+                "    {} No documents to embed",
+                "⚠".yellow()
+            ));
         }
         return Ok(());
     }
@@ -1061,33 +1067,33 @@ fn generate_embeddings_for_model(
         0
     };
     if config.show_progress {
-        println!(
+        crate::output::Output::write_stdout_line(&format!(
             "    {} {} embeddings stored ({} docs/sec) {}",
             "✓".green(),
             format_number_usize(stored_count).bold(),
             format_number_u64(docs_per_sec).cyan(),
             format!("({embed_elapsed})").dimmed()
-        );
+        ));
         if reused_count > 0 {
-            println!(
+            crate::output::Output::write_stdout_line(&format!(
                 "    {} {} reused from identical content",
                 "·".dimmed(),
                 format_number_usize(reused_count).dimmed()
-            );
+            ));
         }
         if generated_count > 0 && reused_count > 0 {
-            println!(
+            crate::output::Output::write_stdout_line(&format!(
                 "    {} {} generated",
                 "·".dimmed(),
                 format_number_usize(generated_count).dimmed()
-            );
+            ));
         }
         if skipped_count > 0 {
-            println!(
+            crate::output::Output::write_stdout_line(&format!(
                 "    {} {} skipped (empty, unchanged, or failed)",
                 "·".dimmed(),
                 format_number_usize(skipped_count).dimmed()
-            );
+            ));
         }
     }
 

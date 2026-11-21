@@ -5,7 +5,6 @@
 
 use clap::ValueEnum;
 use clap_complete::generate;
-use std::io;
 
 use crate::cli::Cli;
 use crate::output::Output;
@@ -123,8 +122,10 @@ Or save to a file:
 pub fn generate_completions(shell: Shell, output: &Output) {
     let mut cmd = <Cli as clap::CommandFactory>::command();
 
-    // Generate completions to stdout
-    generate(shell.to_clap_shell(), &mut cmd, "xf", &mut io::stdout());
+    // Generate completions to stdout (EPIPE-safe so piping to `head` exits cleanly)
+    let mut buf = Vec::new();
+    generate(shell.to_clap_shell(), &mut cmd, "xf", &mut buf);
+    Output::write_stdout_str(&String::from_utf8_lossy(&buf));
 
     // Show installation instructions on stderr
     show_install_instructions(shell, output);
@@ -184,9 +185,9 @@ fn show_install_instructions(shell: Shell, output: &Output) {
 /// Provides a more visually appealing help display when running in a TTY.
 pub fn render_styled_help(output: &Output) {
     if !output.is_styled() {
-        // Fall back to clap's built-in help
+        // Fall back to clap's built-in help (EPIPE-safe)
         let mut cmd = <Cli as clap::CommandFactory>::command();
-        let _ = cmd.print_help();
+        Output::write_stdout_str(&cmd.render_help().to_string());
         return;
     }
 

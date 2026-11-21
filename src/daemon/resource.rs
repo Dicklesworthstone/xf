@@ -246,6 +246,7 @@ fn apply_cpu_nice(level: i32) -> std::io::Result<()> {
 }
 
 #[cfg(not(unix))]
+#[allow(clippy::unnecessary_wraps)] // Signature parity with #[cfg(unix)]
 fn apply_cpu_nice(_level: i32) -> std::io::Result<()> {
     tracing::info!("CPU nice not supported on this platform");
     Ok(())
@@ -279,6 +280,7 @@ fn apply_io_priority(policy: IoPriority) -> std::io::Result<()> {
 }
 
 #[cfg(not(target_os = "linux"))]
+#[allow(clippy::unnecessary_wraps)] // Signature parity with #[cfg(target_os = "linux")]
 fn apply_io_priority(_policy: IoPriority) -> std::io::Result<()> {
     tracing::info!("I/O priority (ionice) not supported on this platform, skipping");
     Ok(())
@@ -406,14 +408,13 @@ fn get_system_memory() -> (u64, u64) {
         .ok()
         .and_then(|o| String::from_utf8(o.stdout).ok())
         .and_then(|s| s.trim().parse::<u64>().ok())
-        .map(|bytes| bytes / 1024 / 1024)
-        .unwrap_or(0);
+        .map_or(0, |bytes| bytes / 1024 / 1024);
 
     // Get page size and free/inactive pages via vm_stat
     let vm_stat = Command::new("vm_stat").output().ok();
     let available_mb = vm_stat
         .and_then(|o| String::from_utf8(o.stdout).ok())
-        .map(|s| {
+        .map_or(0, |s| {
             let mut free_pages = 0u64;
             let mut inactive_pages = 0u64;
             let page_size = 16384u64; // Assume 16KB pages on Apple Silicon
@@ -431,8 +432,7 @@ fn get_system_memory() -> (u64, u64) {
             }
 
             (free_pages + inactive_pages) * page_size / 1024 / 1024
-        })
-        .unwrap_or(0);
+        });
 
     (total_mb, available_mb)
 }
@@ -470,8 +470,7 @@ pub fn get_process_rss_mb() -> f64 {
         .ok()
         .and_then(|o| String::from_utf8(o.stdout).ok())
         .and_then(|s| s.trim().parse::<f64>().ok())
-        .map(|kb| kb / 1024.0)
-        .unwrap_or(0.0)
+        .map_or(0.0, |kb| kb / 1024.0)
 }
 
 #[cfg(not(any(target_os = "linux", target_os = "macos")))]

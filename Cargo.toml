@@ -154,7 +154,7 @@ name = "search_perf"
 harness = false
 
 [profile.release]
-opt-level = "z"     # Optimize for size (lean binary for distribution)
+opt-level = 3       # Optimize for runtime speed (indexing and search latency)
 lto = true          # Link-time optimization across crates
 codegen-units = 1   # Single codegen unit for better optimization
 panic = "abort"     # Smaller binary, no unwinding overhead
