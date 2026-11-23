@@ -812,6 +812,33 @@ impl ContentStats {
     }
 }
 
+/// Combined temporal, engagement, and content analytics snapshot.
+#[derive(Debug, Clone, Serialize)]
+pub struct FullAnalytics {
+    /// Temporal activity patterns over time.
+    pub temporal: TemporalStats,
+    /// Likes, retweets, and monthly engagement trends.
+    pub engagement: EngagementStats,
+    /// Length distribution, media ratios, top hashtags, and mentions.
+    pub content: ContentStats,
+}
+
+/// Compute temporal, engagement, and content analytics in one call.
+///
+/// # Errors
+///
+/// Returns an error if any underlying database query fails.
+pub fn compute_full_analytics(storage: &Storage, top_n: usize) -> Result<FullAnalytics> {
+    let temporal = TemporalStats::compute(storage)?;
+    let engagement = EngagementStats::compute(storage, top_n)?;
+    let content = ContentStats::compute(storage, top_n)?;
+    Ok(FullAnalytics {
+        temporal,
+        engagement,
+        content,
+    })
+}
+
 /// Format length distribution as a horizontal bar chart.
 #[must_use]
 #[allow(clippy::cast_precision_loss, clippy::manual_checked_ops)]
@@ -1485,5 +1512,77 @@ mod tests {
         let formatted_likes = format_likes_histogram(&likes);
         assert!(formatted_likes.contains('0'));
         debug!("test_format_helpers: done");
+    }
+    #[test]
+    fn test_compute_full_analytics() {
+        let mut storage = Storage::open_memory().unwrap();
+        let t1 = chrono::DateTime::parse_from_rfc3339("2025-01-10T09:00:00Z")
+            .unwrap()
+            .with_timezone(&chrono::Utc);
+        let t2 = chrono::DateTime::parse_from_rfc3339("2025-02-15T18:30:00Z")
+            .unwrap()
+            .with_timezone(&chrono::Utc);
+        storage
+            .store_tweets(&[
+                Tweet {
+                    id: "fa_1".to_string(),
+                    created_at: t1,
+                    full_text: "Building #rust tools with @alice".to_string(),
+                    source: None,
+                    favorite_count: 15,
+                    retweet_count: 4,
+                    lang: Some("en".to_string()),
+                    in_reply_to_status_id: None,
+                    in_reply_to_user_id: None,
+                    in_reply_to_screen_name: None,
+                    is_retweet: false,
+                    hashtags: vec!["rust".to_string()],
+                    user_mentions: vec![UserMention {
+                        id: "u1".to_string(),
+                        screen_name: "alice".to_string(),
+                        name: Some("Alice".to_string()),
+                    }],
+                    urls: Vec::new(),
+                    media: Vec::new(),
+                },
+                Tweet {
+                    id: "fa_2".to_string(),
+                    created_at: t2,
+                    full_text: "Shipping #rust search analytics with @alice and @bob".to_string(),
+                    source: None,
+                    favorite_count: 42,
+                    retweet_count: 10,
+                    lang: Some("en".to_string()),
+                    in_reply_to_status_id: None,
+                    in_reply_to_user_id: None,
+                    in_reply_to_screen_name: None,
+                    is_retweet: false,
+                    hashtags: vec!["rust".to_string()],
+                    user_mentions: vec![
+                        UserMention {
+                            id: "u1".to_string(),
+                            screen_name: "alice".to_string(),
+                            name: Some("Alice".to_string()),
+                        },
+                        UserMention {
+                            id: "u2".to_string(),
+                            screen_name: "bob".to_string(),
+                            name: Some("Bob".to_string()),
+                        },
+                    ],
+                    urls: Vec::new(),
+                    media: Vec::new(),
+                },
+            ])
+            .unwrap();
+
+        let analytics = compute_full_analytics(&storage, 5).unwrap();
+        assert_eq!(analytics.temporal.active_days_count, 2);
+        assert_eq!(analytics.engagement.total_likes, 57);
+        assert_eq!(analytics.engagement.total_retweets, 14);
+        assert_eq!(analytics.content.top_hashtags[0].tag, "rust");
+        assert_eq!(analytics.content.top_hashtags[0].count, 2);
+        assert_eq!(analytics.content.top_mentions[0].tag, "alice");
+        assert_eq!(analytics.content.top_mentions[0].count, 2);
     }
 }

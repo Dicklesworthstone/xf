@@ -1337,51 +1337,86 @@ impl ReplSession {
         Ok(out)
     }
 
-    fn run_stats(&self) -> Result<()> {
+    fn format_stats_report(&self) -> Result<String> {
+        use std::fmt::Write as _;
+
         let stats = self.storage.get_stats()?;
-        println!("{}", "Archive Statistics".bold().cyan());
-        println!("{}", "─".repeat(CONTENT_DIVIDER_WIDTH));
-        println!("  {:<20} {}", "Tweets:", format_number(stats.tweets_count));
-        println!("  {:<20} {}", "Likes:", format_number(stats.likes_count));
-        println!(
+        let mut out = String::new();
+        let _ = writeln!(out, "{}", "Archive Statistics".bold().cyan());
+        let _ = writeln!(out, "{}", "─".repeat(CONTENT_DIVIDER_WIDTH));
+        let _ = writeln!(
+            out,
+            "  {:<20} {}",
+            "Tweets:",
+            format_number(stats.tweets_count)
+        );
+        let _ = writeln!(
+            out,
+            "  {:<20} {}",
+            "Likes:",
+            format_number(stats.likes_count)
+        );
+        let _ = writeln!(
+            out,
             "  {:<20} {}",
             "Bookmarks:",
             format_number(stats.bookmarks_count)
         );
-        println!(
+        let _ = writeln!(
+            out,
             "  {:<20} {}",
             "DM Messages:",
             format_number(stats.dms_count)
         );
-        println!(
+        let _ = writeln!(
+            out,
             "  {:<20} {}",
             "DM Conversations:",
             format_number(stats.dm_conversations_count)
         );
-        println!(
+        let _ = writeln!(
+            out,
             "  {:<20} {}",
             "Grok Messages:",
             format_number(stats.grok_messages_count)
         );
-        println!(
+        let _ = writeln!(
+            out,
             "  {:<20} {}",
             "Followers:",
             format_number(stats.followers_count)
         );
-        println!(
+        let _ = writeln!(
+            out,
             "  {:<20} {}",
             "Following:",
             format_number(stats.following_count)
         );
-        println!("  {:<20} {}", "Blocks:", format_number(stats.blocks_count));
-        println!("  {:<20} {}", "Mutes:", format_number(stats.mutes_count));
+        let _ = writeln!(
+            out,
+            "  {:<20} {}",
+            "Blocks:",
+            format_number(stats.blocks_count)
+        );
+        let _ = writeln!(
+            out,
+            "  {:<20} {}",
+            "Mutes:",
+            format_number(stats.mutes_count)
+        );
 
         if stats.tweets_count > 0 {
             if let Ok(summary) = format_repl_analytics_summary(&self.storage) {
-                println!();
-                print!("{summary}");
+                let _ = writeln!(out);
+                out.push_str(&summary);
             }
         }
+        Ok(out)
+    }
+
+    fn run_stats(&self) -> Result<()> {
+        let report = self.format_stats_report()?;
+        print!("{report}");
         Ok(())
     }
 
@@ -1817,7 +1852,10 @@ fn parse_command(input: &str) -> Result<Command> {
             let format = parse_export_format(fmt)?;
             Ok(Command::Export { format })
         }
-        "stats" => Ok(Command::Stats),
+        "stats" => match parts.get(1).copied() {
+            None | Some("detailed") => Ok(Command::Stats),
+            Some(other) => anyhow::bail!("Unknown stats option '{other}'. Usage: stats [detailed]"),
+        },
         "set" => {
             if parts.len() < 3 {
                 anyhow::bail!("Usage: set <name> <value>");
@@ -1962,15 +2000,16 @@ fn truncate_text(text: &str, max_len: usize) -> String {
 /// Format rich analytics (activity sparklines, distributions, and top tags) for REPL `stats`.
 fn format_repl_analytics_summary(storage: &Storage) -> Result<String> {
     use crate::stats_analytics::{
-        ContentStats, EngagementStats, TemporalStats, format_dow_distribution,
-        format_hourly_sparkline, format_length_distribution, format_likes_histogram,
-        format_top_tags, sparkline_from_daily, sparkline_from_monthly,
+        compute_full_analytics, format_dow_distribution, format_hourly_sparkline,
+        format_length_distribution, format_likes_histogram, format_top_tags, sparkline_from_daily,
+        sparkline_from_monthly,
     };
     use std::fmt::Write as _;
 
-    let temporal = TemporalStats::compute(storage)?;
-    let engagement = EngagementStats::compute(storage, 5)?;
-    let content = ContentStats::compute(storage, 5)?;
+    let analytics = compute_full_analytics(storage, 5)?;
+    let temporal = analytics.temporal;
+    let engagement = analytics.engagement;
+    let content = analytics.content;
 
     let mut out = String::new();
     let _ = writeln!(out, "{}", "Activity & Engagement Analytics".bold().cyan());
@@ -2150,8 +2189,10 @@ fn print_help(command: Option<&str>) {
             println!("  Example: export csv");
         }
         Some("stats") => {
-            println!("{}", "stats".cyan());
-            println!("  Show archive statistics");
+            println!("{}", "stats [detailed]".cyan());
+            println!(
+                "  Show archive statistics, activity sparklines, and engagement distributions"
+            );
         }
         Some("set") => {
             println!("{}", "set <name> <value>".cyan());
@@ -3586,9 +3627,155 @@ mod tests {
         let summary = format_repl_analytics_summary(&storage).unwrap();
         assert!(summary.contains("Daily Trend:"));
         assert!(summary.contains("Hourly (00-23h):"));
+        assert!(summary.contains("Monthly Engagement:"));
         assert!(summary.contains("#rustlang"));
         assert!(summary.contains("@alice"));
+        assert!(summary.contains("Day-of-Week Activity:"));
         assert!(summary.contains("Tweet Length Distribution:"));
         assert!(summary.contains("Likes Histogram:"));
+    }
+
+    #[test]
+    fn test_parse_stats_detailed_command() {
+        assert!(matches!(parse_command("stats").unwrap(), Command::Stats));
+        assert!(matches!(
+            parse_command("stats detailed").unwrap(),
+            Command::Stats
+        ));
+        assert!(parse_command("stats bogus").is_err());
+    }
+
+    fn make_stats_test_session(storage: Storage) -> ReplSession {
+        ReplSession {
+            storage,
+            search: None,
+            index_path: None,
+            vector_index: None,
+            embedder: None,
+            search_mode: SearchMode::Hybrid,
+            type_filter: None,
+            history_entries: Vec::new(),
+            last_results: Vec::new(),
+            last_query: None,
+            history_path: None,
+            prompt_context: PromptContext::Normal,
+            current_offset: 0,
+            page_size: 10,
+            prompt_str: "xf> ".to_string(),
+            last_selected: None,
+            named_vars: HashMap::new(),
+        }
+    }
+
+    fn sample_stats_tweet(
+        id: &str,
+        rfc3339: &str,
+        text: &str,
+        likes: i64,
+        retweets: i64,
+        hashtags: &[&str],
+        mentions: &[(&str, &str)],
+    ) -> crate::model::Tweet {
+        let created_at = chrono::DateTime::parse_from_rfc3339(rfc3339)
+            .unwrap()
+            .with_timezone(&Utc);
+        crate::model::Tweet {
+            id: id.to_string(),
+            created_at,
+            full_text: text.to_string(),
+            source: None,
+            favorite_count: likes,
+            retweet_count: retweets,
+            lang: Some("en".to_string()),
+            in_reply_to_status_id: None,
+            in_reply_to_user_id: None,
+            in_reply_to_screen_name: None,
+            is_retweet: false,
+            hashtags: hashtags.iter().map(|h| (*h).to_string()).collect(),
+            user_mentions: mentions
+                .iter()
+                .map(|(uid, handle)| crate::model::UserMention {
+                    id: (*uid).to_string(),
+                    screen_name: (*handle).to_string(),
+                    name: None,
+                })
+                .collect(),
+            urls: Vec::new(),
+            media: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn test_repl_run_stats_empty_archive() {
+        let session = make_stats_test_session(Storage::open_memory().unwrap());
+        let report = session.format_stats_report().unwrap();
+        assert!(report.contains("Archive Statistics"));
+        assert!(report.contains("Tweets:"));
+        assert!(!report.contains("Activity & Engagement Analytics"));
+        session.run_stats().unwrap();
+    }
+
+    #[test]
+    fn test_repl_run_stats_populated_archive() {
+        let mut storage = Storage::open_memory().unwrap();
+        storage
+            .store_tweets(&[
+                sample_stats_tweet(
+                    "rs_1",
+                    "2025-01-13T08:15:00Z",
+                    "Short #rustlang post @alice",
+                    5,
+                    1,
+                    &["rustlang"],
+                    &[("u1", "alice")],
+                ),
+                sample_stats_tweet(
+                    "rs_2",
+                    "2025-02-19T14:45:00Z",
+                    "A much longer engineering update about #rustlang and #cli performance benchmarks with @alice and @bob covering indexing throughput and latency",
+                    85,
+                    19,
+                    &["rustlang", "cli"],
+                    &[("u1", "alice"), ("u2", "bob")],
+                ),
+                sample_stats_tweet(
+                    "rs_3",
+                    "2025-03-22T21:05:00Z",
+                    "Weekend release notes for #cli tools",
+                    250,
+                    40,
+                    &["cli"],
+                    &[],
+                ),
+            ])
+            .unwrap();
+
+        let session = make_stats_test_session(storage);
+        let report = session.format_stats_report().unwrap();
+        for expected in [
+            "Archive Statistics",
+            "Tweets:",
+            "Activity & Engagement Analytics",
+            "Daily Trend:",
+            "Hourly (00-23h):",
+            "Monthly Engagement:",
+            "Top Hashtags:",
+            "#rustlang",
+            "#cli",
+            "Top Mentions:",
+            "@alice",
+            "Day-of-Week Activity:",
+            "Mon:",
+            "Tweet Length Distribution:",
+            "Likes Histogram:",
+        ] {
+            assert!(
+                report.contains(expected),
+                "missing '{expected}' in report:
+{report}"
+            );
+        }
+
+        session.run_stats().unwrap();
     }
 }
