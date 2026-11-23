@@ -127,6 +127,18 @@ impl DaemonConfig {
         let resources = ResourceConfig::load(config_path)?;
         Ok(Self::default().with_resources(resources))
     }
+
+    /// Load configuration from file and a custom environment lookup.
+    ///
+    /// # Errors
+    /// Returns an error if the config file exists but cannot be parsed.
+    pub fn load_with_env<F>(config_path: Option<&PathBuf>, get_env: F) -> anyhow::Result<Self>
+    where
+        F: Fn(&str) -> Option<String>,
+    {
+        let resources = ResourceConfig::load_with_env(config_path, get_env)?;
+        Ok(Self::default().with_resources(resources))
+    }
 }
 
 /// Atomic counters accessible without holding the daemon state lock.
@@ -187,16 +199,24 @@ impl DaemonState {
     /// Evict loaded models if system memory pressure is high or process RSS exceeds `memory_limit_mb`.
     ///
     /// Returns the number of models evicted.
-    #[allow(clippy::cast_precision_loss)]
     fn enforce_memory_pressure(&mut self) -> usize {
+        if self.models.total_models() == 0 {
+            return 0;
+        }
+        let rss_mb = get_process_rss_mb();
+        let system_pressure = self.memory_monitor.is_under_pressure();
+        self.check_and_evict_under_pressure(rss_mb, system_pressure)
+    }
+
+    /// Evaluate RSS limit and system pressure signals and evict all loaded models if triggered.
+    #[allow(clippy::cast_precision_loss)]
+    fn check_and_evict_under_pressure(&mut self, rss_mb: f64, system_pressure: bool) -> usize {
         let loaded = self.models.total_models();
         if loaded == 0 {
             return 0;
         }
 
-        let rss_mb = get_process_rss_mb();
         let rss_exceeded = self.memory_limit_mb > 0 && rss_mb > self.memory_limit_mb as f64;
-        let system_pressure = self.memory_monitor.is_under_pressure();
 
         if rss_exceeded || system_pressure {
             tracing::warn!(
@@ -1077,5 +1097,89 @@ mod tests {
     fn test_enforce_memory_pressure_noop_when_empty() {
         let mut state = DaemonState::with_memory_limit(4, 1);
         assert_eq!(state.enforce_memory_pressure(), 0);
+    }
+
+    #[test]
+    fn test_enforce_memory_pressure_respects_unlimited_and_high_limit() {
+        // memory_limit_mb == 0 disables RSS cap
+        let mut unlimited = DaemonState::with_memory_limit(4, 0);
+        unlimited.models.get_embedder("hash").unwrap();
+        assert_eq!(unlimited.check_and_evict_under_pressure(4096.0, false), 0);
+        assert_eq!(unlimited.models.total_models(), 1);
+
+        // RSS within limit does not evict; exceeding limit evicts
+        let mut capped = DaemonState::with_memory_limit(4, 1024);
+        capped.models.get_embedder("hash").unwrap();
+        assert_eq!(capped.check_and_evict_under_pressure(512.0, false), 0);
+        assert_eq!(capped.models.total_models(), 1);
+        assert_eq!(capped.check_and_evict_under_pressure(1500.0, false), 1);
+        assert_eq!(capped.models.total_models(), 0);
+    }
+
+    #[test]
+    fn test_enforce_memory_pressure_evicts_on_system_pressure() {
+        let mut state = DaemonState::with_memory_limit(4, 0);
+        state.models.get_embedder("hash").unwrap();
+        assert_eq!(state.models.total_models(), 1);
+
+        let system_pressure = state.memory_monitor.evaluate_pressure(1000, 100);
+        assert!(system_pressure);
+        let evicted = state.check_and_evict_under_pressure(10.0, system_pressure);
+        assert_eq!(evicted, 1);
+        assert_eq!(state.models.total_models(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_handle_request_embed_evicts_under_memory_pressure() {
+        let state = Arc::new(Mutex::new(DaemonState::with_memory_limit(4, 1)));
+        {
+            let mut s = state.lock().await;
+            s.models.get_embedder("hash").unwrap();
+            // Second hit bumps requests_served to 2
+            s.models.get_embedder("hash").unwrap();
+            let loaded = s.models.loaded_models();
+            drop(s);
+            assert_eq!(loaded.len(), 1);
+            assert_eq!(loaded[0].requests_served, 2);
+        }
+
+        let response = handle_request(
+            Request::Embed {
+                texts: vec!["memory pressure eviction check".to_string()],
+                model: "hash".to_string(),
+                dims: None,
+            },
+            &state,
+        )
+        .await;
+
+        match response {
+            Response::Embeddings { vectors } => {
+                assert_eq!(vectors.len(), 1);
+                assert_ne!(vectors[0], Vec::<f32>::new());
+            }
+            other => panic!("expected Embeddings response, got {other:?}"),
+        }
+
+        #[cfg(any(target_os = "linux", target_os = "macos"))]
+        {
+            // Because RSS exceeds 1 MB, enforce_memory_pressure unloaded the cached model
+            // (requests_served=2) before reloading it freshly (requests_served=1).
+            let loaded = state.lock().await.models.loaded_models();
+            assert_eq!(loaded.len(), 1);
+            assert_eq!(loaded[0].requests_served, 1);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_model_daemon_new_propagates_memory_limit_from_config() {
+        let resources = ResourceConfig {
+            memory_limit_mb: 768,
+            ..ResourceConfig::default()
+        };
+        let config = DaemonConfig::default().with_resources(resources);
+        let daemon = ModelDaemon::new(config);
+        let s = daemon.state.lock().await;
+        assert_eq!(s.memory_limit_mb, 768);
     }
 }

@@ -5314,29 +5314,76 @@ fn cmd_models(cli: &Cli, args: &cli::ModelsArgs, output: &Output) -> Result<()> 
     Ok(())
 }
 
+/// Resolve daemon startup configuration from `daemon.toml`, environment variables, and CLI overrides.
+fn resolve_daemon_start_config_with_env<F>(
+    start_args: &cli::DaemonStartArgs,
+    get_env: F,
+) -> Result<xf::daemon::DaemonConfig>
+where
+    F: Fn(&str) -> Option<String>,
+{
+    let mut config = xf::daemon::DaemonConfig::load_with_env(start_args.config.as_ref(), get_env)?;
+
+    if let Some(socket) = &start_args.socket {
+        config.socket_path.clone_from(socket);
+    }
+    if let Some(timeout_secs) = start_args.idle_timeout {
+        if timeout_secs > 0 {
+            config.idle_timeout = Duration::from_secs(timeout_secs);
+        } else {
+            config.idle_timeout = Duration::MAX; // No timeout
+        }
+    }
+    config.max_models = start_args.max_models;
+
+    Ok(config)
+}
+
+/// Resolve daemon startup configuration using the process environment.
+fn resolve_daemon_start_config(
+    start_args: &cli::DaemonStartArgs,
+) -> Result<xf::daemon::DaemonConfig> {
+    resolve_daemon_start_config_with_env(start_args, |key| std::env::var(key).ok())
+}
+
+/// Build child CLI arguments for spawning the daemon in background mode.
+///
+/// Forwards `--config` and omits `--idle-timeout` unless explicitly provided on the CLI,
+/// so the background child preserves `daemon.toml` and `XF_DAEMON_TIMEOUT` settings.
+fn build_daemon_spawn_args(start_args: &cli::DaemonStartArgs) -> Vec<String> {
+    let mut args = vec![
+        "daemon".to_string(),
+        "start".to_string(),
+        "--foreground".to_string(),
+    ];
+
+    if let Some(config_path) = &start_args.config {
+        args.push("--config".to_string());
+        args.push(config_path.to_string_lossy().into_owned());
+    }
+    if let Some(socket) = &start_args.socket {
+        args.push("--socket".to_string());
+        args.push(socket.to_string_lossy().into_owned());
+    }
+    if let Some(timeout_secs) = start_args.idle_timeout {
+        args.push("--idle-timeout".to_string());
+        args.push(timeout_secs.to_string());
+    }
+    args.push("--max-models".to_string());
+    args.push(start_args.max_models.to_string());
+
+    args
+}
+
 /// Handle daemon subcommand.
 #[allow(clippy::too_many_lines)]
 fn cmd_daemon(cli: &Cli, args: &cli::DaemonArgs, output: &Output) -> Result<()> {
     use cli::DaemonCommand;
-    use xf::daemon::{DaemonClient, DaemonConfig, ModelDaemon};
+    use xf::daemon::{DaemonClient, ModelDaemon};
 
     match &args.command {
         DaemonCommand::Start(start_args) => {
-            // Load config
-            let mut config = DaemonConfig::load(start_args.config.as_ref())?;
-
-            // Apply CLI overrides
-            if let Some(socket) = &start_args.socket {
-                config.socket_path.clone_from(socket);
-            }
-            if let Some(timeout_secs) = start_args.idle_timeout {
-                if timeout_secs > 0 {
-                    config.idle_timeout = Duration::from_secs(timeout_secs);
-                } else {
-                    config.idle_timeout = Duration::MAX; // No timeout
-                }
-            }
-            config.max_models = start_args.max_models;
+            let config = resolve_daemon_start_config(start_args)?;
 
             if start_args.foreground {
                 // Run daemon in foreground
@@ -5358,18 +5405,7 @@ fn cmd_daemon(cli: &Cli, args: &cli::DaemonArgs, output: &Output) -> Result<()> 
                 output.print("[blue]ℹ[/] Spawning daemon in background...");
 
                 let mut cmd = std::process::Command::new(std::env::current_exe()?);
-                cmd.args(["daemon", "start", "--foreground"]);
-
-                if let Some(config_path) = &start_args.config {
-                    cmd.args(["--config", &config_path.to_string_lossy()]);
-                }
-                if let Some(socket) = &start_args.socket {
-                    cmd.args(["--socket", &socket.to_string_lossy()]);
-                }
-                if let Some(timeout_secs) = start_args.idle_timeout {
-                    cmd.args(["--idle-timeout", &timeout_secs.to_string()]);
-                }
-                cmd.args(["--max-models", &start_args.max_models.to_string()]);
+                cmd.args(build_daemon_spawn_args(start_args));
 
                 cmd.stdin(std::process::Stdio::null())
                     .stdout(std::process::Stdio::null())
@@ -5951,5 +5987,169 @@ mod cache_tests {
         );
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod daemon_start_tests {
+    use super::{
+        Cli, Commands, build_daemon_spawn_args, cli, resolve_daemon_start_config_with_env,
+    };
+    use clap::Parser;
+    use std::path::PathBuf;
+    use std::time::Duration;
+
+    fn parse_start_args(tokens: &[&str]) -> cli::DaemonStartArgs {
+        let parsed = Cli::parse_from(tokens);
+        match parsed.command {
+            Some(Commands::Daemon(cli::DaemonArgs {
+                command: cli::DaemonCommand::Start(start_args),
+            })) => start_args,
+            other => panic!("expected Daemon::Start, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_resolve_daemon_start_config_preserves_toml_and_env_when_cli_omitted() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let config_path = temp_dir.path().join("daemon.toml");
+        std::fs::write(
+            &config_path,
+            r#"
+[daemon]
+idle_timeout_secs = 420
+memory_limit_mb = 512
+socket_path = "/tmp/xf-from-toml.sock"
+"#,
+        )
+        .unwrap();
+
+        let path_str = config_path.to_string_lossy().to_string();
+        let args = parse_start_args(&["xf", "daemon", "start", "--config", &path_str]);
+        assert!(args.idle_timeout.is_none());
+
+        // Preserves daemon.toml settings when CLI flags are at defaults
+        let cfg = resolve_daemon_start_config_with_env(&args, |_| None).unwrap();
+        assert_eq!(cfg.idle_timeout, Duration::from_secs(420));
+        assert_eq!(cfg.resources.memory_limit_mb, 512);
+        assert_eq!(cfg.socket_path, PathBuf::from("/tmp/xf-from-toml.sock"));
+
+        // Preserves XF_DAEMON_TIMEOUT when CLI --idle-timeout is omitted
+        let cfg_env = resolve_daemon_start_config_with_env(&args, |key| match key {
+            "XF_DAEMON_TIMEOUT" => Some("180".to_string()),
+            _ => None,
+        })
+        .unwrap();
+        assert_eq!(cfg_env.idle_timeout, Duration::from_secs(180));
+    }
+
+    #[test]
+    fn test_resolve_daemon_start_config_cli_overrides_toml_and_env() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let config_path = temp_dir.path().join("daemon.toml");
+        std::fs::write(
+            &config_path,
+            r#"
+[daemon]
+idle_timeout_secs = 420
+socket_path = "/tmp/xf-from-toml.sock"
+"#,
+        )
+        .unwrap();
+        let path_str = config_path.to_string_lossy().to_string();
+
+        let args = parse_start_args(&[
+            "xf",
+            "daemon",
+            "start",
+            "--config",
+            &path_str,
+            "--idle-timeout",
+            "90",
+            "--socket",
+            "/tmp/xf-cli-override.sock",
+            "--max-models",
+            "2",
+        ]);
+        let cfg = resolve_daemon_start_config_with_env(&args, |key| match key {
+            "XF_DAEMON_TIMEOUT" => Some("180".to_string()),
+            _ => None,
+        })
+        .unwrap();
+        assert_eq!(cfg.idle_timeout, Duration::from_secs(90));
+        assert_eq!(cfg.socket_path, PathBuf::from("/tmp/xf-cli-override.sock"));
+        assert_eq!(cfg.max_models, 2);
+
+        // --idle-timeout 0 disables timeout
+        let zero_args = parse_start_args(&[
+            "xf",
+            "daemon",
+            "start",
+            "--config",
+            &path_str,
+            "--idle-timeout",
+            "0",
+        ]);
+        let cfg_zero = resolve_daemon_start_config_with_env(&zero_args, |_| None).unwrap();
+        assert_eq!(cfg_zero.idle_timeout, Duration::MAX);
+    }
+
+    #[test]
+    fn test_build_daemon_spawn_args_forwards_config_and_optional_timeout() {
+        let default_args = parse_start_args(&[
+            "xf",
+            "daemon",
+            "start",
+            "--config",
+            "/etc/xf/custom-daemon.toml",
+        ]);
+        let forwarded = build_daemon_spawn_args(&default_args);
+        assert_eq!(
+            forwarded,
+            vec![
+                "daemon",
+                "start",
+                "--foreground",
+                "--config",
+                "/etc/xf/custom-daemon.toml",
+                "--max-models",
+                "4",
+            ]
+        );
+        assert!(
+            !forwarded.iter().any(|a| a == "--idle-timeout"),
+            "default CLI spawn must not overwrite daemon.toml / XF_DAEMON_TIMEOUT"
+        );
+
+        let explicit_args = parse_start_args(&[
+            "xf",
+            "daemon",
+            "start",
+            "--config",
+            "/etc/xf/custom-daemon.toml",
+            "--socket",
+            "/tmp/custom.sock",
+            "--idle-timeout",
+            "120",
+            "--max-models",
+            "6",
+        ]);
+        let forwarded_explicit = build_daemon_spawn_args(&explicit_args);
+        assert_eq!(
+            forwarded_explicit,
+            vec![
+                "daemon",
+                "start",
+                "--foreground",
+                "--config",
+                "/etc/xf/custom-daemon.toml",
+                "--socket",
+                "/tmp/custom.sock",
+                "--idle-timeout",
+                "120",
+                "--max-models",
+                "6",
+            ]
+        );
     }
 }

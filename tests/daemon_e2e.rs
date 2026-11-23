@@ -2645,3 +2645,107 @@ async fn test_batch_embed_with_native_dims() {
 
     tracing::info!("batch embed with native dims verified");
 }
+
+/// Verify background `xf daemon start --config <path>` forwards `--config` to the child
+/// and honors both `daemon.toml` `idle_timeout_secs` and `XF_DAEMON_TIMEOUT` when
+/// `--idle-timeout` is omitted on the CLI (bd-dg1s).
+#[tokio::test]
+#[serial]
+async fn test_daemon_start_background_forwards_config_and_honors_env_timeout() {
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter("xf=debug,daemon_e2e=debug")
+        .try_init();
+
+    let xf_binary = find_xf_binary().expect("find xf binary");
+
+    // Part A: Background spawn with --config only (no --socket, no --idle-timeout)
+    let temp_dir = tempfile::tempdir_in("/tmp").expect("create /tmp tempdir");
+    let sock_a = temp_dir.path().join("bg-config.sock");
+    let toml_path = temp_dir.path().join("daemon.toml");
+    std::fs::write(
+        &toml_path,
+        format!(
+            "[daemon]\nidle_timeout_secs = 2\nsocket_path = \"{}\"\n",
+            sock_a.display()
+        ),
+    )
+    .expect("write daemon.toml");
+
+    let status = Command::new(&xf_binary)
+        .args(["daemon", "start", "--config"])
+        .arg(&toml_path)
+        .env_remove("XF_DAEMON_TIMEOUT")
+        .env_remove("XF_DAEMON_SOCK")
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .status()
+        .expect("spawn background daemon with --config");
+    assert!(status.success(), "background daemon start should succeed");
+
+    // Child must bind the socket from daemon.toml
+    wait_for_socket(&sock_a, Duration::from_secs(10))
+        .await
+        .expect("background daemon should bind socket from forwarded --config");
+
+    let mut client_a = DaemonClient::with_config(
+        ClientConfig::default()
+            .with_socket_path(sock_a.clone())
+            .without_auto_spawn(),
+    );
+    let health_a = client_a.health().await.expect("health on --config socket");
+    assert!(health_a.uptime_secs < 10);
+
+    // Wait for the 2s idle_timeout_secs from daemon.toml to shut the child down cleanly
+    let deadline = tokio::time::Instant::now() + Duration::from_secs(8);
+    while sock_a.exists() && tokio::time::Instant::now() < deadline {
+        tokio::time::sleep(Duration::from_millis(100)).await;
+    }
+    assert!(
+        !sock_a.exists(),
+        "background daemon should honor idle_timeout_secs = 2 from daemon.toml and remove socket"
+    );
+
+    // Part B: Foreground start honoring XF_DAEMON_TIMEOUT without --idle-timeout
+    let sock_b = temp_dir.path().join("env-timeout.sock");
+    let mut child_b = Command::new(&xf_binary)
+        .args(["daemon", "start", "--foreground", "--socket"])
+        .arg(&sock_b)
+        .env("XF_DAEMON_TIMEOUT", "2")
+        .env_remove("XF_DAEMON_SOCK")
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn daemon with XF_DAEMON_TIMEOUT");
+
+    wait_for_socket(&sock_b, Duration::from_secs(10))
+        .await
+        .expect("socket should appear for XF_DAEMON_TIMEOUT daemon");
+
+    let mut client_b = DaemonClient::with_config(
+        ClientConfig::default()
+            .with_socket_path(sock_b.clone())
+            .without_auto_spawn(),
+    );
+    let _ = client_b
+        .health()
+        .await
+        .expect("health on env-timeout socket");
+
+    let deadline_b = tokio::time::Instant::now() + Duration::from_secs(8);
+    let mut exit_status = None;
+    while tokio::time::Instant::now() < deadline_b {
+        if let Ok(Some(st)) = child_b.try_wait() {
+            exit_status = Some(st);
+            break;
+        }
+        tokio::time::sleep(Duration::from_millis(100)).await;
+    }
+    if exit_status.is_none() {
+        let _ = child_b.kill();
+    }
+    let final_status = exit_status.unwrap_or_else(|| child_b.wait().expect("wait child_b"));
+    assert!(
+        exit_status.is_some() && final_status.success(),
+        "daemon should honor XF_DAEMON_TIMEOUT=2 when --idle-timeout is omitted (status={final_status:?})"
+    );
+}

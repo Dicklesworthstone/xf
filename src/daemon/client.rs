@@ -782,4 +782,66 @@ mod tests {
         assert_ne!(vectors[0], Vec::<f32>::new());
         assert!(matches!(mode, InferenceMode::Direct(_)));
     }
+
+    #[tokio::test]
+    async fn test_inference_mode_embed_fallback_persists_direct_across_calls() {
+        let config = ClientConfig {
+            socket_path: PathBuf::from("/tmp/nonexistent-xf-fallback-persist.sock"),
+            pid_path: PathBuf::from("/tmp/nonexistent-xf-fallback-persist.pid"),
+            connect_timeout: Duration::from_millis(20),
+            request_timeout: Duration::from_millis(50),
+            max_retries: 0,
+            auto_spawn: false,
+            spawn_wait: Duration::from_millis(10),
+        };
+        let mut mode = InferenceMode::Daemon(DaemonClient::with_config(config));
+        let first = mode.embed(&["first text"]).await.unwrap();
+        assert_eq!(first.len(), 1);
+        let dim = first[0].len();
+        assert!(dim > 0);
+        assert!(matches!(mode, InferenceMode::Direct(_)));
+
+        // Subsequent calls stay in Direct mode and produce consistent dimensions
+        let second = mode.embed(&["second text", "third text"]).await.unwrap();
+        assert_eq!(second.len(), 2);
+        assert_eq!(second[0].len(), dim);
+        assert_eq!(second[1].len(), dim);
+        assert!(matches!(mode, InferenceMode::Direct(_)));
+
+        // Empty batch is handled cleanly in Direct mode
+        let empty = mode.embed(&[]).await.unwrap();
+        assert_eq!(empty.len(), 0);
+    }
+
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn test_inference_mode_embed_fallback_on_broken_socket() {
+        let temp_dir = tempfile::tempdir_in("/tmp").unwrap();
+        let sock_path = temp_dir.path().join("broken-daemon.sock");
+        let listener = tokio::net::UnixListener::bind(&sock_path).unwrap();
+
+        // Accept one connection and immediately close it without a response
+        let server = tokio::spawn(async move {
+            if let Ok((stream, _)) = listener.accept().await {
+                drop(stream);
+            }
+        });
+
+        let config = ClientConfig {
+            socket_path: sock_path.clone(),
+            pid_path: temp_dir.path().join("broken-daemon.pid"),
+            connect_timeout: Duration::from_millis(200),
+            request_timeout: Duration::from_millis(200),
+            max_retries: 0,
+            auto_spawn: false,
+            spawn_wait: Duration::from_millis(10),
+        };
+        let mut mode = InferenceMode::Daemon(DaemonClient::with_config(config));
+        let vectors = mode.embed(&["broken daemon socket"]).await.unwrap();
+        let _ = server.await;
+
+        assert_eq!(vectors.len(), 1);
+        assert_ne!(vectors[0], Vec::<f32>::new());
+        assert!(matches!(mode, InferenceMode::Direct(_)));
+    }
 }

@@ -63,6 +63,15 @@ impl ResourceConfig {
     /// - `XF_DAEMON_SOCKET`: Socket path
     #[allow(clippy::missing_errors_doc)]
     pub fn load(path: Option<&PathBuf>) -> anyhow::Result<Self> {
+        Self::load_with_env(path, |key| std::env::var(key).ok())
+    }
+
+    /// Load config from TOML file and apply overrides from a custom environment lookup.
+    #[allow(clippy::missing_errors_doc)]
+    pub fn load_with_env<F>(path: Option<&PathBuf>, get_env: F) -> anyhow::Result<Self>
+    where
+        F: Fn(&str) -> Option<String>,
+    {
         let mut config = if let Some(p) = path {
             if p.exists() {
                 let content = std::fs::read_to_string(p)?;
@@ -90,7 +99,7 @@ impl ResourceConfig {
         };
 
         // Apply environment variable overrides
-        config.apply_env_overrides();
+        config.apply_env_overrides_with(get_env);
 
         Ok(config)
     }
@@ -136,29 +145,32 @@ impl ResourceConfig {
         Ok(config)
     }
 
-    /// Apply environment variable overrides.
-    fn apply_env_overrides(&mut self) {
-        if let Ok(v) = std::env::var("XF_DAEMON_NICE") {
+    /// Apply environment variable overrides from a lookup closure.
+    fn apply_env_overrides_with<F>(&mut self, get_env: F)
+    where
+        F: Fn(&str) -> Option<String>,
+    {
+        if let Some(v) = get_env("XF_DAEMON_NICE") {
             if let Ok(n) = v.parse::<i32>() {
                 self.nice_level = n;
             }
         }
-        if let Ok(v) = std::env::var("XF_DAEMON_MEMORY_MB") {
+        if let Some(v) = get_env("XF_DAEMON_MEMORY_MB") {
             if let Ok(n) = v.parse::<u64>() {
                 self.memory_limit_mb = n;
             }
         }
-        if let Ok(v) = std::env::var("XF_DAEMON_THREADS") {
+        if let Some(v) = get_env("XF_DAEMON_THREADS") {
             if let Ok(n) = v.parse::<usize>() {
                 self.max_threads = n;
             }
         }
-        if let Ok(v) = std::env::var("XF_DAEMON_TIMEOUT") {
+        if let Some(v) = get_env("XF_DAEMON_TIMEOUT") {
             if let Ok(n) = v.parse::<u64>() {
                 self.idle_timeout = Duration::from_secs(n);
             }
         }
-        if let Ok(v) = std::env::var("XF_DAEMON_SOCKET") {
+        if let Some(v) = get_env("XF_DAEMON_SOCKET") {
             self.socket_path = Some(PathBuf::from(v));
         }
     }
@@ -338,31 +350,37 @@ impl MemoryMonitor {
         }
     }
 
-    /// Check if system is under memory pressure.
+    /// Evaluate memory pressure from explicit `(total_mb, available_mb)` samples.
     ///
-    /// Returns true if memory usage exceeds threshold.
+    /// Updates `last_available_mb` and returns `true` when used ratio exceeds `threshold`.
     #[allow(clippy::cast_precision_loss)] // Precision loss acceptable for memory stats
-    pub fn is_under_pressure(&mut self) -> bool {
-        let (total, available) = get_system_memory();
-
-        if total == 0 {
+    pub fn evaluate_pressure(&mut self, total_mb: u64, available_mb: u64) -> bool {
+        if total_mb == 0 {
             return false;
         }
 
-        self.last_available_mb = available;
-        let used_ratio = 1.0 - (available as f64 / total as f64);
+        self.last_available_mb = available_mb;
+        let used_ratio = 1.0 - (available_mb as f64 / total_mb as f64);
 
         if used_ratio > self.threshold {
             tracing::warn!(
                 used_ratio = format!("{:.1}%", used_ratio * 100.0),
                 threshold = format!("{:.1}%", self.threshold * 100.0),
-                available_mb = available,
+                available_mb,
                 "memory pressure detected"
             );
             return true;
         }
 
         false
+    }
+
+    /// Check if system is under memory pressure.
+    ///
+    /// Returns true if memory usage exceeds threshold.
+    pub fn is_under_pressure(&mut self) -> bool {
+        let (total, available) = get_system_memory();
+        self.evaluate_pressure(total, available)
     }
 
     /// Get last measured available memory in MB.
@@ -566,5 +584,83 @@ socket_path = "/tmp/test.sock"
             assert_eq!(total, 0);
             assert_eq!(available, 0);
         }
+    }
+
+    #[test]
+    fn test_memory_monitor_evaluate_pressure_thresholds() {
+        let mut monitor = MemoryMonitor::default();
+        assert!(!monitor.evaluate_pressure(0, 0));
+        assert!(!monitor.evaluate_pressure(1000, 300));
+        assert_eq!(monitor.available_mb(), 300);
+        assert!(monitor.evaluate_pressure(1000, 100));
+        assert_eq!(monitor.available_mb(), 100);
+
+        // Threshold clamps to [0.5, 0.99]
+        let mut low_clamped = MemoryMonitor::new(0.1);
+        assert!(!low_clamped.evaluate_pressure(1000, 600)); // 40% used <= 50%
+        assert!(low_clamped.evaluate_pressure(1000, 400)); // 60% used > 50%
+
+        let mut high_clamped = MemoryMonitor::new(1.5);
+        assert!(!high_clamped.evaluate_pressure(1000, 20)); // 98% used <= 99%
+        assert!(high_clamped.evaluate_pressure(1000, 5)); // 99.5% used > 99%
+    }
+
+    #[test]
+    fn test_resource_config_load_from_toml_and_env_overrides() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let config_path = temp_dir.path().join("daemon.toml");
+        std::fs::write(
+            &config_path,
+            r#"
+[daemon]
+nice_level = 12
+memory_limit_mb = 768
+max_threads = 2
+idle_timeout_secs = 420
+io_priority = "best_effort"
+socket_path = "/tmp/toml-daemon.sock"
+"#,
+        )
+        .unwrap();
+
+        // Without env overrides, TOML values are preserved
+        let from_file = ResourceConfig::load_with_env(Some(&config_path), |_| None).unwrap();
+        assert_eq!(from_file.nice_level, 12);
+        assert_eq!(from_file.memory_limit_mb, 768);
+        assert_eq!(from_file.max_threads, 2);
+        assert_eq!(from_file.idle_timeout, Duration::from_secs(420));
+        assert_eq!(from_file.io_priority, IoPriority::BestEffort);
+        assert_eq!(
+            from_file.socket_path,
+            Some(PathBuf::from("/tmp/toml-daemon.sock"))
+        );
+
+        // With env overrides, valid env values win over TOML
+        let with_env = ResourceConfig::load_with_env(Some(&config_path), |key| match key {
+            "XF_DAEMON_TIMEOUT" => Some("95".to_string()),
+            "XF_DAEMON_MEMORY_MB" => Some("512".to_string()),
+            "XF_DAEMON_NICE" => Some("15".to_string()),
+            "XF_DAEMON_THREADS" => Some("3".to_string()),
+            "XF_DAEMON_SOCKET" => Some("/tmp/env-daemon.sock".to_string()),
+            _ => None,
+        })
+        .unwrap();
+        assert_eq!(with_env.idle_timeout, Duration::from_secs(95));
+        assert_eq!(with_env.memory_limit_mb, 512);
+        assert_eq!(with_env.nice_level, 15);
+        assert_eq!(with_env.max_threads, 3);
+        assert_eq!(
+            with_env.socket_path,
+            Some(PathBuf::from("/tmp/env-daemon.sock"))
+        );
+
+        // Unparseable numeric env vars leave TOML values intact
+        let invalid_env = ResourceConfig::load_with_env(Some(&config_path), |key| match key {
+            "XF_DAEMON_TIMEOUT" | "XF_DAEMON_MEMORY_MB" => Some("not-a-number".to_string()),
+            _ => None,
+        })
+        .unwrap();
+        assert_eq!(invalid_env.idle_timeout, Duration::from_secs(420));
+        assert_eq!(invalid_env.memory_limit_mb, 768);
     }
 }
