@@ -189,6 +189,19 @@ impl LogConfig {
     /// honoring optional `XF_LOG_FORMAT` (`pretty|compact|full`) and `XF_LOG_FILE` environment variables.
     #[must_use]
     pub fn from_verbosity(verbosity: crate::output::Verbosity, colors: bool) -> Self {
+        Self::from_verbosity_with_env(verbosity, colors, |key| std::env::var(key).ok())
+    }
+
+    /// Build a [`LogConfig`] using a custom environment lookup closure.
+    #[must_use]
+    pub fn from_verbosity_with_env<F>(
+        verbosity: crate::output::Verbosity,
+        colors: bool,
+        get_env: F,
+    ) -> Self
+    where
+        F: Fn(&str) -> Option<String>,
+    {
         use crate::output::Verbosity;
 
         let level = match verbosity {
@@ -198,13 +211,11 @@ impl LogConfig {
             Verbosity::Debug => LogLevel::Debug,
         };
 
-        let format = std::env::var("XF_LOG_FORMAT")
-            .ok()
+        let format = get_env("XF_LOG_FORMAT")
             .and_then(|v| v.parse::<LogFormat>().ok())
             .unwrap_or(LogFormat::Compact);
 
-        let file = std::env::var("XF_LOG_FILE")
-            .ok()
+        let file = get_env("XF_LOG_FILE")
             .map(|s| s.trim().to_string())
             .filter(|s| !s.is_empty());
 
@@ -248,13 +259,14 @@ struct CombinedWriter {
 
 impl std::io::Write for CombinedWriter {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        let written = self.stderr.write(buf)?;
+        let stderr_res = self.stderr.write(buf);
         if let Some(ref file_mutex) = self.file {
             if let Ok(mut guard) = file_mutex.lock() {
-                let _ = guard.write_all(&buf[..written]);
+                let to_write = stderr_res.as_ref().map_or(buf, |written| &buf[..*written]);
+                let _ = guard.write_all(to_write);
             }
         }
-        Ok(written)
+        stderr_res
     }
 
     fn flush(&mut self) -> std::io::Result<()> {
@@ -360,11 +372,19 @@ pub fn init_logging(config: &LogConfig) {
                 .with_line_number(true)
                 .with_writer(writer);
 
-            tracing_subscriber::registry()
-                .with(env_filter)
-                .with(layer)
-                .try_init()
-                .ok();
+            if config.timestamps {
+                tracing_subscriber::registry()
+                    .with(env_filter)
+                    .with(layer)
+                    .try_init()
+                    .ok();
+            } else {
+                tracing_subscriber::registry()
+                    .with(env_filter)
+                    .with(layer.without_time())
+                    .try_init()
+                    .ok();
+            }
         }
     }
 }
@@ -574,9 +594,162 @@ mod tests {
     }
 
     #[test]
+    fn test_from_verbosity_all_levels_and_env_overrides() {
+        use crate::output::Verbosity;
+
+        let normal = LogConfig::from_verbosity_with_env(Verbosity::Normal, true, |_| None);
+        assert_eq!(normal.level, LogLevel::Warn);
+        assert_eq!(normal.format, LogFormat::Compact);
+        assert!(normal.colors);
+        assert!(!normal.target);
+        assert!(normal.file.is_none());
+
+        let configured =
+            LogConfig::from_verbosity_with_env(Verbosity::Verbose, false, |k| match k {
+                "XF_LOG_FORMAT" => Some("full".to_string()),
+                "XF_LOG_FILE" => Some("  /tmp/xf-custom.log  ".to_string()),
+                _ => None,
+            });
+        assert_eq!(configured.level, LogLevel::Info);
+        assert_eq!(configured.format, LogFormat::Full);
+        assert!(!configured.colors);
+        assert_eq!(configured.file.as_deref(), Some("/tmp/xf-custom.log"));
+
+        let fallback = LogConfig::from_verbosity_with_env(Verbosity::Debug, true, |k| match k {
+            "XF_LOG_FORMAT" => Some("invalid-format".to_string()),
+            "XF_LOG_FILE" => Some("   ".to_string()),
+            _ => None,
+        });
+        assert_eq!(fallback.level, LogLevel::Debug);
+        assert_eq!(fallback.format, LogFormat::Compact);
+        assert!(fallback.target);
+        assert!(fallback.file.is_none());
+    }
+
+    #[test]
+    fn test_combined_make_writer_appends_without_truncating() {
+        use tracing_subscriber::fmt::MakeWriter;
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        let log_path = temp_dir.path().join("xf-append.log");
+        let log_path_str = log_path.to_string_lossy().to_string();
+
+        let first_factory = CombinedMakeWriter::new(Some(&log_path_str));
+        let mut w1 = first_factory.make_writer();
+        w1.write_all(b"first line\n").unwrap();
+        w1.flush().unwrap();
+
+        let second_factory = CombinedMakeWriter::new(Some(&log_path_str));
+        let mut w2 = second_factory.make_writer();
+        w2.write_all(b"second line\n").unwrap();
+        w2.flush().unwrap();
+
+        let content = std::fs::read_to_string(&log_path).unwrap();
+        assert_eq!(content, "first line\nsecond line\n");
+    }
+
+    #[test]
+    fn test_tracing_subscriber_writes_to_log_file() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let log_path = temp_dir.path().join("xf-tracing.log");
+        let log_path_str = log_path.to_string_lossy().to_string();
+
+        let subscriber = tracing_subscriber::registry()
+            .with(EnvFilter::new("xf=info"))
+            .with(
+                fmt::layer()
+                    .compact()
+                    .with_ansi(false)
+                    .without_time()
+                    .with_writer(CombinedMakeWriter::new(Some(&log_path_str))),
+            );
+
+        tracing::subscriber::with_default(subscriber, || {
+            tracing::info!(event = "file_sink_check", "hello structured log");
+            tracing::warn!("structured warning entry");
+        });
+
+        let content = std::fs::read_to_string(&log_path).unwrap();
+        assert!(content.contains("hello structured log"), "got: {content}");
+        assert!(content.contains("file_sink_check"), "got: {content}");
+        assert!(
+            content.contains("structured warning entry"),
+            "got: {content}"
+        );
+    }
+
+    #[test]
     fn test_operation_guard_completion_state() {
         let guard = OperationGuard::new("test_op");
         assert!(!guard.is_completed());
         guard.complete();
+    }
+
+    #[test]
+    fn test_operation_guard_drop_logs_warning_when_abandoned() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let log_path = temp_dir.path().join("xf-guard-drop.log");
+        let log_path_str = log_path.to_string_lossy().to_string();
+
+        let subscriber = tracing_subscriber::registry()
+            .with(EnvFilter::new("xf=info"))
+            .with(
+                fmt::layer()
+                    .compact()
+                    .with_ansi(false)
+                    .without_time()
+                    .with_writer(CombinedMakeWriter::new(Some(&log_path_str))),
+            );
+
+        tracing::subscriber::with_default(subscriber, || {
+            let guard = OperationGuard::new("abandoned_index_job");
+            assert!(!guard.is_completed());
+            drop(guard);
+        });
+
+        let content = std::fs::read_to_string(&log_path).unwrap();
+        assert!(content.contains("Starting operation"), "got: {content}");
+        assert!(content.contains("abandoned_index_job"), "got: {content}");
+        assert!(
+            content.contains("Operation dropped without explicit completion"),
+            "got: {content}"
+        );
+    }
+
+    #[test]
+    fn test_operation_guard_complete_and_fail_suppress_abandoned_warning() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let log_path = temp_dir.path().join("xf-guard-done.log");
+        let log_path_str = log_path.to_string_lossy().to_string();
+
+        let subscriber = tracing_subscriber::registry()
+            .with(EnvFilter::new("xf=info"))
+            .with(
+                fmt::layer()
+                    .compact()
+                    .with_ansi(false)
+                    .without_time()
+                    .with_writer(CombinedMakeWriter::new(Some(&log_path_str))),
+            );
+
+        tracing::subscriber::with_default(subscriber, || {
+            let ok_guard = OperationGuard::new("completed_op");
+            ok_guard.complete();
+
+            let err_guard = OperationGuard::new("failed_op");
+            let err = std::io::Error::other("simulated io failure");
+            err_guard.fail(&err);
+        });
+
+        let content = std::fs::read_to_string(&log_path).unwrap();
+        assert!(content.contains("completed_op"), "got: {content}");
+        assert!(content.contains("Operation completed"), "got: {content}");
+        assert!(content.contains("failed_op"), "got: {content}");
+        assert!(content.contains("Operation failed"), "got: {content}");
+        assert!(content.contains("simulated io failure"), "got: {content}");
+        assert!(
+            !content.contains("Operation dropped without explicit completion"),
+            "completed/failed guards must not log abandoned warning: {content}"
+        );
     }
 }

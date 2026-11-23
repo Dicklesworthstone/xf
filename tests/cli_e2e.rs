@@ -2157,3 +2157,81 @@ fn test_issue_15_broken_pipe_exits_cleanly() {
         );
     }
 }
+
+#[test]
+fn test_structured_logging_writes_to_xf_log_file() {
+    let (_archive_temp, archive_path) = create_minimal_archive();
+    let output_dir = tempfile::tempdir().expect("create output dir");
+    let db_path = output_dir.path().join("xf.db");
+    let index_path = output_dir.path().join("index");
+    let log_path = output_dir.path().join("xf-e2e.log");
+
+    let archive_str = archive_path.to_str().unwrap();
+    let db_str = db_path.to_str().unwrap();
+    let idx_str = index_path.to_str().unwrap();
+    let log_str = log_path.to_str().unwrap();
+
+    // First invocation with -v and XF_LOG_FILE writes info logs to file + stderr
+    let out1 = xf_cmd()
+        .args([
+            "-v",
+            "index",
+            archive_str,
+            "--db",
+            db_str,
+            "--index",
+            idx_str,
+        ])
+        .env("XF_LOG_FILE", log_str)
+        .env("XF_LOG_FORMAT", "compact")
+        .env_remove("RUST_LOG")
+        .output()
+        .expect("run xf -v index with XF_LOG_FILE");
+    assert!(
+        out1.status.success(),
+        "xf -v index failed: {}",
+        String::from_utf8_lossy(&out1.stderr)
+    );
+
+    let first_content = std::fs::read_to_string(&log_path).expect("log file should exist");
+    assert!(
+        first_content.contains("Indexed") || first_content.contains("Stored"),
+        "expected xf info logs in XF_LOG_FILE, got: {first_content}"
+    );
+    let first_len = first_content.len();
+
+    // Second invocation appends rather than truncating existing log content
+    let out2 = xf_cmd()
+        .args([
+            "-v",
+            "index",
+            archive_str,
+            "--force",
+            "--db",
+            db_str,
+            "--index",
+            idx_str,
+        ])
+        .env("XF_LOG_FILE", log_str)
+        .env("XF_LOG_FORMAT", "full")
+        .env_remove("RUST_LOG")
+        .output()
+        .expect("run second xf -v index with XF_LOG_FILE");
+    assert!(
+        out2.status.success(),
+        "second xf -v index failed: {}",
+        String::from_utf8_lossy(&out2.stderr)
+    );
+
+    let second_content = std::fs::read_to_string(&log_path).expect("read appended log file");
+    assert!(
+        second_content.len() > first_len,
+        "expected XF_LOG_FILE to append logs (len {} -> {})",
+        first_len,
+        second_content.len()
+    );
+    assert!(
+        second_content.starts_with(&first_content),
+        "existing log entries must be preserved in append mode"
+    );
+}
