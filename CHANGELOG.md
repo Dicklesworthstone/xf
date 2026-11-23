@@ -29,6 +29,10 @@ Compare: [`v0.5.0...v0.5.1`](https://github.com/Dicklesworthstone/xf/compare/v0.
 - **Structured file logging durability & formatting**: Ensured `CombinedWriter` still tees log bytes to `XF_LOG_FILE` even if `stderr` returns a write error, and made `LogFormat::Full` honor `LogConfig::timestamps` consistently with `Pretty` and `Compact`.
 - **REPL `stats` argument validation**: Explicitly accepted `stats` and `stats detailed` while rejecting unknown options with a clear usage error.
 
+### Security & Dependencies
+
+- Upgraded transitive `cookie` `0.18.2` → `0.18.3` in `Cargo.lock` to resolve `RUSTSEC-2026-0594` (`cargo audit`: `0` vulnerabilities, `0` yanked crates).
+
 ---
 
 ## [0.5.0] - 2026-11-21
