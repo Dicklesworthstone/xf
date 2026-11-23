@@ -779,6 +779,15 @@ impl MmapVectorIndex {
                 *entry = HeapEntry { score, offset };
             }
         }
+        Self::collect_top_k_results(bytes, best, k)
+    }
+
+    /// Extract and deterministically sort the top-k documents from per-document best offsets.
+    fn collect_top_k_results(
+        bytes: &[u8],
+        best: HashMap<(u8, &[u8]), HeapEntry>,
+        k: usize,
+    ) -> Vec<VectorSearchResult> {
         let mut heap: BinaryHeap<HeapEntry> = BinaryHeap::with_capacity(k + 1);
         for entry in best.into_values() {
             heap.push(entry);
@@ -819,6 +828,66 @@ impl MmapVectorIndex {
         results
     }
 
+    /// Scan a slice of 8-byte record offsets and max-pool per borrowed document ID.
+    #[cfg(feature = "parallel-search")]
+    fn scan_offset_block<'a>(
+        &self,
+        bytes: &'a [u8],
+        offset_block: &[u8],
+        query: &[f32],
+        filter: Option<&DocTypeFilter>,
+    ) -> HashMap<(u8, &'a [u8]), HeapEntry> {
+        let mut local_best: HashMap<(u8, &'a [u8]), HeapEntry> = HashMap::new();
+
+        for chunk in offset_block.chunks_exact(8) {
+            let offset = usize::try_from(u64::from_le_bytes([
+                chunk[0], chunk[1], chunk[2], chunk[3], chunk[4], chunk[5], chunk[6], chunk[7],
+            ]))
+            .unwrap_or(usize::MAX);
+            let Some(record) = bytes.get(offset..) else {
+                continue;
+            };
+            if record.len() < 4 {
+                continue;
+            }
+
+            let doc_type_code = record[0];
+            if filter.is_some_and(|f| !f.allows(doc_type_code)) {
+                continue;
+            }
+            if decode_doc_type(doc_type_code).is_none() {
+                continue;
+            }
+
+            let doc_id_len = u16::from_le_bytes([record[2], record[3]]) as usize;
+            let doc_id_start = 4usize;
+            let doc_id_end = doc_id_start.saturating_add(doc_id_len);
+            let embedding_end = doc_id_end.saturating_add(self.embedding_len);
+            if record.len() < embedding_end {
+                continue;
+            }
+
+            let doc_id_bytes = &record[doc_id_start..doc_id_end];
+            if str::from_utf8(doc_id_bytes).is_err() {
+                continue;
+            }
+
+            let embedding_bytes = &record[doc_id_end..embedding_end];
+            let Some(score) = dot_product_f16_simd(query, embedding_bytes) else {
+                continue;
+            };
+
+            let entry = local_best
+                .entry((doc_type_code, doc_id_bytes))
+                .or_insert(HeapEntry { score, offset });
+            if score > entry.score {
+                *entry = HeapEntry { score, offset };
+            }
+        }
+
+        local_best
+    }
+
     /// Search with parallel processing for large memory-mapped indices.
     ///
     /// Uses rayon to parallelize the scan across chunks of the offset table.
@@ -857,66 +926,12 @@ impl MmapVectorIndex {
 
         // Max-pool per document inside each chunk, then across chunks. A heap of
         // the k best vectors would let one long post crowd every other post out.
-        let partial_best: Vec<HashMap<(u8, Vec<u8>), HeapEntry>> = offsets_bytes
+        let partial_best: Vec<HashMap<(u8, &[u8]), HeapEntry>> = offsets_bytes
             .par_chunks(CHUNK_BYTES)
-            .map(|offset_block| {
-                let mut local_best: HashMap<(u8, Vec<u8>), HeapEntry> = HashMap::new();
-
-                for chunk in offset_block.chunks_exact(8) {
-                    let offset = usize::try_from(u64::from_le_bytes([
-                        chunk[0], chunk[1], chunk[2], chunk[3], chunk[4], chunk[5], chunk[6],
-                        chunk[7],
-                    ]))
-                    .unwrap_or(usize::MAX);
-                    let Some(record) = bytes.get(offset..) else {
-                        continue;
-                    };
-                    if record.len() < 4 {
-                        continue;
-                    }
-
-                    let doc_type_code = record[0];
-                    if let Some(filter) = &filter {
-                        if !filter.allows(doc_type_code) {
-                            continue;
-                        }
-                    }
-                    if decode_doc_type(doc_type_code).is_none() {
-                        continue;
-                    }
-
-                    let doc_id_len = u16::from_le_bytes([record[2], record[3]]) as usize;
-                    let doc_id_start = 4usize;
-                    let doc_id_end = doc_id_start.saturating_add(doc_id_len);
-                    let embedding_end = doc_id_end.saturating_add(self.embedding_len);
-                    if record.len() < embedding_end {
-                        continue;
-                    }
-
-                    let doc_id_owned = record[doc_id_start..doc_id_end].to_vec();
-                    if str::from_utf8(&doc_id_owned).is_err() {
-                        continue;
-                    }
-
-                    let embedding_bytes = &record[doc_id_end..embedding_end];
-                    let Some(score) = dot_product_f16_simd(query, embedding_bytes) else {
-                        continue;
-                    };
-
-                    let key = (doc_type_code, doc_id_owned);
-                    match local_best.get(&key) {
-                        Some(existing) if existing.score >= score => {}
-                        _ => {
-                            local_best.insert(key, HeapEntry { score, offset });
-                        }
-                    }
-                }
-
-                local_best
-            })
+            .map(|offset_block| self.scan_offset_block(bytes, offset_block, query, filter.as_ref()))
             .collect();
 
-        let mut best: HashMap<(u8, Vec<u8>), HeapEntry> = HashMap::new();
+        let mut best: HashMap<(u8, &[u8]), HeapEntry> = HashMap::new();
         for part in partial_best {
             for (key, entry) in part {
                 match best.get(&key) {
@@ -928,43 +943,7 @@ impl MmapVectorIndex {
             }
         }
 
-        let mut final_heap: BinaryHeap<HeapEntry> = BinaryHeap::with_capacity(k + 1);
-        for entry in best.into_values() {
-            final_heap.push(entry);
-            if final_heap.len() > k {
-                final_heap.pop();
-            }
-        }
-
-        let mut results: Vec<VectorSearchResult> = Vec::with_capacity(final_heap.len());
-        for entry in final_heap {
-            let Some(record) = bytes.get(entry.offset..) else {
-                continue;
-            };
-            let doc_type_code = record[0];
-            let Some(doc_type) = decode_doc_type(doc_type_code) else {
-                continue;
-            };
-            let doc_id_len = u16::from_le_bytes([record[2], record[3]]) as usize;
-            let doc_id_bytes = &record[4..4 + doc_id_len];
-            let Ok(doc_id) = str::from_utf8(doc_id_bytes) else {
-                continue;
-            };
-            results.push(VectorSearchResult {
-                doc_id: doc_id.to_string(),
-                doc_type,
-                score: entry.score,
-            });
-        }
-
-        results.sort_by(|a, b| {
-            b.score
-                .total_cmp(&a.score)
-                .then_with(|| a.doc_id.cmp(&b.doc_id))
-                .then_with(|| a.doc_type.cmp(b.doc_type))
-        });
-
-        results
+        Self::collect_top_k_results(bytes, best, k)
     }
 
     /// Get counts of embeddings by document type.
@@ -2606,11 +2585,14 @@ mod tests {
         let mut record_bytes: Vec<u8> = Vec::with_capacity(record_count * (16 + dim * 2));
         let mut current_offset = records_start;
 
+        let tweet_code = encode_doc_type("tweet").unwrap();
+        let like_code = encode_doc_type("like").unwrap();
+
         for i in 0..record_count {
             offsets.push(current_offset);
             let doc_id = format!("doc-{i:05}");
             let doc_id_bytes = doc_id.as_bytes();
-            let doc_type_code = if i % 4 == 0 { 2u8 } else { 1u8 }; // 1 = tweet, 2 = like
+            let doc_type_code = if i % 4 == 0 { like_code } else { tweet_code };
             record_bytes.push(doc_type_code);
             record_bytes.push(0);
             record_bytes.extend_from_slice(&(doc_id_bytes.len() as u16).to_le_bytes());
@@ -2628,11 +2610,13 @@ mod tests {
         let mut bytes = Vec::with_capacity(current_offset as usize);
         bytes.extend_from_slice(&VECTOR_INDEX_MAGIC);
         bytes.extend_from_slice(&VECTOR_INDEX_VERSION.to_le_bytes());
-        bytes.extend_from_slice(&[0u8; 2]);
+        bytes.push(VECTOR_INDEX_DOC_TYPE_ENCODING);
+        bytes.push(0);
         bytes.extend_from_slice(&(dim as u32).to_le_bytes());
         bytes.extend_from_slice(&(record_count as u64).to_le_bytes());
         bytes.extend_from_slice(&offsets_start.to_le_bytes());
-        bytes.extend_from_slice(&records_start.to_le_bytes());
+        bytes.extend_from_slice(&[0u8; 4]); // reserved header padding (total 32 bytes)
+        assert_eq!(bytes.len(), VECTOR_INDEX_HEADER_LEN);
         for off in offsets {
             bytes.extend_from_slice(&off.to_le_bytes());
         }
@@ -2652,6 +2636,27 @@ mod tests {
             assert_eq!(a.doc_type, b.doc_type);
             assert!((a.score - b.score).abs() < 1e-6);
         }
+
+        // Filtered by doc_type parity
+        let filter = ["like"];
+        let seq_filtered = mmap_idx.search_top_k(&query, 15, Some(&filter));
+        let par_filtered = mmap_idx.search_top_k_parallel(&query, 15, Some(&filter));
+        assert_eq!(seq_filtered.len(), 15);
+        assert_eq!(par_filtered.len(), 15);
+        for (a, b) in seq_filtered.iter().zip(par_filtered.iter()) {
+            assert_eq!(a.doc_id, b.doc_id);
+            assert_eq!(a.doc_type, "like");
+            assert_eq!(b.doc_type, "like");
+            assert!((a.score - b.score).abs() < 1e-6);
+        }
+
+        // Edge cases above PARALLEL_THRESHOLD
+        assert!(mmap_idx.search_top_k_parallel(&query, 0, None).is_empty());
+        assert!(
+            mmap_idx
+                .search_top_k_parallel(&[1.0, 0.0], 10, None)
+                .is_empty()
+        );
 
         // Verify VectorIndex::Mmap dispatches cleanly
         let unified = VectorIndex::Mmap(mmap_idx);
