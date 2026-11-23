@@ -10,7 +10,24 @@ Repository: <https://github.com/Dicklesworthstone/xf>
 
 ## [Unreleased]
 
-Compare: [`v0.5.0...main`](https://github.com/Dicklesworthstone/xf/compare/v0.5.0...main)
+Compare: [`v0.5.1...main`](https://github.com/Dicklesworthstone/xf/compare/v0.5.1...main)
+
+---
+
+## [0.5.1] - 2026-11-23
+
+Compare: [`v0.5.0...v0.5.1`](https://github.com/Dicklesworthstone/xf/compare/v0.5.0...v0.5.1)
+
+### Added
+
+- **Combined analytics snapshot (`stats_analytics::compute_full_analytics`)**: Added `FullAnalytics` and `compute_full_analytics(storage, top_n)` and wired REPL `stats` / `stats detailed` (`format_stats_report` / `run_stats`) through all rich analytics formatters (daily trend, hourly 00–23h sparkline, monthly engagement trend, day-of-week distribution, tweet length distribution, likes histogram, and top hashtags/mentions).
+- **Daemon & logging testability and E2E coverage**: Added `MemoryMonitor::evaluate_pressure`, `ResourceConfig::load_with_env`, `DaemonConfig::load_with_env`, `LogConfig::from_verbosity_with_env`, and `resolve_daemon_start_config` / `build_daemon_spawn_args`, plus unit and E2E tests covering RSS and system memory-pressure eviction, `InferenceMode::embed` fallback on missing/broken daemon sockets, background `--config` forwarding and `XF_DAEMON_TIMEOUT` preservation, `XF_LOG_FILE` append teeing, and `OperationGuard` completion/failure/abandonment behavior.
+
+### Fixed
+
+- **Parallel mmap vector search (`--features parallel-search`)**: Refactored `MmapVectorIndex::search_top_k_parallel` to borrow zero-copy document ID slices instead of allocating per record, share top-k extraction with sequential search (clearing `clippy::too_many_lines` under `--features full,parallel-search`), and fixed the 32-byte `XFVI` header and `doc_type` encoding in the above-threshold mmap parity test.
+- **Structured file logging durability & formatting**: Ensured `CombinedWriter` still tees log bytes to `XF_LOG_FILE` even if `stderr` returns a write error, and made `LogFormat::Full` honor `LogConfig::timestamps` consistently with `Pretty` and `Compact`.
+- **REPL `stats` argument validation**: Explicitly accepted `stats` and `stats detailed` while rejecting unknown options with a clear usage error.
 
 ---
 
@@ -384,7 +401,8 @@ All content types from the X data export are indexed and searchable:
 ---
 
 <!-- Link references -->
-[Unreleased]: https://github.com/Dicklesworthstone/xf/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/Dicklesworthstone/xf/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/Dicklesworthstone/xf/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/Dicklesworthstone/xf/compare/v0.4.3...v0.5.0
 [0.4.3]: https://github.com/Dicklesworthstone/xf/compare/v0.4.2...v0.4.3
 [0.2.0]: https://github.com/Dicklesworthstone/xf/compare/v0.1.0...v0.2.0
